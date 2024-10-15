@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Code Editor</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/theme/dracula.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            
+            background-color: #282a36;
+            color: #f8f8f2;
+            display: flex;
+            flex-direction: column;
+            /* align-items: center; */
+            padding: 20px;
+            height: 100vh;
+
+            font-family: "Ubuntu", sans-serif;
+            font-weight: 300;
+            font-style: normal;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        h5 {
+            margin-bottom: 20px;
+        }
+
+        #editor {
+            width: 800px;
+            min-width: 800px;
+            /* Fixed width for the editor */
+            height: auto;
+            /* Height will adjust automatically */
+            border: 1px solid #44475a;
+            background-color: #44475a;
+            /* Background color */
+        }
+
+        #run-code {
+            background-color: #50fa7b;
+            color: #282a36;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .output-container {
+            width: 100%;
+            min-height: 50px;
+            /* Consistent width with editor */
+            margin-top: 20px;
+            /* Space between button and output */
+            border: 1px solid #6272a4;
+            border-radius: 5px;
+            /* Rounded corners */
+            background-color: #44475a;
+            /* Background color */
+            padding: 10px;
+        }
+
+        .output-header {
+            font-weight: bold;
+            color: #f6f6f6;
+            /* Highlighted color for user */
+            margin-bottom: 10px;
+            /* Space between header and output */
+        }
+
+        .output {
+            color: #f8f8f2;
+            /* Default text color */
+            white-space: pre-wrap;
+            /* Preserve whitespace and line breaks */
+            overflow-y: auto;
+            /* Enable vertical scrolling */
+            max-height: 200px;
+            /* Limit output height */
+            padding: 5px;
+            /* Padding around output text */
+            border: 1px solid #6272a4;
+            /* Border for the output */
+            border-radius: 3px;
+            /* Rounded corners for output */
+            background-color: #282a36;
+            /* Background color for output */
+        }
+
+        .code-editor {
+            margin: auto;
+        }
+    </style>
+    <style>
+        .people-list-container {
+            background-color: #191a29;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+            max-width: 250px;
+        }
+        .file-list-container {
+            background-color: #191a29;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+            /* max-width: 250px; */
+        }
+
+        .people-list-container h3, .file-list-container  h3 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #4ecdd1;
+        }
+
+        .participants-list {
+            padding: 0;
+        }
+
+        .participants-list li {
+            display: flex;
+            /* justify-content:space-around; */
+            align-items: center;
+            padding: 10px;
+            /* border-bottom: 1px solid #282828; */
+            transition: background-color 0.3s;
+        }
+
+        .participants-list li:hover {
+            background-color: #282a36;
+        }
+
+        .participants-list li span {
+            font-size: 1.1em;
+            color: #ffffff;
+            opacity: .6;
+        }
+
+        .participants-list li i {
+            color: #4ecdd1;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <h1 class="text-center">Real-Time Code Editor</h1>
+
+
+    <hr color="#fff">
+
+    <div class="row mt-3">
+        <div class="col-lg-2 col-md-3 col-4 p-3">
+            <div class="people-list-container p-3">
+                <h3><i class="fas fa-users"></i> <span style="color: #ffffff; opacity: .8;">Participants</span></h3>
+                <ul class="participants-list" style="list-style: none;">
+                    {% for user in channel.participants.all %}
+                    <li>
+                        <span>
+                            {{user.username}}
+                            {% if request.user == user %}
+                            <span style="opacity: .4;"> (you)</span>
+                            {% endif %}
+                            &nbsp;
+                        </span>
+                        <i class="fa-solid fa-code"></i>
+                    </li>
+                    {% endfor %}
+                    <li>
+                    <span id="x" class=""></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-8 col-md-6 col-8">
+            <div class="code-editor">
+                <form id="codeForm" method="POST" action="{% url 'save_code' %}">
+                <textarea id="editor" data-user="{{request.user}}" ></textarea>
+                    {% csrf_token %}
+                    <input type="hidden" name="code" id="codeInput">
+                    <input type="hidden" name="channel_id" value="{{channel.id}}">
+                    <input type="hidden" name="file_id" id="coe_file_input" value="">
+                </form>
+
+                
+                <div class="container my-2">
+                    <button id="run-code" class="btn btn-success" data-executed="{{request.user}}">Run Code</button>
+                    <button id="save-code" class="btn btn-warning ml-2">Save Code</button>
+                    <button id="theme-toggle" class="btn btn-secondary ml-2">Change Theme</button>
+                </div>
+
+                <div id="output-container" class="output-container">
+                    <div id="output-header" class="output-header">
+                        <span id="executed-by"></span>
+                    </div>
+                    <div id="output" class="output"></div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-lg-2 col-md-3 col-0">
+            <div class="file-list-container">
+                <h3><i class="fa-solid fa-folder"></i>&nbsp;<span style="color: #ffffff; opacity: .8;">
+                    <span style="font-size: .8rem; opacity: .8;">You can load this in editor</span> </span>
+                </h3>
+                <ul class="participants-list" style="list-style: none;">
+                        {% for channels_file in channels_files %}
+                        <li>
+                            <button class="btn file-button" data-content="{{ channels_file.file }}" data-file_id="{{channels_file.id}}" style="color: #f8f8f2;">
+                                <i class="fa-solid fa-file"></i>
+                                &nbsp;
+                                <span style="opacity: .8;">
+                                    {% if channels_file.file_name %}
+                                        {{channels_file.file_name}}
+                                    {% else %}
+                                        {{ channels_file }}
+                                    {% endif %}
+                                    <span style="background-color: #fff; padding-left: 5px;padding-right: 5px; border-radius: 3px;">
+                                      <a href="" style=" cursor:text; z-index: 9;"><img src="{% static 'editor/icons/rename.png' %}" height="20" width="20" alt="icons"></a>  
+                                    </span>
+                                     <span style="font-size: .8rem;">{{channels_file.date|timesince}} ago</span> 
+                                    </span> 
+                            </button> 
+                        </li>
+                        {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/mode/javascript/javascript.min.js"></script>
+
+
+    <script>
+        const editorElement = document.getElementById('editor');
+
+
+        const editor = CodeMirror.fromTextArea(editorElement, {
+            lineNumbers: true,
+            mode: "python",
+            theme: "default",
+            viewportMargin: Infinity,
+            lineWrapping: true,
+            indentWithTabs: true,
+            tabSize: 4,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            smartIndent: true,
+            styleActiveLine: true,
+            lint: true,
+            highlightSelectionMatches: { showToken: /\w/ },
+        });
+        // Add keyboard shortcuts
+        editor.setSize(null, "450px");  // Set the height to 500px
+
+        editor.setOption("extraKeys", {
+            "Ctrl-Space": "autocomplete", // Trigger autocomplete on Ctrl + Space
+            "Ctrl-Enter": function () {
+                const code = editor.getValue();
+                sendCodeForExecution(code); // Call function to execute code
+            },
+            "Tab": function (cm) {
+                if (cm.somethingSelected()) {
+                    cm.indentSelection("add");
+                } else {
+                    cm.replaceSelection("    "); // Replace Tab with spaces
+                }
+            }
+        });
+
+       
+
+        document.querySelectorAll('.file-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const content = this.getAttribute('data-content');  // Get the data-content attribute
+                const file_id = this.dataset.file_id
+                editor.setValue(content);  // Assuming `editor` is your code editor instance
+                editorElement.dataset.file_id = file_id
+                console.log(editorElement.dataset.file_id)
+            });
+        });
+
+
+
+        // Save code to local storage
+        const saveCode = () => {
+            const code = editor.getValue();
+            document.getElementById('codeInput').value = code;
+            document.getElementById('coe_file_input').setAttribute('value',editorElement.dataset.file_id)
+            document.getElementById('codeForm').submit();
+        };
+
+        // Load saved code on page load
+        const loadCode = () => {
+            const savedCode = localStorage.getItem('savedCode');
+            if (savedCode) {
+                editor.setValue(savedCode);
+            }
+        };
+
+        // Save code button event listener
+        document.getElementById('save-code').addEventListener('click', saveCode);
+
+        // Theme toggle button event listener
+        let isDracula = false;
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            isDracula = !isDracula;
+            editor.setOption("theme", isDracula ? "dracula" : "default");
+        });
+
+        // Load code when the page loads
+        window.onload = loadCode;
+
+
+        const btn = document.getElementById('run-code');
+        const roomName = "{{room_name}}";
+
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/ac/' + roomName + '/');
+        let isLocalChange = false; // Flag to check if the change is local
+
+        let taskId = null
+        socket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            console.log('Message received from server:', data);
+
+            const output = data.message;
+            const taskIdReceived = data.task_id;
+
+
+            if (taskIdReceived) {
+                taskId = taskIdReceived;
+            }
+            console.log('task id is : ', taskId)
+            console.log('taskIdReceived id is : ', taskIdReceived)
+            console.log('Output : ', output)
+
+
+
+
+            if (output === 'Processing...') {
+                setTimeout(function () {
+                    socket.send(JSON.stringify({ 'task_id': taskId }));
+                }, 100);
+            } else {
+                console.log('Output is not Processing....', output)
+                document.getElementById('output').innerText = output;
+                if (data.coding_by) {
+                    document.getElementById('x').innerText = `Now Coding: ${data.coding_by}`;
+                }
+                else {
+                    document.getElementById('executed-by').innerText = `Executed by: ${data.code_executed_by}`;
+                }
+            }
+
+
+            if (data.raw_code && !isLocalChange) {
+                const cursorPos = editor.getCursor()
+                isLocalChange = true;
+                editor.setValue(data.raw_code);
+                editor.setCursor(cursorPos);
+                isLocalChange = false;
+            }
+        };
+
+        socket.onclose = function (e) {
+            console.error('WebSocket closed unexpectedly');
+        };
+
+        editor.on('change', function () {
+            if (!isLocalChange) {
+                const rawCode = editor.getValue();
+                const coding_by = editorElement.dataset.user;
+                console.log(coding_by)
+                socket.send(JSON.stringify({
+                    'raw_code': rawCode,
+                    'coding_by': coding_by
+                }));
+            }
+        });
+
+        btn.addEventListener('click', function () {
+            const code = editor.getValue();
+            const code_executed_by = btn.dataset['executed'];
+            sendCodeForExecution(code, code_executed_by);
+        });
+
+        function sendCodeForExecution(code, code_executed_by) {
+            socket.send(JSON.stringify({
+                'code': code,
+                'code_executed_by': code_executed_by
+            }));
+        }
+    </script>
+
+
+
+</body>
+
+</html>
