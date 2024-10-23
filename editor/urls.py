@@ -6,5 +6,8 @@ urlpatterns = [
     path('', home, name='home'),
     path('save-code/',save_file, name='save_code'),
     path('login/', auth_views.LoginView.as_view(template_name='editor/loginpage.html'), name='login'),
-     path('logout/', logout_view, name='logout'),
+    path('logout/', logout_view, name='logout'),
+    path('chat/<str:user_id>/', chat_room, name='chat_room'),
+    path('create-channel/',create_channel, name='create_channel'),
+    path('join-channel/<str:channel_id>/',join_channel,name='join_channel')
 ]

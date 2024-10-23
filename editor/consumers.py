@@ -8,6 +8,12 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'editor_{self.room_name}'
 
+        print('===================================')
+        print('----------For editor------------')
+        print(f'={self.channel_name}=')
+        print(f'={self.channel_layer}')
+        print(f'={self.room_group_name}')
+        print('===================================')
         # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -120,4 +126,64 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
             'code_executed_by': code_executed_by,
             'task_id':task_id,
             'coding_by':coding_by
+        }))
+
+class ChatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['chat_room']
+        self.room_group_name = f'chat_{self.room_name}'
+        
+        print('===================================')
+        print('----------For Chat------------')
+        print(f'={self.channel_name}=')
+        print(f'={self.channel_layer}')
+        print(f'={self.room_group_name}')
+        print('===================================')
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+         
+        )
+        await self.accept()
+    
+    async def receive(self, text_data=None, bytes_data=None):
+        text_data_json = json.loads(text_data)
+        message = text_data_json['message']
+        print(text_data_json)
+        await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'send_data',
+                    'data':text_data_json
+                }
+            )
+        # await self.send(
+        #     json.dumps(text_data_json)
+        # )
+        
+    async def send_data(self,event):
+        data = event.get('data')
+        await self.send(text_data=json.dumps(
+            data
+        ))
+    
+
+class NotificationConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user_group_name = f'user_{self.scope["user"].id}'
+        await self.channel_layer.group_add(
+            self.user_group_name,
+            self.channel_name
+        )
+        self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.user_group_name,
+            self.channel_name
+        )
+
+    async def send_notification(self, event):
+        await self.send(text_data=json.dumps({
+            'notification': event['notification']
         }))

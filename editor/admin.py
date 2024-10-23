@@ -7,3 +7,4 @@ from .models import *
 admin.site.register(UserProfile)
 admin.site.register(Channel)
 admin.site.register(CodeFile)
+admin.site.register(DMRoom)

@@ -14,6 +14,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.min.css" rel="stylesheet" />
 
     <style>
         body {
@@ -22,10 +23,8 @@
             color: #f8f8f2;
             display: flex;
             flex-direction: column;
-            /* align-items: center; */
             padding: 20px;
             height: 100vh;
-
             font-family: "Ubuntu", sans-serif;
             font-weight: 300;
             font-style: normal;
@@ -158,16 +157,118 @@
 
 <body>
 
+    <nav class="navbar navbar-expand-lg navbar-dark p-3">
+        <!-- Container wrapper -->
+        <div class="container-fluid">
+          <!-- Toggle button -->
+          <button data-mdb-collapse-init class="navbar-toggler" type="button" data-mdb-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="fas fa-bars"></i>
+          </button>
+    
+          <!-- Collapsible wrapper -->
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <!-- Navbar brand -->
+            <a class="navbar-brand mt-2 mt-lg-0" href="/">
+                <i class="fa-solid fa-code"></i>
+            </a>
+            <!-- Left links -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link" href="/">Dashboard</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Team</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Projects</a>
+              </li>
+            </ul>
+            <!-- Left links -->
+          </div>
+          <!-- Collapsible wrapper -->
+    
+          <!-- Right elements -->
+          <div class="d-flex align-items-center">
+            <!-- Icon -->
+            {% if request.user.is_authenticated %}
+            Hello {{userprofile.user.username}}! &nbsp;&nbsp;
+            {% else %}
+            <a data-mdb-ripple-init type="button" href="{% url 'login' %}" class="btn btn-link px-3 me-2">
+              Login
+            </a>
+            <button data-mdb-ripple-init type="button" class="btn btn-primary me-3">
+              Sign up for free
+            </button>
+            {% endif %}
+            <!-- Notifications -->
+            <div class="dropdown">
+              <a data-mdb-dropdown-init class="link-secondary me-3 dropdown-toggle hidden-arrow" href="#"
+                id="navbarDropdownMenuLink" role="button" aria-expanded="false">
+                <i class="fas fa-bell"></i>
+                <span class="badge rounded-pill badge-notification bg-danger">0</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+                <li>
+                  <a class="dropdown-item" href="#">Some news</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#">Another news</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#">Something else here</a>
+                </li>
+              </ul>
+            </div>
+            <!-- Avatar -->
+            <div class="dropdown">
+              <a data-mdb-dropdown-init class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
+                id="navbarDropdownMenuAvatar" role="button" aria-expanded="false">
+                {% if userprofile %}
+                <img src="{{userprofile.imageURL}}" class="rounded-circle" height="35"
+                  alt="Black and White Portrait of a Man" loading="lazy" />
+                {% else %}
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY4lzrMEr0amU3ubAgMpsMXUw5kqMqHrylBNDQi82fS6QYpEC0TaE0FxSYhYmHGL4RGOU&usqp=CAU"
+                  class="rounded-circle" height="25" alt="" loading="lazy" />
+                {% endif %}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
+                <li>
+                  <a class="dropdown-item" href="#">My profile</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="#">Settings</a>
+                </li>
+                {% if request.user.is_authenticated %}
+                <li>
+                  <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                </li>
+                {% else %}
+                <li>
+                  <a class="dropdown-item" href="{% url 'login' %}">login</a>
+                </li>
+                {% endif %}
+    
+              </ul>
+            </div>
+          </div>
+          <!-- Right elements -->
+        </div>
+        <!-- Container wrapper -->
+      </nav>
+    <!-- <h1 class="text-center"><span style="opacity: .8;">{{channel.name}}</span> </h1> -->
 
-    <h1 class="text-center">Real-Time Code Editor</h1>
 
-
-    <hr color="#fff">
+    <!-- <hr color="#fff"> -->
 
     <div class="row mt-3">
         <div class="col-lg-2 col-md-3 col-4 p-3">
             <div class="people-list-container p-3">
                 <h3><i class="fas fa-users"></i> <span style="color: #ffffff; opacity: .8;">Participants</span></h3>
+
+
+                <!-- <button class="btn btn-primary">Invite Friends</button> -->
                 <ul class="participants-list" style="list-style: none;">
                     {% for user in channel.participants.all %}
                     <li>
@@ -178,7 +279,7 @@
                             {% endif %}
                             &nbsp;
                         </span>
-                        <i class="fa-solid fa-code"></i>
+                        <!-- <i class="fa-solid fa-code"></i> -->
                     </li>
                     {% endfor %}
                     <li>
@@ -190,6 +291,10 @@
 
         <div class="col-lg-8 col-md-6 col-8">
             <div class="code-editor">
+                <h6 style=" color: #dbdbdb;">
+                    Channel - <span style="opacity: .8;">{{channel.name}}</span> 
+                    Invitation link: http://127.0.0.1:8000/join-channel/1/
+                </h6>
                 <form id="codeForm" method="POST" action="{% url 'save_code' %}">
                 <textarea id="editor" data-user="{{request.user}}" ></textarea>
                     {% csrf_token %}
@@ -233,9 +338,10 @@
                                     {% else %}
                                         {{ channels_file }}
                                     {% endif %}
-                                    <span style="background-color: #fff; padding-left: 5px;padding-right: 5px; border-radius: 3px;">
+                                    <!-- <span style="background-color: #fff; padding-left: 5px;padding-right: 5px; border-radius: 3px;">
                                       <a href="" style=" cursor:text; z-index: 9;"><img src="{% static 'editor/icons/rename.png' %}" height="20" width="20" alt="icons"></a>  
-                                    </span>
+                                    </span> -->
+                                    <br>
                                      <span style="font-size: .8rem;">{{channels_file.date|timesince}} ago</span> 
                                     </span> 
                             </button> 
@@ -252,6 +358,13 @@
 
 
     <script>
+
+        function scrollToBottom() {
+            const scrollHeight = document.body.scrollHeight;
+
+            window.scrollTo(0, scrollHeight);
+        }
+
         const editorElement = document.getElementById('editor');
 
 
@@ -271,7 +384,7 @@
             highlightSelectionMatches: { showToken: /\w/ },
         });
         // Add keyboard shortcuts
-        editor.setSize(null, "450px");  // Set the height to 500px
+        editor.setSize(null, "550px");  // Set the height to 500px
 
         editor.setOption("extraKeys", {
             "Ctrl-Space": "autocomplete", // Trigger autocomplete on Ctrl + Space
@@ -301,8 +414,6 @@
         });
 
 
-
-        // Save code to local storage
         const saveCode = () => {
             const code = editor.getValue();
             document.getElementById('codeInput').value = code;
@@ -310,7 +421,7 @@
             document.getElementById('codeForm').submit();
         };
 
-        // Load saved code on page load
+
         const loadCode = () => {
             const savedCode = localStorage.getItem('savedCode');
             if (savedCode) {
@@ -318,10 +429,10 @@
             }
         };
 
-        // Save code button event listener
+
         document.getElementById('save-code').addEventListener('click', saveCode);
 
-        // Theme toggle button event listener
+
         let isDracula = false;
 
         document.getElementById('theme-toggle').addEventListener('click', () => {
@@ -370,6 +481,8 @@
                 }
                 else {
                     document.getElementById('executed-by').innerText = `Executed by: ${data.code_executed_by}`;
+                    scrollToBottom()
+
                 }
             }
 

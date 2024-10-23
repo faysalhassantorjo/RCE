@@ -2,230 +2,398 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Code Editor</title>
-   <!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Code Editor</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<!-- Bootstrap Bundle with Popper (JS) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap Bundle with Popper (JS) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/theme/dracula.min.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/theme/dracula.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+    rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #282a36;
+      color: #f8f8f2;
+      font-family: "Ubuntu", sans-serif;
+      font-weight: 300;
+      font-style: normal;
+    }
 
-    <style>
-        body {
-            background-color: #282a36;
-            color: #f8f8f2;
-            font-family: 'Roboto', sans-serif;
-        }
+    .navbar {
+      background-color: #191a29 !important;
+    }
 
-        .navbar {
-            background-color: #191a29 !important;
-        }
+    .profile-avatar,
+    .channel-avatar {
+      border: 2px solid #50fa7b;
+    }
 
-        .profile-avatar, .channel-avatar {
-            border: 2px solid #50fa7b;
-        }
+    .profile-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+    }
 
-        .profile-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-        }
+    .channel-avatar {
+      width: 70px;
+      height: 50px;
+      border-radius: 5px;
+    }
 
-        .channel-avatar {
-            width: 70px;
-            height: 50px;
-            border-radius: 5px;
-        }
+    .people-list,
+    .channel-list {
+      list-style: none;
+      padding: 0;
+    }
 
-        .people-list, .channel-list {
-            list-style: none;
-            padding: 0;
-        }
+    .people-list li,
+    .channel-list li {
+      padding: 15px;
+      margin: 10px 0;
+      background-color: #44475a;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      transition: transform 0.2s ease;
+    }
 
-        .people-list li, .channel-list li {
-            padding: 15px;
-            margin: 10px 0;
-            background-color: #44475a;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            transition: transform 0.2s ease;
-        }
+    .people-list li:hover,
+    .channel-list li:hover {
+      transform: scale(1.03);
+      cursor: pointer;
+    }
 
-        .people-list li:hover, .channel-list li:hover {
-            transform: scale(1.03);
-            cursor: pointer;
-        }
+    h3 {
+      color: #50fa7b;
+      font-size: 1.3rem;
+    }
 
-        h3 {
-            color: #50fa7b;
-            font-size: 1.3rem;
-        }
+    #create-channel {
+      background-color: #50fa7b;
+      color: #282a36;
+      font-weight: bold;
+    }
+    #joinChannelForm{
+      background-color: #191a29;
+    }
 
-        #create-channel {
-            background-color: #50fa7b;
-            color: #282a36;
-            font-weight: bold;
-        }
+    #create-channel:hover {
+      background-color: #45e07b;
+    }
 
-        #create-channel:hover {
-            background-color: #45e07b;
-        }
+    .nav-text {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
 
-        .nav-text {
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
+    .code-editor {
+      background-color: #191a29;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
 
-        .code-editor {
-            background-color: #191a29;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
+    .output-container {
+      background-color: #44475a;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
 
-        .output-container {
-            background-color: #44475a;
-            color: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-
-        .output-header {
-            font-weight: bold;
-            color: #50fa7b;
-        }
-
-    </style>
+    .output-header {
+      font-weight: bold;
+      color: #50fa7b;
+    }
+  </style>
 </head>
 
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <!-- Logo -->
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="https://cdn.vectorstock.com/i/1000x1000/60/18/symbol-code-white-color-icon-vector-16646018.webp"
-                     alt="Logo" width="60" height="60" class="rounded-circle">
-            </a>
-            <!-- Title -->
-            <span class="navbar-text mx-auto">
-                <h4 class="nav-text text-center">Real-Time Code Editor</h4>
-            </span>
-            <!-- Right Side -->
-            <div class="ms-auto">
-                {% if request.user.is_authenticated %}
-                Hello {{request.user}}
-                <a class="btn btn-outline-light" href="{% url 'logout' %}">
-                    <i class="fas fa-sign-in-alt"></i> Logout
-                </a>
-                {% else %}
-                <a class="btn btn-outline-light" href="{% url 'login' %}">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </a>
-                {% endif %}
-            </div>
+
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-body-tertiary p-3">
+    <!-- Container wrapper -->
+    <div class="container-fluid">
+      <!-- Toggle button -->
+      <button data-mdb-collapse-init class="navbar-toggler" type="button" data-mdb-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Collapsible wrapper -->
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <!-- Navbar brand -->
+        <a class="navbar-brand mt-2 mt-lg-0" href="#">
+          <i class="fa-solid fa-code"></i>
+        </a>
+        <!-- Left links -->
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="#">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Team</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Projects</a>
+          </li>
+        </ul>
+        <!-- Left links -->
+      </div>
+      <!-- Collapsible wrapper -->
+
+      <!-- Right elements -->
+      <div class="d-flex align-items-center">
+        <!-- Icon -->
+        {% if request.user.is_authenticated %}
+        Hello {{userprofile.user.username}}! &nbsp;&nbsp;
+        {% else %}
+        <a data-mdb-ripple-init type="button" href="{% url 'login' %}" class="btn btn-link px-3 me-2">
+          Login
+        </a>
+        <button data-mdb-ripple-init type="button" class="btn btn-primary me-3">
+          Sign up for free
+        </button>
+        {% endif %}
+        <!-- Notifications -->
+        <div class="dropdown">
+          <a data-mdb-dropdown-init class="link-secondary me-3 dropdown-toggle hidden-arrow" href="#"
+            id="navbarDropdownMenuLink" role="button" aria-expanded="false">
+            <i class="fas fa-bell"></i>
+            <span class="badge rounded-pill badge-notification bg-danger">0</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+            <li>
+              <a class="dropdown-item" href="#">Some news</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">Another news</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </li>
+          </ul>
         </div>
-    </nav>
+        <!-- Avatar -->
+        <div class="dropdown">
+          <a data-mdb-dropdown-init class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
+            id="navbarDropdownMenuAvatar" role="button" aria-expanded="false">
+            {% if userprofile %}
+            <img src="{{userprofile.imageURL}}" class="rounded-circle" height="35"
+              alt="Black and White Portrait of a Man" loading="lazy" />
+            {% else %}
+            <img
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY4lzrMEr0amU3ubAgMpsMXUw5kqMqHrylBNDQi82fS6QYpEC0TaE0FxSYhYmHGL4RGOU&usqp=CAU"
+              class="rounded-circle" height="25" alt="" loading="lazy" />
+            {% endif %}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
+            <li>
+              <a class="dropdown-item" href="#">My profile</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">Settings</a>
+            </li>
+            {% if request.user.is_authenticated %}
+            <li>
+              <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+            </li>
+            {% else %}
+            <li>
+              <a class="dropdown-item" href="{% url 'login' %}">login</a>
+            </li>
+            {% endif %}
 
-    <div class="container-fluid mt-4">
-        <div class="row">
-            <!-- People List -->
-            <div class="col-lg-2 mb-4">
-                <div class="people-list-container p-3 bg-dark rounded">
-                    <h3 class="mb-4"><i class="fas fa-users"></i> People</h3>
-                    <ul class="people-list">
-                        {% for user in users %}
-                        <li class="d-flex align-items-center">
-                            <img src="{{user.imageURL}}" alt="User 1" class="profile-avatar me-3">
-                            <span>{{user.user.username}}</span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Channel List -->
-            <div class="col-lg-3 mb-4">
-                <div class="channel-list-container p-3 bg-dark rounded">
-                    <div class="d-flex justify-content-between mb-3">
-                        <h3><i class="fas fa-hashtag"></i> Channels</h3>
-                        <button id="create-channel" class="btn">
-                            <i class="fas fa-plus-circle"></i> Create Channel
-                        </button>
-                    </div>
-                    <ul class="channel-list">
-                        {% for channel in channels %}
-                        <a href="{% url 'channel' channel.id %}" style="text-decoration: none; color: #fff;">
-                            <li class="d-flex align-items-center">
-                                <img src="{{channel.imageURL}}" alt="Channel" class="channel-avatar me-3">
-                                <span>{{channel.name}}</span>
-                               
-                            </li>
-                        </a>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Code Editor Section -->
-            <div class="col-lg-7">
-                <div class="code-editor p-3">
-                    <form id="codeForm" method="POST" action="{% url 'save_code' %}">
-                        <textarea id="editor" class="form-control" data-user="{{request.user}}"></textarea>
-                        {% csrf_token %}
-                        <input type="hidden" name="code" id="codeInput">
-                        <input type="hidden" name="channel_id" value="{{channel.id}}">
-                        <input type="hidden" name="file_id" id="code_file_input" value="">
-                    </form>
-
-                    <div class="mt-3 d-flex justify-content-start">
-                        <button id="run-code" class="btn btn-success me-2">Run Code</button>
-                        <button id="save-code" class="btn btn-warning me-2">Save Code</button>
-                        <button id="theme-toggle" class="btn btn-secondary">Change Theme</button>
-                    </div>
-
-                    <div id="output-container" class="output-container mt-4">
-                        <div id="output-header" class="output-header">Output</div>
-                        <div id="output" class="mt-2"></div>
-                    </div>
-                </div>
-            </div>
+          </ul>
         </div>
+      </div>
+      <!-- Right elements -->
     </div>
+    <!-- Container wrapper -->
+  </nav>
+  <!-- Navbar -->
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/mode/python/python.min.js"></script>
+  <div class="container-fluid mt-4">
+    <div class="row">
+      <!-- People List -->
+      <div class="col-lg-2 mb-4">
+        <div class="people-list-container p-3 rounded" style="background-color: #191a29;">
+          <h3 class="mb-4"><i class="fas fa-users"></i> People</h3>
+          <ul class="people-list">
+            {% for user in users %}
+            <a href="{% url 'chat_room' user_id=user.id %}" style="color: #f8f8f2">
+              <li class="d-flex align-items-center">
+                <img src="{{user.imageURL}}" alt="User 1" class="profile-avatar me-3">
+                <span style="text-transform: capitalize;">{{user.user.username}} 
+                  
+                  <span style=" z-index: 9;"><i class="fa-brands fa-rocketchat" ></i></span>
+                  {% if user.is_user_online %}
+                  <span class="badge bg-success badge-dot" style="height: 15px;width: 15px; z-index: 0; border-radius: 50%;"></span>
+                  <!-- <i class="fa-brands fa-rocketchat"></i> -->
+                  {% endif %}
+                </span>
+              </li>
+            </a>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
 
-    <script>
-        const editorElement = document.getElementById('editor');
-        const editor = CodeMirror.fromTextArea(editorElement, {
-            lineNumbers: true,
-            mode: "python",
-            theme: "dracula",  // Changed to "dracula" for better contrast
-            viewportMargin: Infinity,
-            lineWrapping: true,
-            indentWithTabs: true,
-            tabSize: 4,
-            autoCloseBrackets: true,
-            matchBrackets: true,
-            smartIndent: true,
-            styleActiveLine: true,
-            lint: true,
-            highlightSelectionMatches: { showToken: /\w/ },
-        });
-        editor.setSize(null, "450px");
-    </script>
+      <!-- Channel List -->
+      <div class="col-lg-3 mb-4">
+        <button id="joinChannelBtn" class="btn btn-primary mb-2">Join Channel</button>
+
+        <!-- Hidden Form (initially hidden) -->
+        <div id="joinChannelForm" class="card mt-1 mb-2  text-light d-none">
+          <div class="card-header">
+            <h4 class="card-title text-center">Join Channel</h4>
+          </div>
+        
+          <div class="card-body ">
+            <form id="joinChannelFormElement">
+              <div class="mb-3">
+                <label for="room-id" class="form-label text-light">User must be authenticated</label>
+                <input type="text" id="room-id" class="form-control" placeholder="Enter Room ID" required>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary">Join</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        
+        <script>
+          // Toggle form visibility
+          const btn = document.getElementById('joinChannelBtn')
+          document.getElementById('joinChannelBtn').addEventListener('click', function() {
+            const form = document.getElementById('joinChannelForm');
+            form.classList.toggle('d-none');
+          btn.style.display='none';
+
+          });
+          // Handle form submission
+          document.getElementById('joinChannelFormElement').addEventListener('submit', function(event) {
+            event.preventDefault();  // Prevent default form submission
+            const roomId = document.getElementById('room-id').value;
+        
+            if (roomId) {
+              // Construct the URL with the room ID and redirect
+              const joinUrl = `http://127.0.0.1:8000/join-channel/${roomId}/`;
+              window.location.href = joinUrl;
+            } else {
+              alert('Please enter a Room ID');
+            }
+          });
+        </script>
+        
+        
+        <div class="channel-list-container p-3 rounded" style="background-color: #191a29;">
+          <div class="d-flex justify-content-between mb-3">
+            <h3><i class="fas fa-hashtag"></i> Channels</h3>
+            <button id="create-channel" class="btn">
+              <i class="fas fa-plus-circle"></i> Create Channel
+            </button>
+          </div>
+          <!-- Hidden form to create a channel -->
+          <div id="channel-form" class="mt-3" style="display: none;">
+            <form action="{% url 'create_channel' %}" method="get">
+            <div class="input-group">
+             
+              <input type="text" id="channel-name" name="name" class="form-control" placeholder="Enter channel name" required>
+              <button id="submit-channel" type="submit" class="btn btn-primary">Create</button>
+            
+            </div>
+          </form>
+            <small id="error-message" class="text-danger mt-2" style="display: none;">Channel name is required</small>
+          </div>
+          <script>
+            document.getElementById('create-channel').addEventListener('click', function () {
+              // Show the channel creation form
+              document.getElementById('channel-form').style.display = 'block';
+            });
+
+        
+          </script>
+          <ul class="channel-list">
+            {% for channel in channels %}
+            <a href="{% url 'channel' channel.id %}" style="text-decoration: none; color: #fff;">
+              <li class="d-flex align-items-center">
+                <img src="{{channel.imageURL}}" alt="Channel" class="channel-avatar me-3">
+                <span>{{channel.name}}</span>
+
+              </li>
+            </a>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Code Editor Section -->
+      <div class="col-lg-7">
+        <div class="code-editor p-3">
+          <form id="codeForm" method="POST" action="{% url 'home' %}">
+            <textarea id="editor" class="form-control" data-user="{{request.user}}"></textarea>
+            {% csrf_token %}
+            <input type="hidden" name="code" id="codeInput">
+            <input type="hidden" name="channel_id" value="{{channel.id}}">
+            <input type="hidden" name="file_id" id="code_file_input" value="">
+
+            <div class="mt-3 d-flex justify-content-start">
+              <button id="run-code" class="btn btn-success me-2" type="submit">Run Code</button>
+              <button id="save-code" class="btn btn-warning me-2">Save Code</button>
+              <button id="theme-toggle" class="btn btn-secondary">Change Theme</button>
+            </div>
+          </form>
+
+          <div id="output-container" class="output-container mt-4">
+            <div id="output-header" class="output-header">Output</div>
+            <div id="output" class="mt-2">{{output}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/mode/python/python.min.js"></script>
+
+  <!-- MDB -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.umd.min.js"></script>
+
+  <script>
+    const editorElement = document.getElementById('editor');
+    const editor = CodeMirror.fromTextArea(editorElement, {
+      lineNumbers: true,
+      mode: "python",
+      theme: "dracula",  // Changed to "dracula" for better contrast
+      viewportMargin: Infinity,
+      lineWrapping: true,
+      indentWithTabs: true,
+      tabSize: 4,
+      autoCloseBrackets: true,
+      matchBrackets: true,
+      smartIndent: true,
+      styleActiveLine: true,
+      lint: true,
+      highlightSelectionMatches: { showToken: /\w/ },
+    });
+    editor.setSize(null, "450px");
+  </script>
 </body>
 
 </html>

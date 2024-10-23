@@ -43,9 +43,20 @@ def run_code_task(code):
     except subprocess.CalledProcessError as e:
         return e.stderr  # Return error output if the code fails
 
-@shared_task
-def message():
+def run_code_fn(code):
+    """Run the provided Python code in a subprocess and capture the output."""
+    # logger.info("Task started, delaying for 5 seconds...")
+    # time.sleep(10)
+    # logger.info("Task ended, delaying for 5 seconds...")
     
-    time.sleep(10)
-    
-    return 'Successfully returned'
+    try:
+        # Use sys.executable to get the path to the current Python interpreter
+        result = subprocess.run(
+            [sys.executable, '-c', code],
+            text=True,
+            capture_output=True,
+            check=True
+        )
+        return result.stdout  # Return the standard output of the code
+    except subprocess.CalledProcessError as e:
+        return e.stderr  # Return error output if the code fails

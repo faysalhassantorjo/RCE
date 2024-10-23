@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messaging UI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Bundle with Popper (JS) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/theme/dracula.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #282a36;
+            color: #f8f8f2;
+            font-family: "Ubuntu", sans-serif;
+            font-weight: 300;
+        }
+
+        .navbar {
+            background-color: #191a29 !important;
+        }
+
+        .chat-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #191a29;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chat-header {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        #chat-header img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        #chat-header h4 {
+            margin: 0;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        #chat-box {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-bottom: 20px;
+            scrollbar-width: thin;
+        }
+
+        .message-box {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .message-box.sent {
+            justify-content: flex-end;
+            text-align: right;
+        }
+
+        .message-box.received {
+            justify-content: flex-start;
+        }
+
+        .message-box img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .message-box.sent img {
+            order: 2;
+            margin-left: 10px;
+            margin-right: 0;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .message-box.sent .message-content {
+            background-color: #256e83;
+            color: #fff;
+            border-top-right-radius: 0;
+            text-align: left;
+        }
+
+        .message-box.received .message-content {
+            background-color: #333333;
+            border-top-left-radius: 0;
+        }
+
+        .message-content small {
+            display: block;
+            font-size: 12px;
+            margin-top: 5px;
+            color: #aaa;
+        }
+
+        .message-status {
+            font-size: 12px;
+            color: #888;
+            text-align: right;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+
+        .message-status.seen {
+            color: #ffff00;
+        }
+
+        .chat-input {
+            margin-top: 20px;
+        }
+
+        .chat-input textarea {
+            background-color: #333333;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 10px;
+            height: 55px;
+        }
+
+        .send-btn {
+            background-color: #256e83;
+            border: none;
+            padding: 10px 20px;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .send-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-body-tertiary p-3">
+        <!-- Container wrapper -->
+        <div class="container-fluid">
+            <!-- Toggle button -->
+            <button data-mdb-collapse-init class="navbar-toggler" type="button"
+                data-mdb-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <!-- Collapsible wrapper -->
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <!-- Navbar brand -->
+                <a class="navbar-brand mt-2 mt-lg-0" href="/">
+                    <img src="https://cdn.vectorstock.com/i/1000x1000/60/18/symbol-code-white-color-icon-vector-16646018.webp"
+                        height="35" alt="" loading="lazy" />
+                </a>
+                <!-- Left links -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Team</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Projects</a>
+                    </li>
+                </ul>
+                <!-- Left links -->
+            </div>
+            <!-- Collapsible wrapper -->
+
+            <!-- Right elements -->
+            <div class="d-flex align-items-center">
+                <!-- Icon -->
+                {% if request.user.is_authenticated %}
+                Hello {{userprofile.user.username}}! &nbsp;&nbsp;
+                {% else %}
+                <a data-mdb-ripple-init type="button" href="{% url 'login' %}" class="btn btn-link px-3 me-2">
+                    Login
+                </a>
+                <button data-mdb-ripple-init type="button" class="btn btn-primary me-3">
+                    Sign up for free
+                </button>
+                {% endif %}
+                <!-- Notifications -->
+                <div class="dropdown">
+                    <a data-mdb-dropdown-init class="link-secondary me-3 dropdown-toggle hidden-arrow" href="#"
+                        id="navbarDropdownMenuLink" role="button" aria-expanded="false">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge rounded-pill badge-notification bg-danger">0</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+                        <li>
+                            <a class="dropdown-item" href="#">Some news</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">Another news</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Avatar -->
+                <div class="dropdown">
+                    <a data-mdb-dropdown-init class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
+                        id="navbarDropdownMenuAvatar" role="button" aria-expanded="false">
+                        {% if userprofile %}
+                        <img src="{{userprofile.imageURL}}" class="rounded-circle" height="35"
+                            alt="Black and White Portrait of a Man" loading="lazy" />
+                        {% else %}
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY4lzrMEr0amU3ubAgMpsMXUw5kqMqHrylBNDQi82fS6QYpEC0TaE0FxSYhYmHGL4RGOU&usqp=CAU"
+                            class="rounded-circle" height="25" alt="" loading="lazy" />
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
+                        <li>
+                            <a class="dropdown-item" href="#">My profile</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">Settings</a>
+                        </li>
+                        {% if request.user.is_authenticated %}
+                        <li>
+                            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                        </li>
+                        {% else %}
+                        <li>
+                            <a class="dropdown-item" href="{% url 'login' %}">login</a>
+                        </li>
+                        {% endif %}
+
+                    </ul>
+                </div>
+            </div>
+            <!-- Right elements -->
+        </div>
+        <!-- Container wrapper -->
+    </nav>
+    <!-- Navbar -->
+
+    <!-- Chat Partner Info -->
+    <div class="chat-container">
+        <div id="chat-header">
+            {% if user1 %}
+            <img src="{{ user1.imageURL }}" alt="{{ user1.user.username }}">
+            <h4>{{ user1.user.username }}</h4>
+            {% else %}
+            <img src="https://via.placeholder.com/50" alt="Chat Partner">
+            <h4>Chat Partner</h4>
+            {% endif %}
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chat-box">
+           
+        </div>
+
+        <!-- Input for typing message -->
+        <div class="chat-input">
+            <textarea id="message-input" rows="3" class="form-control" placeholder="Type your message..."></textarea>
+            <button class="send-btn" id="send_btn" data-user="{{current_user}}" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <!-- WebSocket -->
+    <script>
+        function scrollToBottom() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        window.onload = function () {
+            scrollToBottom();
+        };
+        const ws = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + "{{room.id}}" + '/'
+        )
+
+        ws.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            console.log('Message Received From Server ', data);
+
+            if (data.message) {
+                const messageBox = document.createElement('div');
+                if (data.sender == "{{request.user}}") {
+                    messageBox.classList.add('message-box', 'sent');
+                }
+                else {
+                    messageBox.classList.add('message-box', 'received');
+                }
+                const userImg = document.createElement('img');
+                userImg.src = data.user_image;
+                messageBox.appendChild(userImg);
+
+                const messageContent = document.createElement('div');
+                messageContent.classList.add('message-content');
+                const messageParagraph = document.createElement('p');
+                messageParagraph.innerText = data.message;
+
+                const messageTime = document.createElement('small');
+                const now = new Date();
+                messageTime.innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                messageContent.appendChild(messageParagraph);
+                messageContent.appendChild(messageTime);
+                messageBox.appendChild(messageContent);
+
+                const messageStatus = document.createElement('div');
+                messageStatus.classList.add('message-status');
+                messageStatus.innerText = 'Unseen';
+                messageBox.appendChild(messageStatus);
+
+                document.getElementById('chat-box').appendChild(messageBox);
+
+                scrollToBottom();
+            }
+        };
+
+        ws.onclose = function (e) {
+            console.error('WebSocket closed unexpectedly');
+        };
+
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const messageText = messageInput.value;
+            messageInput.value = ""
+            const current_user = document.getElementById("send_btn").dataset['user']
+            console.log(current_user)
+            ws.send(JSON.stringify({
+                "message": messageText,
+                "sender": "{{current_user.user}}",
+                "user_image": "{{current_user.imageURL}}"
+            }))
+
+        }
+    </script>
+
+</body>
+
+</html>
