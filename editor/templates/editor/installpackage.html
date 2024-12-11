@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Install Python Packages</title>
+ 
+</head>
+<body>
+    <div style="max-width: 600px; margin: 50px auto; font-family: Arial, sans-serif;">
+        <h1>Python Package Installer</h1>
+        <form onsubmit="event.preventDefault(); installPackage();">
+            <label for="packageName" style="display: block; margin-bottom: 8px;">Enter Package Name:</label>
+            <input 
+                type="text" 
+                id="packageName" 
+                name="packageName" 
+                placeholder="e.g., requests" 
+                style="width: 100%; padding: 8px; margin-bottom: 16px; border: 1px solid #ccc; border-radius: 4px;"
+                required>
+            <button 
+                id="installButton" 
+                type="submit" 
+                style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Install Package
+            </button>
+        </form>
+        <div id="result" style="margin-top: 20px; font-weight: bold; color: #333;"></div>
+    </div>
+    <script>
+        // CSRF Token (needed for Django's POST requests)
+        function getCSRFToken() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') return value;
+            }
+            return '';
+        }
+
+        function installPackage() {
+            const packageName = document.getElementById("packageName").value;
+            const csrfToken = getCSRFToken();
+
+            if (!packageName) {
+                alert("Please enter a package name.");
+                return;
+            }
+
+            console.log(packageName)
+
+            // Disable the button to prevent duplicate requests
+            const installButton = document.getElementById("installButton");
+            installButton.disabled = true;
+            installButton.innerText = "Installing...";
+
+            fetch('/install-package/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ package: packageName })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "Processing") {
+                        document.getElementById("result").innerText = `Installation of ${packageName} started. Task ID: ${data.task_id}`;
+                    } else {
+                        document.getElementById("result").innerText = `Error: ${data.error}`;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById("result").innerText = `Error: ${error.message}`;
+                })
+                .finally(() => {
+                    installButton.disabled = false;
+                    installButton.innerText = "Install Package";
+                });
+        }
+    </script>
+</body>
+</html>

@@ -13,13 +13,15 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+        rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.min.css" rel="stylesheet" />
 
     <style>
         body {
-            
-            background-color: #282a36;
+
+            background-color: #4c4f60;
             color: #f8f8f2;
             display: flex;
             flex-direction: column;
@@ -58,7 +60,7 @@
 
         .output-container {
             width: 100%;
-            min-height: 50px;
+            /* min-height: 50px; */
             /* Consistent width with editor */
             margin-top: 20px;
             /* Space between button and output */
@@ -83,11 +85,11 @@
             /* Default text color */
             white-space: pre-wrap;
             /* Preserve whitespace and line breaks */
-            overflow-y: auto;
+            /* overflow-y: auto; */
             /* Enable vertical scrolling */
-            max-height: 200px;
+            /* max-height: 200px; */
             /* Limit output height */
-            padding: 5px;
+            padding: 15px;
             /* Padding around output text */
             border: 1px solid #6272a4;
             /* Border for the output */
@@ -100,6 +102,9 @@
         .code-editor {
             margin: auto;
         }
+        #run-code{
+            background-color: #4ecdd1;
+        }
     </style>
     <style>
         .people-list-container {
@@ -110,6 +115,7 @@
             margin-bottom: 20px;
             max-width: 250px;
         }
+
         .file-list-container {
             background-color: #191a29;
             border-radius: 8px;
@@ -119,7 +125,8 @@
             /* max-width: 250px; */
         }
 
-        .people-list-container h3, .file-list-container  h3 {
+        .people-list-container h3,
+        .file-list-container h3 {
             font-size: 1.2em;
             margin-bottom: 15px;
             color: #4ecdd1;
@@ -152,6 +159,15 @@
             color: #4ecdd1;
             font-size: 1.2em;
         }
+
+        .now-coding {
+            display: block;
+            font-size: .8rem;
+        }
+
+        .j {
+            display: none;
+        }
     </style>
 </head>
 
@@ -160,155 +176,164 @@
     <nav class="navbar navbar-expand-lg navbar-dark p-3">
         <!-- Container wrapper -->
         <div class="container-fluid">
-          <!-- Toggle button -->
-          <button data-mdb-collapse-init class="navbar-toggler" type="button" data-mdb-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <i class="fas fa-bars"></i>
-          </button>
-    
-          <!-- Collapsible wrapper -->
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <!-- Navbar brand -->
-            <a class="navbar-brand mt-2 mt-lg-0" href="/">
-                <i class="fa-solid fa-code"></i>
-            </a>
-            <!-- Left links -->
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link" href="/">Dashboard</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Team</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Projects</a>
-              </li>
-            </ul>
-            <!-- Left links -->
-          </div>
-          <!-- Collapsible wrapper -->
-    
-          <!-- Right elements -->
-          <div class="d-flex align-items-center">
-            <!-- Icon -->
-            {% if request.user.is_authenticated %}
-            Hello {{userprofile.user.username}}! &nbsp;&nbsp;
-            {% else %}
-            <a data-mdb-ripple-init type="button" href="{% url 'login' %}" class="btn btn-link px-3 me-2">
-              Login
-            </a>
-            <button data-mdb-ripple-init type="button" class="btn btn-primary me-3">
-              Sign up for free
+            <!-- Toggle button -->
+            <button data-mdb-collapse-init class="navbar-toggler" type="button"
+                data-mdb-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
             </button>
-            {% endif %}
-            <!-- Notifications -->
-            <div class="dropdown">
-              <a data-mdb-dropdown-init class="link-secondary me-3 dropdown-toggle hidden-arrow" href="#"
-                id="navbarDropdownMenuLink" role="button" aria-expanded="false">
-                <i class="fas fa-bell"></i>
-                <span class="badge rounded-pill badge-notification bg-danger">0</span>
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
-                <li>
-                  <a class="dropdown-item" href="#">Some news</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="#">Another news</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="#">Something else here</a>
-                </li>
-              </ul>
+
+            <!-- Collapsible wrapper -->
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <!-- Navbar brand -->
+                <a class="navbar-brand mt-2 mt-lg-0" href="/">
+                    <i class="fa-solid fa-code"></i>
+                </a>
+                <!-- Left links -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Team</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Projects</a>
+                    </li>
+                </ul>
+                <!-- Left links -->
             </div>
-            <!-- Avatar -->
-            <div class="dropdown">
-              <a data-mdb-dropdown-init class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
-                id="navbarDropdownMenuAvatar" role="button" aria-expanded="false">
-                {% if userprofile %}
-                <img src="{{userprofile.imageURL}}" class="rounded-circle" height="35"
-                  alt="Black and White Portrait of a Man" loading="lazy" />
-                {% else %}
-                <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY4lzrMEr0amU3ubAgMpsMXUw5kqMqHrylBNDQi82fS6QYpEC0TaE0FxSYhYmHGL4RGOU&usqp=CAU"
-                  class="rounded-circle" height="25" alt="" loading="lazy" />
-                {% endif %}
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
-                <li>
-                  <a class="dropdown-item" href="#">My profile</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="#">Settings</a>
-                </li>
+            <!-- Collapsible wrapper -->
+
+            <!-- Right elements -->
+            <div class="d-flex align-items-center">
+                <!-- Icon -->
                 {% if request.user.is_authenticated %}
-                <li>
-                  <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
-                </li>
+                Hello {{userprofile.user.username}}! &nbsp;&nbsp;
                 {% else %}
-                <li>
-                  <a class="dropdown-item" href="{% url 'login' %}">login</a>
-                </li>
+                <a data-mdb-ripple-init type="button" href="{% url 'login' %}" class="btn btn-link px-3 me-2">
+                    Login
+                </a>
+                <button data-mdb-ripple-init type="button" class="btn btn-primary me-3">
+                    Sign up for free
+                </button>
                 {% endif %}
-    
-              </ul>
+                <!-- Notifications -->
+                <div class="dropdown">
+                    <a data-mdb-dropdown-init class="link-secondary me-3 dropdown-toggle hidden-arrow" href="#"
+                        id="navbarDropdownMenuLink" role="button" aria-expanded="false">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge rounded-pill badge-notification bg-danger">0</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+                        <li>
+                            <a class="dropdown-item" href="#">Some news</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">Another news</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">Something else here</a>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Avatar -->
+                <div class="dropdown">
+                    <a data-mdb-dropdown-init class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
+                        id="navbarDropdownMenuAvatar" role="button" aria-expanded="false">
+                        {% if userprofile %}
+                        <img src="{{userprofile.imageURL}}" class="rounded-circle" height="35"
+                            alt="Black and White Portrait of a Man" loading="lazy" />
+                        {% else %}
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY4lzrMEr0amU3ubAgMpsMXUw5kqMqHrylBNDQi82fS6QYpEC0TaE0FxSYhYmHGL4RGOU&usqp=CAU"
+                            class="rounded-circle" height="25" alt="" loading="lazy" />
+                        {% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
+                        <li>
+                            <a class="dropdown-item" href="#">My profile</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#">Settings</a>
+                        </li>
+                        {% if request.user.is_authenticated %}
+                        <li>
+                            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                        </li>
+                        {% else %}
+                        <li>
+                            <a class="dropdown-item" href="{% url 'login' %}">login</a>
+                        </li>
+                        {% endif %}
+
+                    </ul>
+                </div>
             </div>
-          </div>
-          <!-- Right elements -->
+            <!-- Right elements -->
         </div>
         <!-- Container wrapper -->
-      </nav>
+    </nav>
     <!-- <h1 class="text-center"><span style="opacity: .8;">{{channel.name}}</span> </h1> -->
 
 
     <!-- <hr color="#fff"> -->
 
     <div class="row mt-3">
-        <div class="col-lg-2 col-md-3 col-4 p-3">
+        <div class="col-lg-1 col-md-2 col-2 p-3">
             <div class="people-list-container p-3">
-                <h3><i class="fas fa-users"></i> <span style="color: #ffffff; opacity: .8;">Participants</span></h3>
+                <h3 class="text-center"><i class="fas fa-users"></i> <span
+                        style="color: #ffffff; opacity: .8; font-size: .8rem;">Member</span></h3>
 
 
                 <!-- <button class="btn btn-primary">Invite Friends</button> -->
                 <ul class="participants-list" style="list-style: none;">
                     {% for user in channel.participants.all %}
                     <li>
-                        <span>
-                            {{user.username}}
-                            {% if request.user == user %}
-                            <span style="opacity: .4;"> (you)</span>
-                            {% endif %}
-                            &nbsp;
+                        <span style="font-size: 1rem;" class="d-flex">
+                            <span class="j" id="{{user.username}}">
+                                <i class="fa-solid fa-terminal" style="font-size: .8rem; color: #50fa7b;"></i>
+                            </span>
+                            <span>
+                                {{user.username}}
+                            </span>
+
+
+                            <!-- {% if request.user == user %}
+                            <span style="opacity: .4; font-size: .6rem;"> (you)</span>
+                            {% endif %} -->
+                            <!-- &nbsp; -->
                         </span>
                         <!-- <i class="fa-solid fa-code"></i> -->
                     </li>
                     {% endfor %}
                     <li>
-                    <span id="x" class=""></span>
+                        <!-- <span id="x" class="" style="font-size: .8rem;"></span> -->
                     </li>
                 </ul>
             </div>
         </div>
 
-        <div class="col-lg-8 col-md-6 col-8">
+        <div class="col-lg-9 col-md-10 col-10">
             <div class="code-editor">
-                <h6 style=" color: #dbdbdb;">
-                    Channel - <span style="opacity: .8;">{{channel.name}}</span> 
+                <!-- <h6 style=" color: #dbdbdb;">
+                    Channel - <span style="opacity: .8;">{{channel.name}}</span>
                     Invitation link: http://127.0.0.1:8000/join-channel/1/
-                </h6>
+                </h6> -->
+                <div class="my-2">
+                    <button id="run-code" class="btn" data-executed="{{request.user}}">RUN</button>
+                    <button id="save-code" class="btn btn-warning ml-2"><i class="fa-regular fa-floppy-disk"></i></button>
+                    <button id="theme-toggle" class="btn btn-light ml-2"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                </div>
                 <form id="codeForm" method="POST" action="{% url 'save_code' %}">
-                <textarea id="editor" data-user="{{request.user}}" ></textarea>
+                    <textarea id="editor" data-user="{{request.user}}"></textarea>
                     {% csrf_token %}
                     <input type="hidden" name="code" id="codeInput">
                     <input type="hidden" name="channel_id" value="{{channel.id}}">
                     <input type="hidden" name="file_id" id="coe_file_input" value="">
                 </form>
 
-                
-                <div class="container my-2">
-                    <button id="run-code" class="btn btn-success" data-executed="{{request.user}}">Run Code</button>
-                    <button id="save-code" class="btn btn-warning ml-2">Save Code</button>
-                    <button id="theme-toggle" class="btn btn-secondary ml-2">Change Theme</button>
-                </div>
+
+             
 
                 <div id="output-container" class="output-container">
                     <div id="output-header" class="output-header">
@@ -321,32 +346,33 @@
         </div>
 
 
-        <div class="col-lg-2 col-md-3 col-0">
+        <div class="col-lg-2 col-md-0 col-0">
             <div class="file-list-container">
                 <h3><i class="fa-solid fa-folder"></i>&nbsp;<span style="color: #ffffff; opacity: .8;">
-                    <span style="font-size: .8rem; opacity: .8;">You can load this in editor</span> </span>
+                        <span style="font-size: .8rem; opacity: .8;">You can load this in editor</span> </span>
                 </h3>
                 <ul class="participants-list" style="list-style: none;">
-                        {% for channels_file in channels_files %}
-                        <li>
-                            <button class="btn file-button" data-content="{{ channels_file.file }}" data-file_id="{{channels_file.id}}" style="color: #f8f8f2;">
-                                <i class="fa-solid fa-file"></i>
-                                &nbsp;
-                                <span style="opacity: .8;">
-                                    {% if channels_file.file_name %}
-                                        {{channels_file.file_name}}
-                                    {% else %}
-                                        {{ channels_file }}
-                                    {% endif %}
-                                    <!-- <span style="background-color: #fff; padding-left: 5px;padding-right: 5px; border-radius: 3px;">
+                    {% for channels_file in channels_files %}
+                    <li>
+                        <button class="btn file-button" data-content="{{ channels_file.file }}"
+                            data-file_id="{{channels_file.id}}" style="color: #f8f8f2; background: #44475a;">
+                            <i class="fa-solid fa-file"></i>
+                            &nbsp;
+                            <span style="opacity: .8;">
+                                {% if channels_file.file_name %}
+                                {{channels_file.file_name}}
+                                {% else %}
+                                {{ channels_file }}
+                                {% endif %}
+                                <!-- <span style="background-color: #fff; padding-left: 5px;padding-right: 5px; border-radius: 3px;">
                                       <a href="" style=" cursor:text; z-index: 9;"><img src="{% static 'editor/icons/rename.png' %}" height="20" width="20" alt="icons"></a>  
                                     </span> -->
-                                    <br>
-                                     <span style="font-size: .8rem;">{{channels_file.date|timesince}} ago</span> 
-                                    </span> 
-                            </button> 
-                        </li>
-                        {% endfor %}
+                                <br>
+                                <span style="font-size: .8rem;">{{channels_file.date|timesince}} ago</span>
+                            </span>
+                        </button>
+                    </li>
+                    {% endfor %}
                 </ul>
             </div>
         </div>
@@ -371,7 +397,7 @@
         const editor = CodeMirror.fromTextArea(editorElement, {
             lineNumbers: true,
             mode: "python",
-            theme: "default",
+            theme: "dracula",
             viewportMargin: Infinity,
             lineWrapping: true,
             indentWithTabs: true,
@@ -401,10 +427,10 @@
             }
         });
 
-       
+
 
         document.querySelectorAll('.file-button').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 const content = this.getAttribute('data-content');  // Get the data-content attribute
                 const file_id = this.dataset.file_id
                 editor.setValue(content);  // Assuming `editor` is your code editor instance
@@ -417,7 +443,7 @@
         const saveCode = () => {
             const code = editor.getValue();
             document.getElementById('codeInput').value = code;
-            document.getElementById('coe_file_input').setAttribute('value',editorElement.dataset.file_id)
+            document.getElementById('coe_file_input').setAttribute('value', editorElement.dataset.file_id)
             document.getElementById('codeForm').submit();
         };
 
@@ -433,7 +459,7 @@
         document.getElementById('save-code').addEventListener('click', saveCode);
 
 
-        let isDracula = false;
+        let isDracula = true;
 
         document.getElementById('theme-toggle').addEventListener('click', () => {
             isDracula = !isDracula;
@@ -477,7 +503,10 @@
                 console.log('Output is not Processing....', output)
                 document.getElementById('output').innerText = output;
                 if (data.coding_by) {
-                    document.getElementById('x').innerText = `Now Coding: ${data.coding_by}`;
+                    console.log(data)
+                    const now_coding = document.getElementById(data.coding_by)
+                    now_coding.classList.replace('j', 'now-coding')
+                    // document.getElementById('x').innerText = `Now Coding: ${data.coding_by}`;
                 }
                 else {
                     document.getElementById('executed-by').innerText = `Executed by: ${data.code_executed_by}`;
@@ -526,7 +555,23 @@
         }
     </script>
 
+    <script>
 
+        function foo() {
+            const elements = document.querySelectorAll('.now-coding');
+            elements.forEach(element => {
+                console.log(element);
+
+                element.classList.replace('now-coding', 'j');
+            });
+
+            console.log('Class replacement happened:', elements);
+
+            setTimeout(foo, 10000);
+        }
+        foo();
+
+    </script>
 
 </body>
 

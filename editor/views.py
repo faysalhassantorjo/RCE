@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect
 from .models import *
-from django.http import HttpResponse
-from .tasks import run_code_fn
+from django.http import HttpResponse, JsonResponse
+from .tasks import run_code_fn , install_package
 from django.db.models import Count
 # Create your views here.
 
@@ -134,3 +134,36 @@ def join_channel(request,channel_id):
         
         return redirect('channel', channel_id=channel_id)
     return HttpResponse('Some error Orrcured')
+
+import os
+import subprocess
+def create_user_env(base_path, user_id):
+    # Create user-specific path
+    user_env_path = os.path.join(base_path, f"user_{user_id}")
+    os.makedirs(user_env_path, exist_ok=True)
+
+    # Set up a virtual environment if it doesn't exist
+    venv_path = os.path.join(user_env_path, "bin", "activate")
+    if not os.path.exists(venv_path):
+        try:
+            subprocess.check_call(["python", "-m", "venv", user_env_path])
+        except Exception as e:
+            print(e)
+    return user_env_path
+
+import json
+base_path = "\RCE\packages"
+def install_package_view(request):
+    if request.method == "POST":
+        body = json.loads(request.body)
+        package_name = body.get("package")
+        print('============================')
+        print(package_name)
+        print('============================')
+        user_id = request.user.id  # Assuming users are authenticated
+        user_env_path = create_user_env(base_path, user_id) # Customize per user
+        result = install_package(package_name, user_env_path)
+        return JsonResponse({ "status": "Processing"})
+    
+def package_install(request):
+    return render(request, 'editor/installpackage.html')
