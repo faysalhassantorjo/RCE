@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 from celery import shared_task
 
 @shared_task
-def run_code_task(code):
+def run_code_task(code,inputs=None):
     # Convert Windows path to WSL path
     python_executable = "/mnt/d/RCE/packages/user_1/Scripts/python.exe"
     
@@ -41,14 +41,19 @@ def run_code_task(code):
     env["PATH"] = os.path.dirname(python_executable) + ":" + env["PATH"]
 
     try:
-        result = subprocess.run(
+        # simulated_input = "\n".join(inputs)
+        result = subprocess.Popen(
             [python_executable, "-c", code],
             text=True,
-            capture_output=True,
-            check=True,
-            env=env
+            # capture_output=True,
+            # check=True,
+            env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
         )
-        return result.stdout
+        stdout, stderr = result.communicate(input=inputs)
+        return stdout
     except subprocess.CalledProcessError as e:
         return e.stderr
 

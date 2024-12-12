@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Code Editor</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/theme/dracula.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -16,8 +15,10 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
         rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.min.css" rel="stylesheet" />
-
+      <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.1.0/mdb.min.css"
+      rel="stylesheet"
+    />
     <style>
         body {
 
@@ -102,7 +103,8 @@
         .code-editor {
             margin: auto;
         }
-        #run-code{
+
+        #run-code {
             background-color: #4ecdd1;
         }
     </style>
@@ -173,7 +175,7 @@
 
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark p-3">
+    <nav class="navbar navbar-expand-lg navbar-dark  p-3">
         <!-- Container wrapper -->
         <div class="container-fluid">
             <!-- Toggle button -->
@@ -192,7 +194,7 @@
                 <!-- Left links -->
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Dashboard</a>
+                        <a class="nav-link" href="#">Dashboard</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Team</a>
@@ -273,7 +275,6 @@
         </div>
         <!-- Container wrapper -->
     </nav>
-    <!-- <h1 class="text-center"><span style="opacity: .8;">{{channel.name}}</span> </h1> -->
 
 
     <!-- <hr color="#fff"> -->
@@ -321,8 +322,23 @@
                 </h6> -->
                 <div class="my-2">
                     <button id="run-code" class="btn" data-executed="{{request.user}}">RUN</button>
-                    <button id="save-code" class="btn btn-warning ml-2"><i class="fa-regular fa-floppy-disk"></i></button>
-                    <button id="theme-toggle" class="btn btn-light ml-2"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                    <button id="save-code" class="btn btn-warning ml-2"><i
+                            class="fa-regular fa-floppy-disk"></i></button>
+                    <button id="theme-toggle" class="btn btn-light ml-2"><i
+                            class="fa-solid fa-circle-half-stroke"></i></button>
+                            <a
+                            class="btn btn-outline-info"
+                            data-mdb-collapse-init
+                            href="#collapseExample"
+                            role="button"
+                            aria-expanded="false"
+                            aria-controls="collapseExample"
+                          >
+                          <i class="fa-solid fa-share-nodes"></i>
+                          </a>
+                          <button class="collapse" id="collapseExample" style="cursor: text;">
+                            <a class="p-2" href="{{url}}">{{url}}</a>
+                          </button>
                 </div>
                 <form id="codeForm" method="POST" action="{% url 'save_code' %}">
                     <textarea id="editor" data-user="{{request.user}}"></textarea>
@@ -333,13 +349,40 @@
                 </form>
 
 
-             
+
 
                 <div id="output-container" class="output-container">
-                    <div id="output-header" class="output-header">
-                        <span id="executed-by"></span>
+
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div id="output-header" class="output-header">
+                                <span id="executed-by">Output</span>
+                            </div>
+                            <div id="output" class="output"></div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div id="output-header" class="output-header">
+                                <span>Input <span style="opacity: .7; font-size: .8rem;">if you have any in your
+                                        code</span> </span>
+                            </div>
+                            <div>
+                                <style>
+                                    .inputs {
+                                        border: none;
+                                        background: #282a36;
+                                        color: #f6f6f6;
+                                    }
+
+                                    /* .inputs:focus{
+                                        border:2px solid black;
+                                        background-color: red;
+                                    } */
+                                </style>
+                                <textarea id="inputs" class="inputs" id="" placeholder="Enter your input here" cols="40"
+                                    rows="10"></textarea>
+                            </div>
+                        </div>
                     </div>
-                    <div id="output" class="output"></div>
                 </div>
 
             </div>
@@ -368,7 +411,7 @@
                                       <a href="" style=" cursor:text; z-index: 9;"><img src="{% static 'editor/icons/rename.png' %}" height="20" width="20" alt="icons"></a>  
                                     </span> -->
                                 <br>
-                                <span style="font-size: .8rem;">{{channels_file.date|timesince}} ago</span>
+                                <span style="font-size: .5rem;">{{channels_file.date|timesince}} ago</span>
                             </span>
                         </button>
                     </li>
@@ -544,13 +587,16 @@
         btn.addEventListener('click', function () {
             const code = editor.getValue();
             const code_executed_by = btn.dataset['executed'];
-            sendCodeForExecution(code, code_executed_by);
+            const inputs = document.getElementById('inputs').value
+            console.log(inputs.value)
+            sendCodeForExecution(code, code_executed_by, inputs);
         });
 
-        function sendCodeForExecution(code, code_executed_by) {
+        function sendCodeForExecution(code, code_executed_by, inputs) {
             socket.send(JSON.stringify({
                 'code': code,
-                'code_executed_by': code_executed_by
+                'code_executed_by': code_executed_by,
+                'inputs': inputs
             }));
         }
     </script>
@@ -570,8 +616,10 @@
             setTimeout(foo, 10000);
         }
         foo();
-
+        document.getElementById('inputs').setAttribute('placeholder', "input1 \ninput2 \n.....")
     </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.1.0/mdb.umd.min.js"></script>
 
 </body>
 

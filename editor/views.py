@@ -16,8 +16,12 @@ def channel(request,channel_id):
     context={
         'room_name':channel_id,
         'channel':channel,
-        'channels_files':channels_files
+        'channels_files':channels_files,
+        'url':request.build_absolute_uri()
     }
+    if request.user.is_authenticated:
+        userprofile = UserProfile.objects.get(user = request.user)
+        context.update({'userprofile':userprofile})
     return render (request, 'editor/room.html',context)
 def home(request):
     channels = Channel.objects.all()
