@@ -12,4 +12,5 @@ urlpatterns = [
     path('join-channel/<str:channel_id>/',join_channel,name='join_channel'),
     path('install-package/',install_package_view,name='install-package'),
     path('package/',package_install,name='package'),
+    path('create-container/',create_container,name='create_container')
 ]

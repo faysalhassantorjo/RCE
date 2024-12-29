@@ -171,3 +171,17 @@ def install_package_view(request):
     
 def package_install(request):
     return render(request, 'editor/installpackage.html')
+
+import docker
+def create_container(request):
+    client = docker.from_env()
+    user,created =UserProfile.objects.get_or_create(user = request.user)
+    container = client.containers.run(
+            "user-code-executor",  # Image name
+            detach=True,
+            name=f"user_{user.id}_container",
+            hostname=f"user_{user.id}",
+        )
+    UserContainer.objects.create(user=user, container_id=container.id)
+    
+    return HttpResponse(f'user container created, container id is:{container.id}')

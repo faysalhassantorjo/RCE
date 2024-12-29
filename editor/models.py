@@ -10,6 +10,7 @@ class UserProfile(models.Model):
     profile_picture = models.ImageField(upload_to='profile_pictures/', default='profile_pictures/default.jpg')
     last_activity = models.DateTimeField(default=timezone.now)
     is_online = models.BooleanField(default=False)
+    # theme = models.CharField(max_length=50, default="default")
     def imageURL(self):
         url = ''
         try:
@@ -26,7 +27,15 @@ class UserProfile(models.Model):
         return False
     def __str__(self):
         return self.user.username
+
+
+
+class UserContainer(models.Model):
+    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE)
+    container_id = models.CharField(max_length=64)
     
+    def __str__(self):
+        return f'{self.id}'
     
 class CodeFile(models.Model):
     file_name = models.CharField(max_length=100, null=True,blank=True)

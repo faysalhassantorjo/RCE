@@ -23,39 +23,67 @@ import time
 import logging
 logger = logging.getLogger(__name__)
 from celery import shared_task
+from django.shortcuts import get_object_or_404
+from .models import *
+import docker
+import shlex
+client = docker.from_env()
 
 @shared_task
-def run_code_task(code,inputs=None):
-    # Convert Windows path to WSL path
-    python_executable = "/mnt/d/RCE/packages/user_1/Scripts/python.exe"
-    
-    # Debugging log
-    logger.info(f"Checking Python executable at {python_executable}")
-    
-    # Ensure the executable exists
-    if not os.path.isfile(python_executable):
-        return f"Python executable not found at {python_executable} (cwd={os.getcwd()}, PATH={os.environ['PATH']})."
-
-    # Modify environment to ensure PATH is correct
-    env = os.environ.copy()
-    env["PATH"] = os.path.dirname(python_executable) + ":" + env["PATH"]
-
+def run_code_task(code,inputs=None,code_executed_by=None):
     try:
-        # simulated_input = "\n".join(inputs)
-        result = subprocess.Popen(
-            [python_executable, "-c", code],
-            text=True,
-            # capture_output=True,
-            # check=True,
-            env=env,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        stdout, stderr = result.communicate(input=inputs)
-        return stdout
-    except subprocess.CalledProcessError as e:
-        return e.stderr
+        usr= User.objects.get(username=code_executed_by)
+        userprofile = UserProfile.objects.get(user=usr)
+        user_container = get_object_or_404(UserContainer, user=userprofile)
+    except UserProfile.DoesNotExist:
+        return "Error: UserProfile does not exist."
+
+    container = client.containers.get(user_container.container_id)
+    
+    exec_cmd = f'python3 -c {shlex.quote(code)}'
+    
+    try:
+        exit_code, output = container.exec_run(exec_cmd)
+        return  output.decode() , code_executed_by
+    except Exception as e:
+        return f'exception: {e}, container status: {container.status}'
+
+
+
+
+
+# @shared_task
+# def run_code_task(code,inputs=None):
+#     # Convert Windows path to WSL path
+#     python_executable = "/mnt/d/RCE/packages/user_1/Scripts/python.exe"
+    
+#     # Debugging log
+#     logger.info(f"Checking Python executable at {python_executable}")
+    
+#     # Ensure the executable exists
+#     if not os.path.isfile(python_executable):
+#         return f"Python executable not found at {python_executable} (cwd={os.getcwd()}, PATH={os.environ['PATH']})."
+
+#     # Modify environment to ensure PATH is correct
+#     env = os.environ.copy()
+#     env["PATH"] = os.path.dirname(python_executable) + ":" + env["PATH"]
+
+#     try:
+#         # simulated_input = "\n".join(inputs)
+#         result = subprocess.Popen(
+#             [python_executable, "-c", code],
+#             text=True,
+#             # capture_output=True,
+#             # check=True,
+#             env=env,
+#             stdin=subprocess.PIPE,
+#             stdout=subprocess.PIPE,
+#             stderr=subprocess.PIPE
+#         )
+#         stdout, stderr = result.communicate(input=inputs)
+#         return stdout
+#     except subprocess.CalledProcessError as e:
+#         return e.stderr
 
 
 

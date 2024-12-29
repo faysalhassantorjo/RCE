@@ -39,12 +39,11 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
             code = text_data_json['code']
             code_executed_by = text_data_json['code_executed_by']
             inputs = text_data_json['inputs']
-            # coding_by = text_data_json.get('coding_by','')
             print('================================')
-            print(inputs)
+            print(code)
             print('================================')
             # Execute the code using Celery and get the task ID
-            task = run_code_task.delay(code,inputs)
+            task = run_code_task.delay(code,inputs,code_executed_by)
             
             task_id = task.id
             
