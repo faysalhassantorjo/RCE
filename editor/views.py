@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect
 from .models import *
 from django.http import HttpResponse, JsonResponse
-from .tasks import run_code_fn , install_package
+from .tasks import run_code_fn , install_package ,run_code_task
 from django.db.models import Count
 # Create your views here.
 
@@ -185,3 +185,17 @@ def create_container(request):
     UserContainer.objects.create(user=user, container_id=container.id)
     
     return HttpResponse(f'user container created, container id is:{container.id}')
+
+from django.views.decorators.csrf import csrf_exempt
+@csrf_exempt
+def start_task(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        code = data.get('code','')
+        inputs = data.get('inputs','')
+        roomName = data.get('roomName','')
+        code_executed_by = data.get('code_executed_by','')
+        task = run_code_task.delay(code,inputs,code_executed_by,roomName)
+
+        return JsonResponse({'task_id': task.id})
+    return JsonResponse({'error': 'Invalid HTTP method'}, status=405)

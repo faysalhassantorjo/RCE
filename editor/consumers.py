@@ -35,60 +35,8 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
         
         print('Text Data Json: ====', text_data_json)
 
-        if 'code' in text_data_json:
-            code = text_data_json['code']
-            code_executed_by = text_data_json['code_executed_by']
-            inputs = text_data_json['inputs']
-            print('================================')
-            print(code)
-            print('================================')
-            # Execute the code using Celery and get the task ID
-            task = run_code_task.delay(code,inputs,code_executed_by)
-            
-            task_id = task.id
-            
-            print('Task id ::::::',task)
-
-            # Send the task ID back to the group
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'send_code_output',
-                    'message': 'Processing...',
-                    'code_executed_by': code_executed_by,
-                    'raw_code': code,
-                    'task_id': task_id,
-                    # 'coding_by':coding_by
-                }
-            )
-
-        elif 'task_id' in text_data_json:
-            # Client is checking the task status
-            task_id = text_data_json['task_id']
-            
-            print('task is : ',task_id)
-
-            if task_id:  # Check if task_id is valid
-                task = AsyncResult(task_id)
-
-                if task.ready():
-                    output = task.result 
-                else:
-                    output = 'Processing...' 
-
-                
-                await self.send(text_data=json.dumps({
-                    'message': output,
-                    'task_id': task_id
-                }))
-            else:
-                # Handle case where task_id is None or invalid
-                await self.send(text_data=json.dumps({
-                    'message': 'Invalid task ID provided.',
-                    'task_id': task_id
-                }))
-
-        elif 'raw_code' in text_data_json:
+ 
+        if 'raw_code' in text_data_json:
             raw_code = text_data_json['raw_code']
             coding_by = text_data_json.get('coding_by','')
 
@@ -108,7 +56,7 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
         message = event['message']
         raw_code = event.get('raw_code', '')
         code_executed_by = event.get('code_executed_by', '')
-        task_id = event.get('task_id')
+        task_id = event.get('task_id','')
         coding_by = event.get('coding_by','')
 
        
@@ -130,6 +78,35 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
             'coding_by':coding_by
         }))
 
+
+class TaskResult(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = f'task_{self.room_name}'
+        print('connected')
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+    async def disconnect(self):
+        # Leave room group
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    
+    async def task_update(self, event):
+        
+        print('happend')
+        await self.send(text_data=json.dumps({
+            "output": event["output"],
+            "code_executed_by": event["code_executed_by"],
+        }))
+
+    
+    
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['chat_room']

@@ -27,26 +27,47 @@ from django.shortcuts import get_object_or_404
 from .models import *
 import docker
 import shlex
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 client = docker.from_env()
 
+
 @shared_task
-def run_code_task(code,inputs=None,code_executed_by=None):
+def run_code_task(code, inputs=None, code_executed_by=None, room_name=None):
     try:
-        usr= User.objects.get(username=code_executed_by)
+        usr = User.objects.get(username=code_executed_by)
         userprofile = UserProfile.objects.get(user=usr)
         user_container = get_object_or_404(UserContainer, user=userprofile)
     except UserProfile.DoesNotExist:
         return "Error: UserProfile does not exist."
 
-    container = client.containers.get(user_container.container_id)
-    
-    exec_cmd = f'python3 -c {shlex.quote(code)}'
-    
     try:
+        container = client.containers.get(user_container.container_id)
+        exec_cmd = f'python3 -c {shlex.quote(code)}'
         exit_code, output = container.exec_run(exec_cmd)
-        return  output.decode() , code_executed_by
+        output_decoded = output.decode()
+
+        channel_layer = get_channel_layer()
+        group_name = f"task_{room_name}"
+
+        try:
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "task.update", 
+                    "output": output_decoded,
+                    "code_executed_by": code_executed_by,
+                }
+            )
+            return f"Message sent to group {group_name}"
+        except Exception as send_error:
+            return f"Error sending message to group: {send_error}"
+            
+        return output_decoded
     except Exception as e:
-        return f'exception: {e}, container status: {container.status}'
+        return f'Exception: {e}, Container Status: {container.status}'
+
 
 
 

@@ -589,22 +589,6 @@
         // Add keyboard shortcuts
         editor.setSize(null, "550px");  // Set the height to 500px
 
-        editor.setOption("extraKeys", {
-            "Ctrl-Space": "autocomplete", // Trigger autocomplete on Ctrl + Space
-            "Ctrl-Enter": function () {
-                const code = editor.getValue();
-                sendCodeForExecution(code); // Call function to execute code
-            },
-            "Tab": function (cm) {
-                if (cm.somethingSelected()) {
-                    cm.indentSelection("add");
-                } else {
-                    cm.replaceSelection("    "); // Replace Tab with spaces
-                }
-            }
-        });
-
-
 
         document.querySelectorAll('.file-button').forEach(button => {
             button.addEventListener('click', function () {
@@ -636,12 +620,7 @@
         document.getElementById('save-code').addEventListener('click', saveCode);
 
 
-        // let isDracula = true;
-
-        // document.getElementById('theme-toggle').addEventListener('click', () => {
-        //     isDracula = !isDracula;
-        //     editor.setOption("theme", isDracula ? "dracula" : "default");
-        // });
+        // Theme select
         const themeSelector = document.getElementById('theme-selector');
         themeSelector.addEventListener('change', () => {
             console.log('selector: ', themeSelector.value)
@@ -657,47 +636,12 @@
         const roomName = "{{room_name}}";
 
         const socket = new WebSocket('ws://' + window.location.host + '/ws/ac/' + roomName + '/');
-        let isLocalChange = false; // Flag to check if the change is local
+        let isLocalChange = false;
 
         let taskId = null
         socket.onmessage = function (e) {
             const data = JSON.parse(e.data);
             console.log('Message received from server:', data);
-
-            const output = data.message;
-            const taskIdReceived = data.task_id;
-
-
-            if (taskIdReceived) {
-                taskId = taskIdReceived;
-            }
-            // console.log('task id is : ', taskId)
-            // console.log('taskIdReceived id is : ', taskIdReceived)
-            // console.log('Output : ', output)
-
-
-
-
-            if (output === 'Processing...') {
-                setTimeout(function () {
-                    socket.send(JSON.stringify({ 'task_id': taskId }));
-                }, 100);
-            } else {
-                console.log('Output is not Processing....', output)
-                document.getElementById('output').innerText = output;
-                if (data.coding_by) {
-                    console.log(data)
-                    const now_coding = document.getElementById(data.coding_by)
-                    now_coding.classList.replace('j', 'now-coding')
-                    // document.getElementById('x').innerText = `Now Coding: ${data.coding_by}`;
-                }
-                else {
-                    document.getElementById('executed-by').innerText = `Executed by: ${data.code_executed_by}`;
-                    scrollToBottom()
-
-                }
-            }
-
 
             if (data.raw_code && !isLocalChange) {
                 const cursorPos = editor.getCursor()
@@ -729,14 +673,52 @@
             }
         });
 
+        const task_socket = new WebSocket('ws://' + window.location.host + '/ws/task-result/' + roomName + '/');
+
+
+        task_socket.onmessage = function (event) {
+            console.log("Task ouput is : ", JSON.parse(event.data))
+            data = JSON.parse(event.data)
+            document.getElementById('output').innerText = data.output;
+            document.getElementById('executed-by').innerText = `Executed by: ${data.code_executed_by}`;
+
+            scrollToBottom()
+        }
+        function startTask(code, code_executed_by, inputs) {
+            fetch('/start-task/', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "code": code,
+                    "code_executed_by": code_executed_by,
+                    "inputs": inputs,
+                    "roomName": roomName
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const task_id = data.task_id
+                    console.log('Your task id is: ', task_id)
+
+                    // const task_socket = new WebSocket(`ws://${window.location.host}/ws/task-result/${roomName}/`);
+
+
+                })
+                .catch(error => {
+                    console.error('Error starting task:', error);
+                });
+        }
 
         btn.addEventListener('click', function () {
             const code = editor.getValue();
             const code_executed_by = btn.dataset['executed'];
             const inputs = document.getElementById('inputs').value
             console.log(inputs.value)
-            sendCodeForExecution(code, code_executed_by, inputs);
+            startTask(code, code_executed_by, inputs);
         });
+
 
         function sendCodeForExecution(code, code_executed_by, inputs) {
             socket.send(JSON.stringify({
