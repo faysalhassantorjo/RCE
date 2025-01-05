@@ -83,7 +83,8 @@
       color: #282a36;
       font-weight: bold;
     }
-    #joinChannelForm{
+
+    #joinChannelForm {
       background-color: #191a29;
     }
 
@@ -191,12 +192,12 @@
           <a data-mdb-dropdown-init class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
             id="navbarDropdownMenuAvatar" role="button" aria-expanded="false">
             {% if userprofile %}
-            <img src="{{userprofile.imageURL}}" class="rounded-circle" height="35"
+            <img src="{{userprofile.imageURL}}" class="rounded-circle" style="height: 35px; width: 35px; object-fit: cover;"
               alt="Black and White Portrait of a Man" loading="lazy" />
             {% else %}
             <img
               src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY4lzrMEr0amU3ubAgMpsMXUw5kqMqHrylBNDQi82fS6QYpEC0TaE0FxSYhYmHGL4RGOU&usqp=CAU"
-              class="rounded-circle" height="25" alt="" loading="lazy" />
+              class="rounded-circle"  style="height: 35px; width: 35px; object-fit: cover;" alt="" loading="lazy" />
             {% endif %}
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
@@ -228,7 +229,7 @@
   <div class="container-fluid mt-4">
     <div class="row">
       <!-- People List -->
-      <div class="col-lg-2 mb-4">
+      <div class="col-lg-2 col-6 mb-4">
         <div class="people-list-container p-3 rounded" style="background-color: #191a29;">
           <h3 class="mb-4"><i class="fas fa-users"></i> People</h3>
           <ul class="people-list">
@@ -236,11 +237,12 @@
             <a href="{% url 'chat_room' user_id=user.id %}" style="color: #f8f8f2">
               <li class="d-flex align-items-center">
                 <img src="{{user.imageURL}}" alt="User 1" class="profile-avatar me-3">
-                <span style="text-transform: capitalize;">{{user.user.username}} 
-                  
-                  <span style=" z-index: 9;"><i class="fa-brands fa-rocketchat" ></i></span>
+                <span style="text-transform: capitalize;">{{user.user.username}}
+
+                  <span style=" z-index: 9;"><i class="fa-brands fa-rocketchat"></i></span>
                   {% if user.is_user_online %}
-                  <span class="badge bg-success badge-dot" style="height: 15px;width: 15px; z-index: 0; border-radius: 50%;"></span>
+                  <span class="badge bg-success badge-dot"
+                    style="height: 15px;width: 15px; z-index: 0; border-radius: 50%;"></span>
                   <!-- <i class="fa-brands fa-rocketchat"></i> -->
                   {% endif %}
                 </span>
@@ -252,7 +254,7 @@
       </div>
 
       <!-- Channel List -->
-      <div class="col-lg-3 mb-4">
+      <div class="col-lg-4 col-6 mb-5">
         <button id="joinChannelBtn" class="btn btn-primary mb-2">Join Channel</button>
 
         <!-- Hidden Form (initially hidden) -->
@@ -260,7 +262,7 @@
           <div class="card-header">
             <h4 class="card-title text-center">Join Channel</h4>
           </div>
-        
+
           <div class="card-body ">
             <form id="joinChannelFormElement">
               <div class="mb-3">
@@ -273,21 +275,21 @@
             </form>
           </div>
         </div>
-        
+
         <script>
           // Toggle form visibility
           const btn = document.getElementById('joinChannelBtn')
-          document.getElementById('joinChannelBtn').addEventListener('click', function() {
+          document.getElementById('joinChannelBtn').addEventListener('click', function () {
             const form = document.getElementById('joinChannelForm');
             form.classList.toggle('d-none');
-          btn.style.display='none';
+            btn.style.display = 'none';
 
           });
           // Handle form submission
-          document.getElementById('joinChannelFormElement').addEventListener('submit', function(event) {
+          document.getElementById('joinChannelFormElement').addEventListener('submit', function (event) {
             event.preventDefault();  // Prevent default form submission
             const roomId = document.getElementById('room-id').value;
-        
+
             if (roomId) {
               // Construct the URL with the room ID and redirect
               const joinUrl = `http://127.0.0.1:8000/join-channel/${roomId}/`;
@@ -297,8 +299,8 @@
             }
           });
         </script>
-        
-        
+
+
         <div class="channel-list-container p-3 rounded" style="background-color: #191a29;">
           <div class="d-flex justify-content-between mb-3">
             <h3><i class="fas fa-hashtag"></i> Channels</h3>
@@ -309,13 +311,14 @@
           <!-- Hidden form to create a channel -->
           <div id="channel-form" class="mt-3" style="display: none;">
             <form action="{% url 'create_channel' %}" method="get">
-            <div class="input-group">
-             
-              <input type="text" id="channel-name" name="name" class="form-control" placeholder="Enter channel name" required>
-              <button id="submit-channel" type="submit" class="btn btn-primary">Create</button>
-            
-            </div>
-          </form>
+              <div class="input-group">
+
+                <input type="text" id="channel-name" name="name" class="form-control" placeholder="Enter channel name"
+                  required>
+                <button id="submit-channel" type="submit" class="btn btn-primary">Create</button>
+
+              </div>
+            </form>
             <small id="error-message" class="text-danger mt-2" style="display: none;">Channel name is required</small>
           </div>
           <script>
@@ -324,7 +327,7 @@
               document.getElementById('channel-form').style.display = 'block';
             });
 
-        
+
           </script>
           <ul class="channel-list">
             {% for channel in channels %}
@@ -340,8 +343,143 @@
         </div>
       </div>
 
+      <div class="col-lg-6">
+
+        <style>
+          .chat-container {
+            max-width: 100%;
+            margin: 20px auto;
+            background-color: #1f2937;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            color: #ffffff;
+          }
+
+          .chat-header {
+            background-color: #3b4048;
+            color: #ffffff;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            border-bottom: 1px solid #444c56;
+          }
+
+          #chat-body {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #111825;
+          }
+
+          .chat-message {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: flex-start;
+          }
+
+          .chat-message .user-image {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+          }
+
+          .message-content {
+            flex: 1;
+          }
+
+          .user-info {
+            display: flex;
+            justify-content: space-start;
+            align-items: center;
+            margin-bottom: 5px;
+          }
+
+          .user {
+            font-weight: bold;
+            font-size: 14px;
+            color: #60a5fa;
+          }
+
+          .message-time {
+            font-size: 12px;
+            color: #9ca3af;
+          }
+
+          .message-text {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-left: 20px;
+          }
+
+          .chat-footer {
+            padding: 10px 15px;
+            background-color: #3b4048;
+            border-top: 1px solid #444c56;
+            /* display: flex; */
+            align-items: center;
+          }
+
+          .chat-footer input {
+            flex: 1;
+            /* padding: 8px 12px; */
+            /* border-radius: 20px; */
+            border: none;
+            outline: none;
+            width: 100%;
+          }
+
+          .chat-footer button {
+            margin-left: 10px;
+            /* padding: 8px 20px; */
+            /* border-radius: 20px; */
+            border: none;
+            background-color: #60a5fa;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+          }
+
+          .chat-footer button:hover {
+            background-color: #3b82f6;
+          }
+        </style>
+        <div class="chat-container">
+          <div class="chat-header">
+            Global Chat Room
+          </div>
+          <div id="chat-body">
+            {% for chat in chats %}
+            <div class="chat-message">
+              <img src="{{chat.sender.imageURL}}" alt="{{chat.sender}}"  class="user-image">
+              <div class="message-content">
+                <div class="user-info">
+                  <span class="user">{{chat.sender}}</span>
+                  <div class="message-text">{{chat.message}}</div>
+  
+                  <span class="message-time">{{chat.send_at}}</span>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          
+          </div>
+          <div class="chat-footer">
+            <span id="chatForm" class="d-flex">
+              <input type="text" id="messageInput" class="form-control me-2" placeholder="Type a message...">
+              <button type="submit" class="btn btn-primary" id="send_btn" data-user="{{userprofile}}"
+                onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </span>
+          </div>
+        </div>
+
+
+      </div>
       <!-- Code Editor Section -->
-      <div class="col-lg-7">
+      <!-- <div class="col-lg-7">
         <div class="code-editor p-3">
           <form id="codeForm" method="POST" action="{% url 'home' %}">
             <textarea id="editor" class="form-control" data-user="{{request.user}}"></textarea>
@@ -362,7 +500,7 @@
             <div id="output" class="mt-2">{{output}}</div>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 
@@ -376,23 +514,75 @@
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.umd.min.js"></script>
 
   <script>
-    const editorElement = document.getElementById('editor');
-    const editor = CodeMirror.fromTextArea(editorElement, {
-      lineNumbers: true,
-      mode: "python",
-      theme: "dracula",  // Changed to "dracula" for better contrast
-      viewportMargin: Infinity,
-      lineWrapping: true,
-      indentWithTabs: true,
-      tabSize: 4,
-      autoCloseBrackets: true,
-      matchBrackets: true,
-      smartIndent: true,
-      styleActiveLine: true,
-      lint: true,
-      highlightSelectionMatches: { showToken: /\w/ },
-    });
-    editor.setSize(null, "450px");
+
+
+
+    const chat_socket = new WebSocket('ws://' + window.location.host + '/ws/global-chat/' + '{{request.user}}'+'/');
+
+
+    chat_socket.onmessage = function (e) {
+      const data = JSON.parse(e.data); // Parse WebSocket data
+      const messageText = data.message; // Message text
+      const sender = data.sender; // Sender's name
+      const userImage = data.userImage || "https://www.pngplay.com/wp-content/uploads/12/User-Avatar-Profile-PNG-Free-File-Download.png"; // Sender's profile image
+      const messageTime = data.time
+      console.log(data)
+      // Create message element
+      const newMessage = document.createElement('div');
+      newMessage.classList.add('chat-message');
+      newMessage.innerHTML = `
+        <img src="${userImage}" alt="${sender}" class="user-image">
+        <div class="message-content">
+            <div class="user-info">
+                <span class="user">${sender}</span>
+            <div class="message-text">${messageText}</div>
+
+                <span class="message-time">${messageTime}</span>
+            </div>
+        </div>
+    `;
+
+      // Append to chat body
+      const chatBody = document.getElementById('chat-body');
+      chatBody.appendChild(newMessage);
+
+      // Scroll to the bottom
+      chatBody.scrollTop = chatBody.scrollHeight;
+    };
+
+
+    chat_socket.onclose = function (e) {
+      console.error('WebSocket closed unexpectedly');
+    };
+
+    chat_socket.onerror = function (e) {
+      console.error('WebSocket error observed:', e);
+    };
+
+    function sendMessage() {
+      const messageInput = document.getElementById('messageInput');
+      const messageText = messageInput.value.trim();
+      if (!messageText) {
+        alert("Message cannot be empty!");
+        return;
+      }
+
+      const current_user = document.getElementById("send_btn").dataset['user'];
+      console.log('Message:', messageText, 'User:', "{{current_user.id}}");
+      console.log('image url: ',"{{userprofile.imageURL}}")
+      var d = new Date();
+      d.toLocaleString();   
+      chat_socket.send(JSON.stringify({
+        "message": messageText,
+        "sender": current_user,
+        "userImage":"{{userprofile.imageURL}}",
+        "user_id":"{{userprofile.id}}",
+        "time":d.toLocaleString()
+      }));
+
+      messageInput.value = ""; // Clear the input field
+    }
+
   </script>
 </body>
 

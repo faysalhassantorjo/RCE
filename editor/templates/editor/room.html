@@ -222,9 +222,9 @@
             transition: background-color 0.3s;
         }
 
-        .participants-list li:hover {
+        /* .participants-list li:hover {
             background-color: #282a36;
-        }
+        } */
 
         .participants-list li span {
             font-size: 1.1em;
@@ -544,8 +544,8 @@
                                 <!-- <span style="background-color: #fff; padding-left: 5px;padding-right: 5px; border-radius: 3px;">
                                       <a href="" style=" cursor:text; z-index: 9;"><img src="{% static 'editor/icons/rename.png' %}" height="20" width="20" alt="icons"></a>  
                                     </span> -->
-                                <br>
-                                <span style="font-size: .5rem;">{{channels_file.date|timesince}} ago</span>
+                                <!-- <br> -->
+                                <!-- <span style="font-size: .5rem;">{{channels_file.date|timesince}} ago</span> -->
                             </span>
                         </button>
                     </li>
@@ -669,7 +669,7 @@
                         'raw_code': rawCode,
                         'coding_by': coding_by
                     }));
-                }, 1000); // Wait 300ms after the user stops typing
+                }, 1000); // Wait 1s after the user stops typing
             }
         });
 
