@@ -26,21 +26,14 @@ def channel(request,channel_id):
 def home(request):
     channels = Channel.objects.all()
     users = UserProfile.objects.all()
+    chats = GlobalChatRoom.objects.all()
+    
     context={
         'channels':channels,
-        'users':users
+        'users':users,
+        'chats':chats
     }
-    if request.method == 'POST':
-        code = request.POST.get('code')
-        # chnl_id = request.POST.get('channel_id')
-        # file_id = request.POST.get('file_id',None)
-        # print('file id is: ',file_id)
-        result = run_code_fn(code)
-        
-        context.update({
-            'result':result
-        })
-   
+
     
     if request.user.is_authenticated:
         userprofile = UserProfile.objects.get(user = request.user)

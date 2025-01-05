@@ -2,6 +2,9 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .tasks import run_code_task
 from celery.result import AsyncResult
+from datetime import datetime
+from .models import *
+from asgiref.sync import async_to_sync, sync_to_async
 
 class CodeEditorConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -145,7 +148,88 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(
             data
         ))
+
+class GlobalChat(AsyncWebsocketConsumer):
+    async def connect(self):
+        user = self.scope['url_route']['kwargs']['user']
+        self.room_group_name = f'global_chat'
+
+      
+        now = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
+
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+         
+        )
+        await self.accept()
+        
+        await self.channel_layer.group_send( 
+            self.room_group_name,
+            {
+            'type':'send.global',
+            "message": f"{user} is connected!",
+            'sender':"Admin",
+            "time":now 
+            } 
+            
+        )
+
+    async def disconnect(self):
+        pass
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        message = data.get('message', '')
+        sender = data.get('sender', '')
+        userImage = data.get('userImage', '')
+        time = data.get('time', '')
+        user_id = data.get('user_id', '')
+        from asgiref.sync import sync_to_async
+
+        if user_id:
+            try:
+                user = await sync_to_async(UserProfile.objects.get)(id=user_id)
+                # print('user is:', user.user.username)
+            except UserProfile.DoesNotExist:
+                print(f'User with id {user_id} does not exist.')
+                user = None  # Handle this appropriately based on your logic.
+
+        if user:
+            try:
+                await sync_to_async(GlobalChatRoom.objects.create)(
+                    sender=user,
+                    message=message
+                )
+                print("Message saved successfully!")
+            except Exception as e:
+                print(f"Error saving message: {e}")
+
     
+            
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type':'send.global',
+                'message':message,
+                'sender':sender,
+                "userImage":userImage,
+                "time":time
+            }
+        )
+    async def send_global(self,event):
+        message = event.get('message','')
+        sender = event.get('sender','')
+        userImage = event.get('userImage','https://www.pngplay.com/wp-content/uploads/12/User-Avatar-Profile-PNG-Free-File-Download.png')
+        time = event.get('time','')
+        
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'sender': sender,
+            'userImage': userImage,
+            "time":time
+        }))
+
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):

@@ -91,3 +91,8 @@ class ReadStatus(models.Model):
 
     def __str__(self):
         return f"Read status for {self.user.username} on message {self.message.pk}"
+
+class GlobalChatRoom(models.Model):
+    sender = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    message = models.TextField()
+    send_at = models.DateTimeField(auto_now_add=True)
