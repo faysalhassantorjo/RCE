@@ -175,7 +175,7 @@ class GlobalChat(AsyncWebsocketConsumer):
             
         )
 
-    async def disconnect(self):
+    async def disconnect(self, close_code):
         pass
 
     async def receive(self, text_data):

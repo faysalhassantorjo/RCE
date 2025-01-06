@@ -167,17 +167,27 @@ def package_install(request):
 
 import docker
 def create_container(request):
-    client = docker.from_env()
-    user,created =UserProfile.objects.get_or_create(user = request.user)
-    container = client.containers.run(
-            "user-code-executor",  # Image name
-            detach=True,
-            name=f"user_{user.id}_container",
-            hostname=f"user_{user.id}",
-        )
-    UserContainer.objects.create(user=user, container_id=container.id)
+    try:
+        client = docker.from_env()
+        print('container list: ', client.containers.list())
+    except Exception as E:
+        return HttpResponse(f'Error happend: {E}')
+    try:
+        user,created =UserProfile.objects.get_or_create(user = request.user)
+        
+        container = client.containers.run(
+                image="python:3.10-slim",
+                detach=True,
+                command="sleep infinity",
+                name=f"user_{user.id}_container",
+                hostname=f"user_{user.id}",
+            )
+        UserContainer.objects.create(user=user, container_id=container.id)
+        return HttpResponse(f'user container created, container id is:{container.id}')
+        
+    except Exception as e:
+        return HttpResponse(e)
     
-    return HttpResponse(f'user container created, container id is:{container.id}')
 
 from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt

@@ -1,25 +1,11 @@
-# Base image
-FROM python:3.11-slim
+# Dockerfile-celery
+FROM python:3.9-slim
 
-# Environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+WORKDIR /app
 
-# Set the working directory
-WORKDIR /code
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
-COPY requirements.txt /code/
+COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the Django application
-COPY . /code/
+COPY . /app/
 
-# Command to start Celery worker
-CMD ["celery", "-A", "realtime_code_editor", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "project_name", "worker", "--loglevel=info"]
