@@ -13,6 +13,7 @@ services:
       
     depends_on:
       - redis
+      - celery
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -23,3 +24,16 @@ services:
     ports:
       - "6379:6379"
     command: redis-server
+  celery:
+    build: .
+    container_name: celery_worker
+    command: celery -A realtime_code_editor worker --loglevel=info
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DOCKER_HOST=unix:///var/run/docker.sock

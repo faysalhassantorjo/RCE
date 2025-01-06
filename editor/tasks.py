@@ -30,81 +30,81 @@ import shlex
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-# client = docker.from_env()
-
-
-# @shared_task
-# def run_code_task(code, inputs=None, code_executed_by=None, room_name=None):
-#     try:
-#         usr = User.objects.get(username=code_executed_by)
-#         userprofile = UserProfile.objects.get(user=usr)
-#         user_container = get_object_or_404(UserContainer, user=userprofile)
-#     except UserProfile.DoesNotExist:
-#         return "Error: UserProfile does not exist."
-
-#     try:
-#         container = client.containers.get(user_container.container_id)
-#         exec_cmd = f'python3 -c {shlex.quote(code)}'
-#         exit_code, output = container.exec_run(exec_cmd)
-#         output_decoded = output.decode()
-
-#         channel_layer = get_channel_layer()
-#         group_name = f"task_{room_name}"
-
-#         try:
-#             async_to_sync(channel_layer.group_send)(
-#                 group_name,
-#                 {
-#                     "type": "task.update", 
-#                     "output": output_decoded,
-#                     "code_executed_by": code_executed_by,
-#                 }
-#             )
-#             return f"Message sent to group {group_name}"
-#         except Exception as send_error:
-#             return f"Error sending message to group: {send_error}"
-            
-#         return output_decoded
-#     except Exception as e:
-#         return f'Exception: {e}, Container Status: {container.status}'
-
-
-
-
+client = docker.from_env()
 
 
 @shared_task
-def run_code_task(code,inputs=None):
-    # Convert Windows path to WSL path
-    python_executable = "/mnt/d/RCE/packages/user_1/Scripts/python.exe"
-    
-    # Debugging log
-    logger.info(f"Checking Python executable at {python_executable}")
-    
-    # Ensure the executable exists
-    if not os.path.isfile(python_executable):
-        return f"Python executable not found at {python_executable} (cwd={os.getcwd()}, PATH={os.environ['PATH']})."
-
-    # Modify environment to ensure PATH is correct
-    env = os.environ.copy()
-    env["PATH"] = os.path.dirname(python_executable) + ":" + env["PATH"]
+def run_code_task(code, inputs=None, code_executed_by=None, room_name=None):
+    try:
+        usr = User.objects.get(username=code_executed_by)
+        userprofile = UserProfile.objects.get(user=usr)
+        user_container = get_object_or_404(UserContainer, user=userprofile)
+    except UserProfile.DoesNotExist:
+        return "Error: UserProfile does not exist."
 
     try:
-        # simulated_input = "\n".join(inputs)
-        result = subprocess.Popen(
-            [python_executable, "-c", code],
-            text=True,
-            # capture_output=True,
-            # check=True,
-            env=env,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        stdout, stderr = result.communicate(input=inputs)
-        return stdout
-    except subprocess.CalledProcessError as e:
-        return e.stderr
+        container = client.containers.get(user_container.container_id)
+        exec_cmd = f'python3 -c {shlex.quote(code)}'
+        exit_code, output = container.exec_run(exec_cmd)
+        output_decoded = output.decode()
+
+        channel_layer = get_channel_layer()
+        group_name = f"task_{room_name}"
+
+        try:
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "task.update", 
+                    "output": output_decoded,
+                    "code_executed_by": code_executed_by,
+                }
+            )
+            return f"Message sent to group {group_name}"
+        except Exception as send_error:
+            return f"Error sending message to group: {send_error}"
+            
+        return output_decoded
+    except Exception as e:
+        return f'Exception: {e}, Container Status: {container.status}'
+
+
+
+
+
+
+# @shared_task
+# def run_code_task(code,inputs=None):
+#     # Convert Windows path to WSL path
+#     python_executable = "/mnt/d/RCE/packages/user_1/Scripts/python.exe"
+    
+#     # Debugging log
+#     logger.info(f"Checking Python executable at {python_executable}")
+    
+#     # Ensure the executable exists
+#     if not os.path.isfile(python_executable):
+#         return f"Python executable not found at {python_executable} (cwd={os.getcwd()}, PATH={os.environ['PATH']})."
+
+#     # Modify environment to ensure PATH is correct
+#     env = os.environ.copy()
+#     env["PATH"] = os.path.dirname(python_executable) + ":" + env["PATH"]
+
+#     try:
+#         # simulated_input = "\n".join(inputs)
+#         result = subprocess.Popen(
+#             [python_executable, "-c", code],
+#             text=True,
+#             # capture_output=True,
+#             # check=True,
+#             env=env,
+#             stdin=subprocess.PIPE,
+#             stdout=subprocess.PIPE,
+#             stderr=subprocess.PIPE
+#         )
+#         stdout, stderr = result.communicate(input=inputs)
+#         return stdout
+#     except subprocess.CalledProcessError as e:
+#         return e.stderr
 
 
 
