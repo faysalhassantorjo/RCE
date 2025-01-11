@@ -354,39 +354,10 @@
 
     <!-- <hr color="#fff"> -->
 
-    <div class="row mt-3">
+    <div class="row mt-3" >
         <div class="col-lg-1 col-md-2 col-2 p-3">
-            <div class="people-list-container p-3">
-                <h3 class="text-center"><i class="fas fa-users"></i> <span
-                        style="color: #ffffff; opacity: .8; font-size: .8rem;">Member</span></h3>
 
 
-                <!-- <button class="btn btn-primary">Invite Friends</button> -->
-                <ul class="participants-list" style="list-style: none;">
-                    {% for user in channel.participants.all %}
-                    <li>
-                        <span style="font-size: 1rem;" class="d-flex">
-                            <span class="j" id="{{user.username}}">
-                                <i class="fa-solid fa-terminal" style="font-size: .8rem; color: #50fa7b;"></i>
-                            </span>
-                            <span>
-                                {{user.username}}
-                            </span>
-
-
-                            <!-- {% if request.user == user %}
-                            <span style="opacity: .4; font-size: .6rem;"> (you)</span>
-                            {% endif %} -->
-                            <!-- &nbsp; -->
-                        </span>
-                        <!-- <i class="fa-solid fa-code"></i> -->
-                    </li>
-                    {% endfor %}
-                    <li>
-                        <!-- <span id="x" class="" style="font-size: .8rem;"></span> -->
-                    </li>
-                </ul>
-            </div>
         </div>
 
         <div class="col-lg-9 col-md-10 col-10">
@@ -473,9 +444,56 @@
                     <span class="collapse" id="collapseExample" style="cursor: text;">
                         <a class="p-2 bg-light" href="{{url}}">{{url}}</a>
                     </span>
+                    <button id="start_container" onclick="startContainer(this)" class="btn btn-success"
+                        data-user_id="{{userprofile.id}}">
+                        {% if container_status == "exited" %}
+                        Connect Container
+                        {% else %}
+                        {{container_status}}
+                        {% endif %}
+                    </button>
+                    <span>
+                        <style>
+                            .hidden{
+                                display: none;
+                            }
+                            .not_hidden{
+                                display: block;
+                            }
+                        </style>
+                        <div class="d-inline-flex position-relative hidden" id="indicate" >
+                            <span class="position-absolute top-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle">
+                              <span class="visually-hidden">New alerts</span>
+                            </span>
+                            <img class="rounded-4 shadow-4 " 
+                            src="" id="coding_by_img" alt="" 
+                            data-mdb-tooltip-init title="" style="width: 35px; height: 35px;">
+                          </div>
+                    </span>
+                    <script>
+                        function startContainer(button) {
+                            const userId = button.dataset.user_id;
+                            const container_button = document.getElementById('start_container')
+                            fetch('/start-container/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    "user_id": userId
+                                })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log('resposne: ', data)
+                                    const status = data['container_status']
+                                    container_button.innerHTML = status
+                                })
+                        }
+                    </script>
                 </div>
                 <form id="codeForm" method="POST" action="{% url 'save_code' %}">
-                    <textarea id="editor" data-user="{{request.user}}"></textarea>
+                    <textarea id="editor" data-user="{{request.user}}" data-user_image="{{userprofile.imageURL}}" ></textarea>
                     {% csrf_token %}
                     <input type="hidden" name="code" id="codeInput">
                     <input type="hidden" name="channel_id" value="{{channel.id}}">
@@ -522,9 +540,86 @@
             </div>
         </div>
 
+        <style>
+            .members {
+                position: absolute;
+                top: 0;
+                right: -400px;
+                /* Hidden off-screen */
+                width: 400px;
+                height: auto;
+                background-color: rgba(0, 0, 0, 0.212);
+                overflow-y: auto;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+                transition: right 0.3s ease;
+                z-index: 9;
+                padding: 20px;
+                backdrop-filter: blur(10px);
+                position: fixed;
+            }
 
-        <div class="col-lg-2 col-md-0 col-0">
-            <div class="file-list-container">
+            .members.visible {
+                right: 0;
+                visibility: visible;
+            }
+
+            .close-btn {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: #333;
+                z-index: 10;
+            }
+
+            .close-btn:hover {
+                color: red;
+            }
+
+            .hidden {
+                right: -400px;
+                visibility: hidden;
+
+            }
+        </style>
+
+        <div class="col-lg-2 col-md-0 col-0 ">
+            <button id="toggleMembers" class="btn btn-info">All Members</button>
+                <div id="membersContainer" class="members hidden p-3 ">
+                    <button id="closeMembers" class="close-btn">&times;</button>
+                    <span class="text-light" >All Members</span>
+                    <ul class="list-group list-group-light mt-3">
+                        {% for user in channel.participants.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <img src="{{user.imageURL}}" alt=""
+                                    style="width: 45px; height: 45px" class="rounded-circle" />
+                                <div class="ms-3">
+                                    <p class="fw-bold mb-1 text-light">
+                                        @{{user.user.username}}
+                                        &nbsp;
+                                        {% if user == channel.created_by %}
+                                        <span class="text-info">Admin</span>
+                                        {% endif %}
+                                    </p>
+                                   
+                                    <p class=" mb-0 text-light">{{user.user.email}}</p>
+                                </div>
+                            </div>
+                            {% if user.is_user_online %}
+                            <span class="badge rounded-pill badge-success">Active</span>
+                            {% else %}
+                            <span class="badge rounded-pill badge-warning">Offline</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            <div class="file-list-container mt-3">
+                
                 <h3><i class="fa-solid fa-folder"></i>&nbsp;<span style="color: #ffffff; opacity: .8;">
                         <span style="font-size: .8rem; opacity: .8;">You can load this in editor</span> </span>
                 </h3>
@@ -554,6 +649,17 @@
             </div>
         </div>
     </div>
+    <script>
+        document.getElementById('toggleMembers').addEventListener('click', function () {
+            const membersContainer = document.getElementById('membersContainer');
+            membersContainer.classList.replace('hidden', 'visible');
+        });
+
+        document.getElementById('closeMembers').addEventListener('click', function () {
+            const membersContainer = document.getElementById('membersContainer');
+            membersContainer.classList.replace('visible', 'hidden');
+        });
+    </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/mode/python/python.min.js"></script>
@@ -650,6 +756,13 @@
                 editor.setCursor(cursorPos);
                 isLocalChange = false;
             }
+            if (data.coding_by){
+                const  coding_by_img = document.getElementById('coding_by_img')
+                coding_by_img.src = data.user_image
+                coding_by_img.title=data.coding_by
+                const indicate = document.getElementById('indicate')
+                indicate.classList.replace('hidden','not_hidden')
+            }
         };
 
         socket.onclose = function (e) {
@@ -663,11 +776,13 @@
                 clearTimeout(debounceTimer);
                 const rawCode = editor.getValue();
                 const coding_by = editorElement.dataset.user;
+                const user_image = editorElement.dataset.user_image;
 
                 debounceTimer = setTimeout(() => {
                     socket.send(JSON.stringify({
                         'raw_code': rawCode,
-                        'coding_by': coding_by
+                        'coding_by': coding_by,
+                        'user_image':user_image
                     }));
                 }, 1000); // Wait 1s after the user stops typing
             }

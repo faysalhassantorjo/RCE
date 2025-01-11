@@ -48,8 +48,8 @@ class CodeFile(models.Model):
     
 class Channel(models.Model):
     name = models.CharField(max_length=255)
-    participants = models.ManyToManyField(User)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_rooms')
+    participants = models.ManyToManyField(UserProfile)
+    created_by = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='created_rooms')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     codefile = models.ManyToManyField(CodeFile,related_name='channels_file')

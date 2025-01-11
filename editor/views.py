@@ -3,7 +3,10 @@ from .models import *
 from django.http import HttpResponse, JsonResponse
 from .tasks import run_code_fn , install_package ,run_code_task
 from django.db.models import Count
+import docker
+
 # Create your views here.
+client = docker.from_env()
 
 def channel(request,channel_id):
     
@@ -21,12 +24,24 @@ def channel(request,channel_id):
     }
     if request.user.is_authenticated:
         userprofile = UserProfile.objects.get(user = request.user)
-        context.update({'userprofile':userprofile})
+        try:
+            user_container = UserContainer.objects.get(user=userprofile)
+
+            # Get the Docker container
+            container = client.containers.get(user_container.container_id)
+            container_status = container.status
+        except:
+            container_status = "Global Container"
+        context.update({
+            'userprofile':userprofile, 
+            'container_status':container_status
+            })
     return render (request, 'editor/room.html',context)
 def home(request):
     channels = Channel.objects.all()
     users = UserProfile.objects.all()
     chats = GlobalChatRoom.objects.all()
+    
     
     context={
         'channels':channels,
@@ -37,7 +52,12 @@ def home(request):
     
     if request.user.is_authenticated:
         userprofile = UserProfile.objects.get(user = request.user)
-        context.update({'userprofile':userprofile})
+        try:
+            container = UserContainer.objects.get(user=userprofile)
+        except:
+            container=None
+        
+        context.update({'userprofile':userprofile, 'container':container})
     return render (request, 'editor/homepage.html',context)
 
 from django.contrib.auth import logout
@@ -45,6 +65,41 @@ from django.contrib.auth import logout
 def logout_view(request):
     logout(request)
     return redirect('home')  
+
+
+from django.contrib.auth.models import User
+from django.contrib.auth import login, authenticate
+from django.contrib import messages
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+
+        # Validate input fields
+        if password1 != password2:
+            messages.error(request, "Passwords do not match.")
+        elif User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+        elif User.objects.filter(email=email).exists():
+            messages.error(request, "Email is already registered.")
+        else:
+            # Create the user
+            user = User.objects.create_user(username=username, email=email, password=password1)
+            user.save()
+            upro =UserProfile.objects.create(user=user)
+            upro.save()
+            messages.success(request, "Account created successfully! You can now log in.")
+            user = authenticate(request, username=username, password=password1)
+            if user is not None:
+                login(request, user)
+            return redirect('login')  # Replace 'login' with the name of your login URL
+
+    return render(request, 'editor/register.html')
+
+
 
 def save_file(request):
     if request.method == 'POST':
@@ -110,9 +165,10 @@ def create_channel(request):
     if request.method == "GET":
         name = request.GET.get('name')
         print(f'Channel Name is : {name}')
-        channel = Channel.objects.create(name=name,created_by = request.user)
         u=request.user
-        channel.participants.add(u)
+        uprofile = UserProfile.objects.get(user=u)
+        channel = Channel.objects.create(name=name,created_by = uprofile)
+        channel.participants.add(uprofile)
         return redirect('channel', channel_id = channel.id)
     else: return HttpResponse('Some error occured')
 def join_channel(request,channel_id):
@@ -124,9 +180,10 @@ def join_channel(request,channel_id):
         except:
             return HttpResponse('There is No such channel')
         user = request.user
+        userprofile = UserProfile.objects.get(user=user)
         all_user = channel.participants.all()
         if user not in all_user:
-            channel.participants.add(user)
+            channel.participants.add(userprofile)
             channel.save()
         
         return redirect('channel', channel_id=channel_id)
@@ -165,7 +222,6 @@ def install_package_view(request):
 def package_install(request):
     return render(request, 'editor/installpackage.html')
 
-import docker
 def create_container(request):
     try:
         client = docker.from_env()
@@ -202,3 +258,69 @@ def start_task(request):
 
         return JsonResponse({'task_id': task.id})
     return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import docker
+import json
+
+@csrf_exempt
+def start_container(request):
+    if request.method == 'POST':
+        context ={}
+        try:
+            # Parse JSON body
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+
+            # Validate user_id
+            if not user_id:
+                return JsonResponse({'error': 'user_id is required'}, status=400)
+
+            # Initialize Docker client
+            client = docker.from_env()
+
+            # Get the user and related container
+            userprofile = UserProfile.objects.get(id=user_id)
+            user_container = UserContainer.objects.get(user=userprofile)
+
+            # Get the Docker container
+            container = client.containers.get(user_container.container_id)
+            print('Container status before: ', container.status)
+
+            # Check and start the container if not running
+            if container.status != "running":
+                container.start()
+                print('Container status: ', container.status)
+
+            # Serialize data for response
+                userprofile_data = {
+                    'username': userprofile.user.username,
+                }
+
+                context={
+                    'container_status': "Connected",
+                    'userId': user_id,
+                    'userprofile': userprofile_data,
+                    'container_id': user_container.container_id,
+                }
+
+            return JsonResponse(context)
+
+        except UserProfile.DoesNotExist:
+            return JsonResponse({'error': f'UserProfile with id {user_id} does not exist'}, status=404)
+
+        except UserContainer.DoesNotExist:
+            return JsonResponse({'error': f'Container for user {user_id} does not exist'}, status=404)
+
+        except docker.errors.NotFound:
+            return JsonResponse({'error': 'Docker container not found'}, status=404)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
+
+
+def start_call(request):
+    return render(request, 'editor/call.html')

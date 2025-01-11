@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Call</title>
+</head>
+<body>
+    <h1>Audio Call</h1>
+    <button id="start-call">Start Call</button>
+    <button id="end-call" disabled>End Call</button>
+
+    <script>
+        // const ws = new WebSocket(`ws://${window.location.host}/ws/call/${roomName}/`);
+        // const ws = new WebSocket('ws://' + window.location.host + '/ws/call/' + roomName + '/');
+
+        const roomName = "test-room"; // Example room name
+        const ws = new WebSocket('ws://' + window.location.host + '/ws/call/' + roomName + '/');
+
+
+        const startCallButton = document.getElementById("start-call");
+        const endCallButton = document.getElementById("end-call");
+
+        let localStream;
+        let peerConnection;
+
+        const config = {
+            iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.offer) {
+                handleOffer(data.offer);
+            } else if (data.answer) {
+                handleAnswer(data.answer);
+            } else if (data.candidate) {
+                handleCandidate(data.candidate);
+            }
+        };
+
+        startCallButton.addEventListener("click", async () => {
+            startCallButton.disabled = true;
+            endCallButton.disabled = false;
+
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            peerConnection = new RTCPeerConnection(config);
+
+            localStream.getTracks().forEach((track) => {
+                peerConnection.addTrack(track, localStream);
+            });
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    ws.send(JSON.stringify({ candidate: event.candidate }));
+                }
+            };
+
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            ws.send(JSON.stringify({ offer }));
+        });
+
+        endCallButton.addEventListener("click", () => {
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            startCallButton.disabled = false;
+            endCallButton.disabled = true;
+        });
+
+        async function handleOffer(offer) {
+            peerConnection = new RTCPeerConnection(config);
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    ws.send(JSON.stringify({ candidate: event.candidate }));
+                }
+            };
+
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+
+            ws.send(JSON.stringify({ answer }));
+        }
+
+        async function handleAnswer(answer) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        }
+
+        async function handleCandidate(candidate) {
+            peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+    </script>
+</body>
+</html>

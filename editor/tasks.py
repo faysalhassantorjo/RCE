@@ -38,12 +38,15 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None):
     try:
         usr = User.objects.get(username=code_executed_by)
         userprofile = UserProfile.objects.get(user=usr)
-        user_container = get_object_or_404(UserContainer, user=userprofile)
-    except UserProfile.DoesNotExist:
-        return "Error: UserProfile does not exist."
+        user_container = UserContainer.objects.get(user=userprofile)
+    except:
+        user_container = None
 
     try:
-        container = client.containers.get(user_container.container_id)
+        if user_container:
+            container = client.containers.get(user_container.container_id)
+        else:
+            container = client.containers.get('38f5b3ffd4b21c19da4ec34506bf24d935278848543215f9dce0a6d5f9168841')
         exec_cmd = f'python3 -c {shlex.quote(code)}'
         exit_code, output = container.exec_run(exec_cmd)
         output_decoded = output.decode()
@@ -66,7 +69,7 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None):
             
         return output_decoded
     except Exception as e:
-        return f'Exception: {e}, Container Status: {container.status}'
+        return f'Exception: {e}'
 
 
 

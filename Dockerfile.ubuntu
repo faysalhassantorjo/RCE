@@ -1,0 +1,22 @@
+# Dockerfile
+FROM ubuntu:latest
+
+# Set environment variables to reduce interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update the package list and install Python, GCC, and build tools
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    build-essential \
+    gcc \
+    && apt-get clean
+
+# Verify installations
+RUN python3 --version && gcc --version
+
+# Set the working directory
+WORKDIR /code_file
+
+# Default entry point
+CMD ["bash"]

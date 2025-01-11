@@ -42,43 +42,37 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
         if 'raw_code' in text_data_json:
             raw_code = text_data_json['raw_code']
             coding_by = text_data_json.get('coding_by','')
+            user_image = text_data_json.get('user_image','')
 
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'send_code_output',
                     'raw_code': raw_code,
-                    'message': '',
-                    'coding_by':coding_by
+                    'coding_by':coding_by,
+                    'user_image':user_image,
+                    'text_data_json':text_data_json
                 }
             )
 
 
     # Broadcast the code or its output to all connected clients in the group
     async def send_code_output(self, event):
-        message = event['message']
         raw_code = event.get('raw_code', '')
-        code_executed_by = event.get('code_executed_by', '')
-        task_id = event.get('task_id','')
         coding_by = event.get('coding_by','')
+        user_image = event.get('user_image','')
+        text_data_json = event.get('text_data_json','')
+        
 
        
-        if task_id:
-            task = AsyncResult(task_id)
-            if task.ready():
-                message = task.result  
-            else:
-                message = 'Processing...'  # Keep informing that it's processing
-                
-        print(message)
+     
 
 
         await self.send(text_data=json.dumps({
-            'message': message,  # The output of the code execution
             'raw_code': raw_code,
-            'code_executed_by': code_executed_by,
-            'task_id':task_id,
-            'coding_by':coding_by
+            'coding_by':coding_by,
+            'user_image':user_image,
+            'text_data_json':text_data_json,
         }))
 
 
@@ -250,3 +244,45 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'notification': event['notification']
         }))
+
+
+
+
+# audio call implement
+
+
+
+class CallConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        print(f"Path: {self.scope['path']}")
+        print(f"Room Name: {self.scope['url_route']['kwargs']['room_name']}")
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = f'call_{self.room_name}'
+
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+
+    async def disconnect(self, close_code):
+        # Leave room group
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'call_message',
+                'message': data
+            }
+        )
+
+    async def call_message(self, event):
+        message = event['message']
+        await self.send(text_data=json.dumps(message))

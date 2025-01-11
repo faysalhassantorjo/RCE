@@ -147,9 +147,7 @@
           <li class="nav-item">
             <a class="nav-link" href="#">Team</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Projects</a>
-          </li>
+         
         </ul>
         <!-- Left links -->
       </div>
@@ -159,6 +157,13 @@
       <div class="d-flex align-items-center">
         <!-- Icon -->
         {% if request.user.is_authenticated %}
+        {% if container %}
+        <span class="text-info me-2" >You Have a container</span>
+        {% else %}
+       
+          <a class="btn btn-info me-2" href="{% url 'create_container' %}">Create Your Container </a>
+ 
+        {% endif %}
         Hello {{userprofile.user.username}}! &nbsp;&nbsp;
         {% else %}
         <a data-mdb-ripple-init type="button" href="{% url 'login' %}" class="btn btn-link px-3 me-2">
