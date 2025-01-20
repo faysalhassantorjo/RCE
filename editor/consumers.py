@@ -5,32 +5,118 @@ from celery.result import AsyncResult
 from datetime import datetime
 from .models import *
 from asgiref.sync import async_to_sync, sync_to_async
+import redis
+
+# redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
+redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
+
 
 class CodeEditorConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
+        userprofile_id = self.scope['url_route']['kwargs']['userprofile']
         self.room_group_name = f'editor_{self.room_name}'
 
-        print('===================================')
-        print('----------For editor------------')
-        print(f'={self.channel_name}=')
-        print(f'={self.channel_layer}')
-        print(f'={self.room_group_name}')
-        print('===================================')
-        # Join room group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        userprofile = await sync_to_async(UserProfile.objects.get)(id=userprofile_id)
+        username = await sync_to_async(lambda: userprofile.user.username)()
+        userimage = await sync_to_async(lambda: userprofile.imageURL())()
 
+
+        # Prepare user data
+        user_data = {
+            "username": username,
+            "image": userimage,
+        }
+
+        stored_data = redis_client.get(self.room_group_name)
+
+        if stored_data:
+            all_users = list(json.loads(stored_data))
+        else:
+            all_users = []
+
+        # Append the new user data
+        if user_data in all_users:
+            pass
+        else:
+            all_users.append(user_data)
+
+        # Serialize and store the updated list back to Redis
+        serialized_user_data = json.dumps(all_users)
+        redis_client.set(self.room_group_name, serialized_user_data)
+
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
+        
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type':'allconnecteduser'
+            }
+        )
+    async def allconnecteduser(self,event):
+        
+        all_users = redis_client.get(self.room_group_name)
+        if all_users:
+            all_users = json.loads(all_users)
+            print("All Connected Users:")
+            print(all_users)
+
+        # Send the list of connected users to the frontend
+        await self.send(text_data=json.dumps({
+            'connected_users': all_users,
+        }))
+        
 
     async def disconnect(self, close_code):
-        # Leave room group
-        await self.channel_layer.group_discard(
+        print('Disconnecting with close code:', close_code)
+        await self.handle_user_leave()
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+    async def handle_user_leave(self):
+        print('Sending leave_user event to group:', self.room_group_name)
+        all_users = redis_client.get(self.room_group_name)
+        if all_users:
+            all_users = list(json.loads(all_users))
+        userprofile_id = self.scope['url_route']['kwargs']['userprofile']
+
+        userprofile = await sync_to_async(UserProfile.objects.get)(id=userprofile_id)
+        username = await sync_to_async(lambda: userprofile.user.username)()
+        userimage = await sync_to_async(lambda: userprofile.imageURL())()
+
+
+        # Prepare user data
+        user_data = {
+            "username": username,
+            "image": userimage,
+        }  
+        
+        if user_data in all_users:
+            all_users.remove(user_data)
+        
+        print('After user disconnected: all data is : ', json.dumps(all_users)) 
+        redis_client.set(self.room_group_name, json.dumps(all_users))
+        await self.channel_layer.group_send(
             self.room_group_name,
-            self.channel_name
+            {
+                'type': 'leave_user',
+                'left_user': username
+            }
         )
+
+    async def leave_user(self, event):
+        print('leave_user handler called.')
+
+        
+        # Add additional logic here if needed (e.g., broadcasting to other users)
+
+        left_user = event.get('left_user')
+
+        await self.send(text_data=json.dumps({
+            'left_user': left_user,
+            'type':'user_disconnected'
+        }))
+
 
     async def receive(self, text_data):
         # Parse the incoming data
@@ -38,7 +124,6 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
         
         print('Text Data Json: ====', text_data_json)
 
- 
         if 'raw_code' in text_data_json:
             raw_code = text_data_json['raw_code']
             coding_by = text_data_json.get('coding_by','')

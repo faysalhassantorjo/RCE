@@ -8,6 +8,7 @@ services:
     volumes:
       - .:/app
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./static:/app/static
     ports:
       - "8000:8000"
     depends_on:
@@ -54,6 +55,6 @@ services:
       context: .
       dockerfile: Dockerfile.ubuntu
     volumes:
-      - ./code:/code_file  # Mounts the local 'code' directory to '/app' in the container
+      - ./code:/code_file  
     working_dir: /code_file
-    tty: true  # Keeps the container running interactively
+    tty: true  

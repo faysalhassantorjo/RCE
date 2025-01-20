@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+  {% load static %}
 
 <head>
   <meta charset="UTF-8">
@@ -20,6 +21,8 @@
     href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
     rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
   <style>
     body {
       background-color: #282a36;
@@ -116,6 +119,10 @@
       font-weight: bold;
       color: #50fa7b;
     }
+    .icons{
+      height: 30px;
+      width: 30px;
+    }
   </style>
 </head>
 
@@ -147,7 +154,7 @@
           <li class="nav-item">
             <a class="nav-link" href="#">Team</a>
           </li>
-         
+
         </ul>
         <!-- Left links -->
       </div>
@@ -158,11 +165,11 @@
         <!-- Icon -->
         {% if request.user.is_authenticated %}
         {% if container %}
-        <span class="text-info me-2" >You Have a container</span>
+        <span class="text-info me-2">You Have a container</span>
         {% else %}
-       
-          <a class="btn btn-info me-2" href="{% url 'create_container' %}">Create Your Container </a>
- 
+
+        <a class="btn btn-info me-2" href="{% url 'create_container' %}">Create Your Container </a>
+
         {% endif %}
         Hello {{userprofile.user.username}}! &nbsp;&nbsp;
         {% else %}
@@ -197,12 +204,13 @@
           <a data-mdb-dropdown-init class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
             id="navbarDropdownMenuAvatar" role="button" aria-expanded="false">
             {% if userprofile %}
-            <img src="{{userprofile.imageURL}}" class="rounded-circle" style="height: 35px; width: 35px; object-fit: cover;"
-              alt="Black and White Portrait of a Man" loading="lazy" />
+            <img src="{{userprofile.imageURL}}" class="rounded-circle"
+              style="height: 35px; width: 35px; object-fit: cover;" alt="Black and White Portrait of a Man"
+              loading="lazy" />
             {% else %}
             <img
               src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY4lzrMEr0amU3ubAgMpsMXUw5kqMqHrylBNDQi82fS6QYpEC0TaE0FxSYhYmHGL4RGOU&usqp=CAU"
-              class="rounded-circle"  style="height: 35px; width: 35px; object-fit: cover;" alt="" loading="lazy" />
+              class="rounded-circle" style="height: 35px; width: 35px; object-fit: cover;" alt="" loading="lazy" />
             {% endif %}
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
@@ -305,6 +313,37 @@
           });
         </script>
 
+        <style>
+          #channel-name,
+          #channel-type {
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+          }
+
+          #channel-name:focus,
+          #channel-type:focus {
+            border-color: #6200ea;
+            box-shadow: 0 0 0 0.2rem rgba(98, 0, 234, 0.25);
+          }
+
+          #submit-channel {
+            background-color: #6200ea;
+            border-color: #6200ea;
+          }
+
+          #submit-channel:hover {
+            background-color: #5b00d1;
+            border-color: #5b00d1;
+          }
+
+          .form-label {
+            font-weight: bold;
+            color: #333;
+          }
+
+          .text-danger {
+            font-size: 0.9rem;
+          }
+        </style>
 
         <div class="channel-list-container p-3 rounded" style="background-color: #191a29;">
           <div class="d-flex justify-content-between mb-3">
@@ -314,18 +353,34 @@
             </button>
           </div>
           <!-- Hidden form to create a channel -->
-          <div id="channel-form" class="mt-3" style="display: none;">
+          <div id="channel-form" class="mt-4 p-4 rounded shadow bg-light" style="display: none;">
             <form action="{% url 'create_channel' %}" method="get">
-              <div class="input-group">
-
+              <div class="mb-3">
+                <label for="channel-name" class="form-label">Channel Name</label>
                 <input type="text" id="channel-name" name="name" class="form-control" placeholder="Enter channel name"
-                  required>
-                <button id="submit-channel" type="submit" class="btn btn-primary">Create</button>
+                  required />
+              </div>
 
+              <div class="mb-3">
+                <label for="channel-type" class="form-label">Channel Type</label>
+                <select id="channel-type" name="language" class="form-select" required>
+                  <option selected disabled>Select an option</option>
+                  <option value="PYTHON">python3.12.3</option>
+                  <option value="C">gcc 13.3.0</option>
+                </select>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center">
+                <button id="submit-channel" type="submit" class="btn btn-primary">
+                  Create
+                </button>
+                <small id="error-message" class="text-danger" style="display: none;">
+                  Channel name is required
+                </small>
               </div>
             </form>
-            <small id="error-message" class="text-danger mt-2" style="display: none;">Channel name is required</small>
           </div>
+
           <script>
             document.getElementById('create-channel').addEventListener('click', function () {
               // Show the channel creation form
@@ -337,10 +392,14 @@
           <ul class="channel-list">
             {% for channel in channels %}
             <a href="{% url 'channel' channel.id %}" style="text-decoration: none; color: #fff;">
-              <li class="d-flex align-items-center">
+              <li class="d-flex justify-content-between">
                 <img src="{{channel.imageURL}}" alt="Channel" class="channel-avatar me-3">
                 <span>{{channel.name}}</span>
-
+                {% if channel.programing_language == "PYTHON" %}  
+                <span><img class="icons" src="{% static 'icons/python.png' %}" alt=""></span>
+                {% elif channel.programing_language == "C" %}
+                <span><img class="icons" src="{% static 'icons/c.png' %}" alt=""></span>
+                {% endif %}
               </li>
             </a>
             {% endfor %}
@@ -459,18 +518,18 @@
           <div id="chat-body">
             {% for chat in chats %}
             <div class="chat-message">
-              <img src="{{chat.sender.imageURL}}" alt="{{chat.sender}}"  class="user-image">
+              <img src="{{chat.sender.imageURL}}" alt="{{chat.sender}}" class="user-image">
               <div class="message-content">
                 <div class="user-info">
                   <span class="user">{{chat.sender}}</span>
                   <div class="message-text">{{chat.message}}</div>
-  
+
                   <span class="message-time">{{chat.send_at}}</span>
                 </div>
               </div>
             </div>
             {% endfor %}
-          
+
           </div>
           <div class="chat-footer">
             <span id="chatForm" class="d-flex">
@@ -522,7 +581,7 @@
 
 
 
-    const chat_socket = new WebSocket('ws://' + window.location.host + '/ws/global-chat/' + '{{request.user}}'+'/');
+    const chat_socket = new WebSocket('ws://' + window.location.host + '/ws/global-chat/' + '{{request.user}}' + '/');
 
 
     chat_socket.onmessage = function (e) {
@@ -574,15 +633,15 @@
 
       const current_user = document.getElementById("send_btn").dataset['user'];
       console.log('Message:', messageText, 'User:', "{{current_user.id}}");
-      console.log('image url: ',"{{userprofile.imageURL}}")
+      console.log('image url: ', "{{userprofile.imageURL}}")
       var d = new Date();
-      d.toLocaleString();   
+      d.toLocaleString();
       chat_socket.send(JSON.stringify({
         "message": messageText,
         "sender": current_user,
-        "userImage":"{{userprofile.imageURL}}",
-        "user_id":"{{userprofile.id}}",
-        "time":d.toLocaleString()
+        "userImage": "{{userprofile.imageURL}}",
+        "user_id": "{{userprofile.id}}",
+        "time": d.toLocaleString()
       }));
 
       messageInput.value = ""; // Clear the input field

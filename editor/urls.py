@@ -17,4 +17,5 @@ urlpatterns = [
     path('start-task/',start_task,name='start_task'),
     path('start-container/',start_container,name='start_container'),
     path('start-call/',start_call,name='start_call'),
+    path('give-permision/', give_parmision, name='give_permission')
 ]

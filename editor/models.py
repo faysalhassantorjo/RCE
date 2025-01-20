@@ -44,9 +44,13 @@ class CodeFile(models.Model):
     date = models.DateTimeField(default=now, blank=True)
    
     def __str__(self) -> str:
-        return f'file - {self.id}'
+        return f'{self.file_name}'
     
 class Channel(models.Model):
+    LANGUAGES={
+        'PYTHON':'python3.12.3',
+        'C': 'gcc 13.3.0'
+    }
     name = models.CharField(max_length=255)
     participants = models.ManyToManyField(UserProfile)
     created_by = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='created_rooms')
@@ -54,7 +58,8 @@ class Channel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     codefile = models.ManyToManyField(CodeFile,related_name='channels_file')
     channel_picture = models.ImageField(upload_to='profile_pictures/', default='profile_pictures/default.jpg')
-    
+    programing_language = models.CharField(max_length=255,choices=LANGUAGES, default="PYTHON")
+    has_permission = models.ManyToManyField(UserProfile, blank=True,null=True, related_name='task_permission')
     def imageURL(self):
         url = ''
         try:

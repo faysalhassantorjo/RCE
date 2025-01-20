@@ -1,15 +1,16 @@
 from django.shortcuts import render,redirect
 from .models import *
 from django.http import HttpResponse, JsonResponse
-from .tasks import run_code_fn , install_package ,run_code_task
+from .tasks import run_code_fn , install_package ,run_code_task, stop_container_task
 from django.db.models import Count
 import docker
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 client = docker.from_env()
 
 def channel(request,channel_id):
-    
+    print('channel is is : ', channel_id)
     channel = Channel.objects.get(id = channel_id)
     
     channels_files = CodeFile.objects.filter(
@@ -31,12 +32,12 @@ def channel(request,channel_id):
             container = client.containers.get(user_container.container_id)
             container_status = container.status
         except:
-            container_status = "Global Container"
+            container_status = "You are using Global Container"
         context.update({
             'userprofile':userprofile, 
             'container_status':container_status
             })
-    return render (request, 'editor/room.html',context)
+    return render (request, 'editor/room2.html',context)
 def home(request):
     channels = Channel.objects.all()
     users = UserProfile.objects.all()
@@ -100,37 +101,43 @@ def register(request):
     return render(request, 'editor/register.html')
 
 
-
+@csrf_exempt
 def save_file(request):
     if request.method == 'POST':
-        code = request.POST.get('code')
-        chnl_id = request.POST.get('channel_id')
-        file_id = request.POST.get('file_id',None)
-        print('file id is: ',file_id)
+        data = json.loads(request.body)
+        name = data.get('name')
+        code = data.get('code')
+        chnl_id = data.get('channel_id')
+        file_id = data.get('file_id',None)
+        
+        print(data)
         
         if chnl_id and code:
             # Make sure channel_id exists before redirecting
             
             print(code)
             channel = Channel.objects.get(id = chnl_id)
-            if file_id != 'undefined':
+            if file_id != None:
                 code_file = CodeFile.objects.get(
                     id = file_id
                 )
                 code_file.channel = channel
                 code_file.file = code
+                code_file.file_name = name
                 code_file.save()
             else:
                 code_file = CodeFile.objects.create(
                     file = code,
-                    channel = channel
+                    channel = channel,
+                    file_name=name
                 )
             
-            return redirect('channel', channel_id=chnl_id)
+            # return redirect('channel', channel_id=chnl_id)
+            return JsonResponse({"msg":"File created"})
         else:
-            return HttpResponse("Channel ID missing your file has no Code", status=400)
+            return JsonResponse({"error":"Channel ID missing or your file has no Code"})
     
-    return HttpResponse("Invalid request method", status=405)
+    return JsonResponse({"error":"Invalid request method"})
 
 
 
@@ -164,11 +171,13 @@ def chat_room(request,user_id):
 def create_channel(request):
     if request.method == "GET":
         name = request.GET.get('name')
+        language = request.GET.get('language')
         print(f'Channel Name is : {name}')
         u=request.user
         uprofile = UserProfile.objects.get(user=u)
-        channel = Channel.objects.create(name=name,created_by = uprofile)
+        channel = Channel.objects.create(name=name,created_by = uprofile,programing_language=language)
         channel.participants.add(uprofile)
+        channel.has_permission.add(uprofile)
         return redirect('channel', channel_id = channel.id)
     else: return HttpResponse('Some error occured')
 def join_channel(request,channel_id):
@@ -231,21 +240,39 @@ def create_container(request):
     try:
         user,created =UserProfile.objects.get_or_create(user = request.user)
         
+        # code_volume_host = f"
+        code_volume_container = "/code_file"
+        user_dir_host = os.path.join("./user_code_file", f"user_{user}")
+        user_dir_host = os.path.abspath(user_dir_host)
+        os.makedirs(user_dir_host, exist_ok=True)
+        # Define volumes
+        volumes = {
+            user_dir_host: {'bind': code_volume_container, 'mode': 'rw'}
+        }
+
+        # Run the container
         container = client.containers.run(
-                image="python:3.10-slim",
-                detach=True,
-                command="sleep infinity",
-                name=f"user_{user.id}_container",
-                hostname=f"user_{user.id}",
-            )
+            image="realtime_code_editor-ubuntu_env:latest",
+            detach=True,
+            command="sleep infinity",
+            name=f"user_{user.id}_container",
+            hostname=f"user_{user.id}",
+            volumes=volumes,
+            working_dir="/code_file"
+        )
+        
         UserContainer.objects.create(user=user, container_id=container.id)
+        
+        stop_container_task.apply_async(
+                    args = [container.id],
+                    countdown = 20
+                )
         return HttpResponse(f'user container created, container id is:{container.id}')
         
     except Exception as e:
         return HttpResponse(e)
     
 
-from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def start_task(request):
     if request.method == 'POST':
@@ -253,8 +280,9 @@ def start_task(request):
         code = data.get('code','')
         inputs = data.get('inputs','')
         roomName = data.get('roomName','')
+        language = data.get('language','')
         code_executed_by = data.get('code_executed_by','')
-        task = run_code_task.delay(code,inputs,code_executed_by,roomName)
+        task = run_code_task.delay(code,inputs,code_executed_by,roomName,language)
 
         return JsonResponse({'task_id': task.id})
     return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
@@ -292,6 +320,13 @@ def start_container(request):
             if container.status != "running":
                 container.start()
                 print('Container status: ', container.status)
+                
+                stop_container_task.apply_async(
+                    args = [container.id],
+                    countdown = 20
+                )
+                
+                
 
             # Serialize data for response
                 userprofile_data = {
@@ -324,3 +359,21 @@ def start_container(request):
 
 def start_call(request):
     return render(request, 'editor/call.html')
+
+@csrf_exempt
+def give_parmision(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_id = data.get('user_id')
+        channel_id = data.get('channel_id')
+        userprofile = UserProfile.objects.get(id=user_id)
+        channel = Channel.objects.get(id=channel_id)
+        
+        channel.has_permission.add(userprofile)
+        
+        channel.save()
+        
+        return JsonResponse({'msg':f'{userprofile} now has permission, Tell him to reload the page','id':user_id})
+    else:
+        return JsonResponse({'error':'Invalid HTTP method'})
+        

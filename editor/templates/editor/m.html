@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monaco Editor</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    #editor {
+      width: 100%;
+      height: 90vh;
+    }
+
+    #controls {
+      padding: 10px;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor/min/vs/loader.js"></script>
+</head>
+
+<body>
+  <!-- Controls -->
+  <div id="controls">
+    <label for="languageSelector">Select Language:</label>
+    <!-- <select id="languageSelector">
+      <option value="cpp" selected>C / C++</option>
+      <option value="python">Python</option>
+      <option value="javascript">JavaScript</option>
+      <option value="java">Java</option>
+    </select> -->
+    <select id="themeSelector">
+      <option value="vs-light">Light</option>
+      <option value="vs-dark">Dark</option>
+      <option value="hc-black">High Contrast</option>
+  </select>
+  </div>
+
+  <!-- Monaco Editor -->
+  <div id="editor" data-user="torjo"></div>
+
+  <script>
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor/min/vs' } });
+
+    let editor; // Define editor variable with 'let'
+
+    require(['vs/editor/editor.main'], function () {
+      // Initialize Monaco Editor
+      editor = monaco.editor.create(document.getElementById('editor'), {
+        value: `#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}`,
+        language: 'cpp', // Default language
+        theme: 'vs-dark', // Default theme
+        automaticLayout: true, // Automatically adjust layout
+      });
+
+      // Expose editor globally
+      window.editor = editor;
+
+      console.log('Editor inside the require block:', editor); // Editor is accessible here
+
+      // Language Switcher
+      document.getElementById('languageSelector').addEventListener('change', function () {
+        const selectedLanguage = this.value;
+        monaco.editor.setModelLanguage(editor.getModel(), selectedLanguage);
+
+        // Optionally, change default content based on the language
+        const defaultContent = {
+          cpp: `#include <stdio.h>\n\nint main() {\n    printf("Hello, World!\\n");\n    return 0;\n}`,
+          python: `print("Hello, World!")`,
+          javascript: `console.log("Hello, World!");`,
+          java: `public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}`,
+        };
+
+        editor.setValue(defaultContent[selectedLanguage] || '');
+      });
+
+      const e = document.getElementById('editor');
+
+      // Listen to changes in the editor content
+      editor.onDidChangeModelContent(() => {
+        const rawCode = editor.getValue();
+        const user = e.dataset.user;
+        console.log(rawCode, user); // Log the updated content
+      });
+    });
+
+  </script>
+</body>
+
+</html>

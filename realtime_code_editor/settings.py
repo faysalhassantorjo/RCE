@@ -93,8 +93,8 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            # "hosts": [("127.0.0.1", 6379)],
-             "hosts": [('redis_server', 6379)],
+            "hosts": [("127.0.0.1", 6379)],
+            #  "hosts": [('redis_server', 6379)],
         },
     },
 }
@@ -139,6 +139,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+STATIC_ROOT = '/app/static/'  
+
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'

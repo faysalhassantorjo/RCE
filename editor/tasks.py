@@ -29,12 +29,14 @@ import docker
 import shlex
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-
+import tarfile,io
+import socket
 client = docker.from_env()
+import re
 
 
 @shared_task
-def run_code_task(code, inputs=None, code_executed_by=None, room_name=None):
+def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, language=None):
     try:
         usr = User.objects.get(username=code_executed_by)
         userprofile = UserProfile.objects.get(user=usr)
@@ -46,10 +48,81 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None):
         if user_container:
             container = client.containers.get(user_container.container_id)
         else:
-            container = client.containers.get('38f5b3ffd4b21c19da4ec34506bf24d935278848543215f9dce0a6d5f9168841')
-        exec_cmd = f'python3 -c {shlex.quote(code)}'
-        exit_code, output = container.exec_run(exec_cmd)
-        output_decoded = output.decode()
+            container = client.containers.get('151a4ef539c2ecb922c2d36904e6a35db2c9890cf6e88dbb0ab8016e9e7e9f21')
+            
+        #For C execution 
+        # container = client.containers.get('ffc9169c6f03a045b547e112d5b1087e4375b850e1c447c8a21161ef856b2127')
+        
+        if language == "C":
+        
+            c_filename = f"{code_executed_by}_file.c"
+            executable_name = f"{code_executed_by}_output"
+            
+            tar_stream = io.BytesIO()
+            with tarfile.open(fileobj=tar_stream, mode='w') as tar:
+                file_data = code.encode()
+                tarinfo = tarfile.TarInfo(name=c_filename)
+                tarinfo.size = len(file_data)
+                tar.addfile(tarinfo, io.BytesIO(file_data))
+
+            # Transfer the tar archive to the container
+            tar_stream.seek(0)
+            container.put_archive('/code_file', tar_stream.getvalue())
+
+            # Verify the file in the container
+            # exit_code, output = container.exec_run("ls /code_file/test.c")
+            # if exit_code != 0:
+            #     print(f"File not found: {output.decode()}")
+            # else:
+            #     print(f"File successfully created: {output.decode()}")
+                
+            compile_cmd = f"gcc {c_filename} -o {executable_name}"
+            exit_code , output = container.exec_run(compile_cmd)
+            if output:
+                pass
+            else:
+                exe_cmd = f"./{executable_name}"
+                
+                exit_code , output = container.exec_run(exe_cmd)
+
+            output_decoded = output.decode('utf-8', errors='ignore')
+        elif language == "PYTHON":
+            
+            py_filename = f"{code_executed_by}_file.py"
+            
+            tar_stream = io.BytesIO()
+            with tarfile.open(fileobj=tar_stream,encoding="utf-8", mode='w') as tar:
+                file_data = code.encode('utf-8', errors='ignore')
+                tarinfo = tarfile.TarInfo(name=py_filename)
+                tarinfo.size = len(file_data)
+                tar.addfile(tarinfo, io.BytesIO(file_data))
+
+            # Transfer the tar archive to the container
+            tar_stream.seek(0)
+            container.put_archive('/code_file', tar_stream.getvalue())
+            
+            exec_cmd = f'python3 {py_filename}'
+            
+            exit_code, sock = container.exec_run(exec_cmd, stdin=True, socket=True)
+            
+            output = b""
+            if exit_code is None:
+                try:
+                    with sock:
+                        # sock.send(inputs.encode())
+                        sock._sock.sendall(inputs.encode())
+                        sock._sock.shutdown(socket.SHUT_WR)
+                        while True:
+                            chunk = sock._sock.recv(512)
+                            if not chunk:
+                                break
+                            output += chunk
+                except Exception as e:
+                    output = f"Error occurred: {e}"
+                finally:
+                    sock.close()
+                    
+            output_decoded = output.decode('utf-8', errors='ignore')
 
         channel_layer = get_channel_layer()
         group_name = f"task_{room_name}"
@@ -74,7 +147,14 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None):
 
 
 
-
+@shared_task
+def stop_container_task(container_id):
+    try:
+        container = client.containers.get(container_id)
+        container.stop()
+        return f"Container {container_id} stopped successfully."
+    except Exception as e:
+        return f"Error stopping container {container_id}: {e}"
 
 # @shared_task
 # def run_code_task(code,inputs=None):
