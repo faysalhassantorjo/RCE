@@ -1,11 +1,11 @@
-# Program to check input 
-# type in Python
+import requests
+ 
+# Making a GET request
+r = requests.get('https://api.github.com/users/naveenkrnl')
 
-num = input ("Enter number :")
-print(num)
-name1 = input("Enter name : ")
-print(name1)
+# check status code for response received
+# success code - 200
+print(r)
 
-# Printing type of input value
-print ("type of number", type(num))
-print ("type of name", type(name1))
+# print content of request
+print(r.content)

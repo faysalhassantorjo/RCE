@@ -7,8 +7,8 @@ from .models import *
 from asgiref.sync import async_to_sync, sync_to_async
 import redis
 
-# redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
-redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
+redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
+# redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
 
 
 class CodeEditorConsumer(AsyncWebsocketConsumer):
@@ -22,7 +22,6 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
         userimage = await sync_to_async(lambda: userprofile.imageURL())()
 
 
-        # Prepare user data
         user_data = {
             "username": username,
             "image": userimage,
@@ -35,13 +34,11 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
         else:
             all_users = []
 
-        # Append the new user data
         if user_data in all_users:
             pass
         else:
             all_users.append(user_data)
 
-        # Serialize and store the updated list back to Redis
         serialized_user_data = json.dumps(all_users)
         redis_client.set(self.room_group_name, serialized_user_data)
 
@@ -62,7 +59,6 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
             print("All Connected Users:")
             print(all_users)
 
-        # Send the list of connected users to the frontend
         await self.send(text_data=json.dumps({
             'connected_users': all_users,
         }))
@@ -108,7 +104,6 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
         print('leave_user handler called.')
 
         
-        # Add additional logic here if needed (e.g., broadcasting to other users)
 
         left_user = event.get('left_user')
 
@@ -119,7 +114,6 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
 
 
     async def receive(self, text_data):
-        # Parse the incoming data
         text_data_json = json.loads(text_data)
         
         print('Text Data Json: ====', text_data_json)
@@ -181,10 +175,15 @@ class TaskResult(AsyncWebsocketConsumer):
     
     async def task_update(self, event):
         
-        print('happend')
+
+        output = event.get('output')
+        code_executed_by = event.get('code_executed_by')
+        
+        print('Output is: ', output)
+        
         await self.send(text_data=json.dumps({
-            "output": event["output"],
-            "code_executed_by": event["code_executed_by"],
+            "output": output,
+            "code_executed_by": code_executed_by,
         }))
 
     
@@ -310,6 +309,62 @@ class GlobalChat(AsyncWebsocketConsumer):
         }))
 
 
+
+class PermissionConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.channel_id = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = f'permission_room_{self.channel_id}'
+        print('Permission Room Connected!')
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+    
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+        
+    async def receive(self, text_data=None):
+        data = json.loads(text_data)
+        
+        username = data.get('user_name')
+        user_id = data.get('user_id')
+        type = data.get('type')
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type':'handle_permission',
+                'user':username,
+                'user_id':user_id,
+                'permission_type':type
+            }
+        )        
+    async def handle_permission(self,event):
+        user = event.get('user')
+        user_id = event.get('user_id')
+        permission_type = event.get('permission_type')
+        
+        userpro = await sync_to_async(UserProfile.objects.get)(id=user_id)
+        channel = await sync_to_async(Channel.objects.get)(id =self.channel_id)
+        
+        if permission_type == "remove":
+            await sync_to_async(channel.has_permission.remove)(userpro)
+        else:
+            await sync_to_async(channel.has_permission.add)(userpro)
+        
+        
+        
+        await self.send(text_data=json.dumps({
+            'user': user,
+            'user_id': user_id,
+            'type':permission_type
+        }))
+        
+        
+
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user_group_name = f'user_{self.scope["user"].id}'
@@ -333,7 +388,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
 
 
-# audio call implement
 
 
 

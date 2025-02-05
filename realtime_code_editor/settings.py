@@ -93,8 +93,8 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
-            #  "hosts": [('redis_server', 6379)],
+            # "hosts": [("127.0.0.1", 6379)],
+             "hosts": [('redis_server', 6379)],
         },
     },
 }
@@ -139,7 +139,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-STATIC_ROOT = '/app/static/'  
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 LOGIN_REDIRECT_URL = '/'
@@ -156,6 +156,8 @@ CELERY_TIMEZONE = "Asia/Dhaka"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_IMPORTS = ('editor.tasks',)
+# CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0' 
+# CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/1'
 CELERY_BROKER_URL = 'redis://redis:6379/0' 
 CELERY_RESULT_BACKEND = 'redis://redis:6379/1'
 

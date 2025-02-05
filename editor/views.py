@@ -323,7 +323,7 @@ def start_container(request):
                 
                 stop_container_task.apply_async(
                     args = [container.id],
-                    countdown = 20
+                    countdown = 20 *60
                 )
                 
                 
