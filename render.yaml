@@ -20,6 +20,7 @@ services:
     type: redis
     plan: free
     region: oregon
+    ipAllowList: []  # This allows all services in the same Render environment to connect
 
   - name: celery
     type: worker
