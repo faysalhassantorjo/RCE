@@ -689,6 +689,7 @@
             let lan;
             let value = '';
             let read_only = true;
+            const roomName = "{{room_name}}";
 
             let permitted_users = "{{channel.has_permission.all}}"
             if (permitted_users.includes("{{userprofile}}")) {
@@ -836,7 +837,7 @@
             }
 
             const btn = document.getElementById('run-code');
-            const roomName = "{{room_name}}";
+        
 
             // const socket = new WebSocket('ws://' + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
  
