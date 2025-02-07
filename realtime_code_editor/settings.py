@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -89,15 +89,27 @@ DATABASES = {
 }
 
 
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             # "hosts": [("127.0.0.1", 6379)],
+#              "hosts": [('redis_server', 6379)],
+#         },
+#     },
+# }
+
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            # "hosts": [("127.0.0.1", 6379)],
-             "hosts": [('redis_server', 6379)],
+            "hosts": [os.getenv("REDIS_URL", "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@monorail.proxy.rlwy.net:19703")],
         },
     },
 }
+
+
 
 
 
@@ -158,6 +170,6 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_IMPORTS = ('editor.tasks',)
 # CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0' 
 # CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/1'
-CELERY_BROKER_URL = 'redis://redis:6379/0' 
-CELERY_RESULT_BACKEND = 'redis://redis:6379/1'
+# CELERY_BROKER_URL = 'redis://redis:6379/0' 
+# CELERY_RESULT_BACKEND = 'redis://redis:6379/1'
 
