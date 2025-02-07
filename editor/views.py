@@ -7,7 +7,7 @@ import docker
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
-client = docker.from_env()
+# client = docker.from_env()
 
 def channel(request,channel_id):
     print('channel is is : ', channel_id)
@@ -29,8 +29,8 @@ def channel(request,channel_id):
             user_container = UserContainer.objects.get(user=userprofile)
 
             # Get the Docker container
-            container = client.containers.get(user_container.container_id)
-            container_status = container.status
+            # container = client.containers.get(user_container.container_id)
+            # container_status = container.status
         except:
             container_status = "You are using Global Container"
         context.update({
