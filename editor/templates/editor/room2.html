@@ -836,7 +836,10 @@
             const btn = document.getElementById('run-code');
             const roomName = "{{room_name}}";
 
-            const socket = new WebSocket('ws://' + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
+            // const socket = new WebSocket('ws://' + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
+            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            const socket = new WebSocket(`${protocol}://${window.location.host}/ws/ac/${roomName}/{{userprofile.id}}`);
+
 
             socket.onopen = function () {
                 console.log('websocket opend')
