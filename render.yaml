@@ -2,8 +2,8 @@ services:
   - type: web
     name: django-app
     env: docker
-    plan: free  # Change as per your need (free, starter, standard, etc.)
-    repo: https://github.com/your-repo-url  # Change this to your actual GitHub repo
+    plan: free  # Change this to 'starter' or higher if needed
+    repo: https://github.com/faysalhassantorjo/RCE.git  # Replace with your actual GitHub repo
     dockerfilePath: Dockerfile
     envVars:
       - key: REDIS_HOST
@@ -12,24 +12,19 @@ services:
         value: 6379
       - key: DOCKER_HOST
         value: unix:///var/run/docker.sock
-    disk:
-      name: staticfiles
-      mountPath: /app/staticfiles
 
   - type: redis
     name: redis
-    plan: free  # Use a suitable plan
-
+    plan: free  # Use a paid plan if you need persistence
+    ipAllowList: []  # Allow connections from any service on Render
 
   # Environment Container (for Code Execution)
   - type: worker
     name: python-environment
     env: docker
-    repo: https://github.com/your-repo-url
+    plan: free
+    repo: https://github.com/faysalhassantorjo/RCE.git
     dockerfilePath: Dockerfile.environment
     envVars:
       - key: WORKING_DIR
         value: /code_file
-    disk:
-      name: code-files
-      mountPath: /code_file
