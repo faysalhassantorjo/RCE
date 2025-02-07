@@ -104,10 +104,13 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [os.getenv("REDIS_URL", "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@monorail.proxy.rlwy.net:19703")],
+            "hosts": [
+                "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@monorail.proxy.rlwy.net:19703"
+            ],
         },
     },
 }
+
 
 
 
