@@ -19,12 +19,12 @@ services:
     ipAllowList: []  # Allow connections from any service on Render
 
   # Environment Container (for Code Execution)
-  - type: docker
-    name: python-environment
-    env: docker
-    plan: free
-    repo: https://github.com/faysalhassantorjo/RCE.git
-    dockerfilePath: Dockerfile.environment
-    envVars:
-      - key: WORKING_DIR
-        value: /code_file
+  # - type: docker
+  #   name: python-environment
+  #   env: docker
+  #   plan: free
+  #   repo: https://github.com/faysalhassantorjo/RCE.git
+  #   dockerfilePath: Dockerfile.environment
+  #   envVars:
+  #     - key: WORKING_DIR
+  #       value: /code_file
