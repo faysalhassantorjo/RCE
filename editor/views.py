@@ -282,9 +282,9 @@ def start_task(request):
         roomName = data.get('roomName','')
         language = data.get('language','')
         code_executed_by = data.get('code_executed_by','')
-        task = run_code_task.delay(code,inputs,code_executed_by,roomName,language)
+        task = run_code_task(code,inputs,code_executed_by,roomName,language)
 
-        return JsonResponse({'task_id': task.id})
+        return JsonResponse({'task_id': task})
     return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
 
 from django.http import JsonResponse

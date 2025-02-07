@@ -35,7 +35,7 @@ client = docker.from_env()
 import re
 
 
-@shared_task
+# @shared_task
 def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, language=None):
     try:
         usr = User.objects.get(username=code_executed_by)
@@ -124,16 +124,7 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, lang
 
 
 
-@shared_task
-def stop_container_task(container_id):
-    try:
-        container = client.containers.get(container_id)
-        container.stop()
-        return f"Container {container_id} stopped successfully."
-    except Exception as e:
-        return f"Error stopping container {container_id}: {e}"
 
-# @shared_task
 # def run_code_task(code,inputs=None):
 #     # Convert Windows path to WSL path
 #     python_executable = "/mnt/d/RCE/packages/user_1/Scripts/python.exe"
@@ -165,6 +156,15 @@ def stop_container_task(container_id):
 #         return stdout
 #     except subprocess.CalledProcessError as e:
 #         return e.stderr
+
+@shared_task
+def stop_container_task(container_id):
+    try:
+        container = client.containers.get(container_id)
+        container.stop()
+        return f"Container {container_id} stopped successfully."
+    except Exception as e:
+        return f"Error stopping container {container_id}: {e}"
 
 
 

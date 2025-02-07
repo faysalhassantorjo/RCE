@@ -1,12 +1,12 @@
 services:
-  - name: django
+  - name: django-app
     type: web
     env: docker
     repo: https://github.com/faysalhassantorjo/RCE.git
-    region: oregon
     plan: free
-    autoDeploy: true
-    dockerfilePath: Dockerfile
+    region: oregon
+    buildCommand: docker build -t django-app .
+    startCommand: daphne -b 0.0.0.0 -p 8000 realtime_code_editor.asgi:application
     envVars:
       - key: REDIS_HOST
         value: redis
@@ -14,35 +14,28 @@ services:
         value: "6379"
       - key: DOCKER_HOST
         value: unix:///var/run/docker.sock
-    healthCheckPath: /
+    autoDeploy: true
+    disk:
+      name: django-storage
+      mountPath: /app/staticfiles
+      sizeGB: 1
 
   - name: redis
     type: redis
     plan: free
     region: oregon
-    ipAllowList: []  # This allows all services in the same Render environment to connect
+    ipAllowList: []
 
-  - name: celery
-    type: worker
+  - name: python-env
+    type: private-service
     env: docker
     repo: https://github.com/faysalhassantorjo/RCE.git
-    region: oregon
     plan: free
-    autoDeploy: true
-    dockerfilePath: Dockerfile
-    envVars:
-      - key: REDIS_HOST
-        value: redis
-      - key: REDIS_PORT
-        value: "6379"
-      - key: DOCKER_HOST
-        value: unix:///var/run/docker.sock
-
-  - name: ubuntu-env
-    type: worker
-    env: docker
-    repo: https://github.com/faysalhassantorjo/RCE.git
     region: oregon
-    plan: free
+    buildCommand: docker build -t python-env -f Dockerfile.ubuntu .
+    startCommand: bash
     autoDeploy: true
-    dockerfilePath: Dockerfile.ubuntu
+    disk:
+      name: code-storage
+      mountPath: /code_file
+      sizeGB: 1

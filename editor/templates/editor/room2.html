@@ -388,7 +388,8 @@
                 <div class="my-2 d-flex felx-row">
                     <button id="run-code" class="icons" data-executed="{{request.user}}"
                         title="{{channel.programing_language}}" data-language="{{channel.programing_language}}">
-                        <img src="{% static 'icons/execute.png' %}" height="35" width="35" alt="">
+                        <img id="run_code_icon" src="{% static 'icons/execute.png' %}" height="35" width="35" alt="">
+                      
                     </button>
                     <button id="save-code" class="icons">
                         <img src="{% static 'icons/file.png' %}" height="35" width="35" alt="">
@@ -952,7 +953,9 @@
                 document.getElementById('output').innerText = data.output;
                 document.getElementById('executed-by').innerText = `Executed by: ${data.code_executed_by}`;
 
-                scrollToBottom()
+                let img =document.getElementById('run_code_icon')
+                img.src = "{% static 'icons/execute.png' %}"
+                img.style.background = "none"
             }
             function startTask(code, code_executed_by, inputs, language) {
                 fetch('/start-task/', {
@@ -983,7 +986,12 @@
                 const code_executed_by = btn.dataset['executed'];
                 const language = btn.dataset['language'];
                 const inputs = null
+                let img = this.querySelector("img");
+
+                img.src =  "{% static 'icons/loading.gif' %}"; 
                 startTask(code, code_executed_by, inputs, language);
+               
+
             });
 
 
