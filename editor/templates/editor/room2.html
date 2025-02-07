@@ -707,6 +707,8 @@
             } else {
                 lan = 'plaintext';
             }
+            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            const socket = new WebSocket(`${protocol}://${window.location.host}/ws/ac/${roomName}/{{userprofile.id}}`);
 
             console.log("Selected Language: {{channel.programing_language}}");
 
@@ -837,9 +839,7 @@
             const roomName = "{{room_name}}";
 
             // const socket = new WebSocket('ws://' + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
-            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-            const socket = new WebSocket(`${protocol}://${window.location.host}/ws/ac/${roomName}/{{userprofile.id}}`);
-
+ 
 
             socket.onopen = function () {
                 console.log('websocket opend')
@@ -946,9 +946,9 @@
 
 
             // ===========================================================================================================================
-            const task_socket = new WebSocket('ws://' + window.location.host + '/ws/task-result/' + roomName + '/');
+            // const task_socket = new WebSocket('ws://' + window.location.host + '/ws/task-result/' + roomName + '/');
 
-
+            const task_socket = new WebSocket(`${protocol}://${window.location.host}/ws/task-result/${roomName}/`);
             task_socket.onmessage = function (event) {
                 console.log(event)
                 console.log("Task ouput is : ", JSON.parse(event.data))
@@ -1010,7 +1010,7 @@
 
 
 
-            const permission_socket = new WebSocket('ws://' + window.location.host + '/ws/permission/' + roomName + '/')
+            const permission_socket = new WebSocket('wss://' + window.location.host + '/ws/permission/' + roomName + '/')
 
             permission_socket.onmessage = function (e) {
                 const data = JSON.parse(e.data);
