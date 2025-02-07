@@ -19,7 +19,7 @@ services:
     ipAllowList: []  # Allow connections from any service on Render
 
   # Environment Container (for Code Execution)
-  - type: worker
+  - type: docker
     name: python-environment
     env: docker
     plan: free
