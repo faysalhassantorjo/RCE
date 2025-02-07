@@ -27,7 +27,7 @@ services:
     ipAllowList: []
 
   - name: python-env
-    type: private-service
+    type: background
     env: docker
     repo: https://github.com/faysalhassantorjo/RCE.git
     plan: free
