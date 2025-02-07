@@ -1,24 +1,35 @@
-databases:
-  - name: redis_server
-    type: redis
-    plan: free  # Choose free or paid plan
-
 services:
   - type: web
-    name: django_app
-    build:
-      dockerfile: Dockerfile  # Path to your Dockerfile
-    command: daphne -b 0.0.0.0 -p 8000 realtime_code_editor.asgi:application  # Override CMD
+    name: django-app
+    env: docker
+    plan: free  # Change as per your need (free, starter, standard, etc.)
+    repo: https://github.com/your-repo-url  # Change this to your actual GitHub repo
+    dockerfilePath: Dockerfile
     envVars:
       - key: REDIS_HOST
-        fromDatabase:
-          name: redis_server
-          property: host  # Auto-injected Redis host
+        value: redis
       - key: REDIS_PORT
-        fromDatabase:
-          name: redis_server
-          property: port  # Auto-injected Redis port
-      # Remove DOCKER_HOST (not supported on Render)
-    port: 8000  # Port your app listens on
-    dependsOn:
-      - redis_server 
+        value: 6379
+      - key: DOCKER_HOST
+        value: unix:///var/run/docker.sock
+    disk:
+      name: staticfiles
+      mountPath: /app/staticfiles
+
+  - type: redis
+    name: redis
+    plan: free  # Use a suitable plan
+
+
+  # Environment Container (for Code Execution)
+  - type: worker
+    name: python-environment
+    env: docker
+    repo: https://github.com/your-repo-url
+    dockerfilePath: Dockerfile.environment
+    envVars:
+      - key: WORKING_DIR
+        value: /code_file
+    disk:
+      name: code-files
+      mountPath: /code_file
