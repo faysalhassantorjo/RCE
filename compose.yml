@@ -50,10 +50,10 @@ services:
   #     - .:/app
   #   command: python
   
-  ubuntu_env:
+  environment:
     build:
       context: .
-      dockerfile: Dockerfile.ubuntu
+      dockerfile: Dockerfile.environment
     volumes:
       - ./code:/code_file  
     working_dir: /code_file

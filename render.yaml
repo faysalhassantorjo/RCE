@@ -1,41 +1,24 @@
+databases:
+  - name: redis_server
+    type: redis
+    plan: free  # Choose free or paid plan
+
 services:
-  - name: django-app
-    type: web
-    env: docker
-    repo: https://github.com/faysalhassantorjo/RCE.git
-    plan: free
-    region: oregon
-    buildCommand: docker build -t django-app .
-    startCommand: daphne -b 0.0.0.0 -p 8000 realtime_code_editor.asgi:application
+  - type: web
+    name: django_app
+    build:
+      dockerfile: Dockerfile  # Path to your Dockerfile
+    command: daphne -b 0.0.0.0 -p 8000 realtime_code_editor.asgi:application  # Override CMD
     envVars:
       - key: REDIS_HOST
-        value: redis
+        fromDatabase:
+          name: redis_server
+          property: host  # Auto-injected Redis host
       - key: REDIS_PORT
-        value: "6379"
-      - key: DOCKER_HOST
-        value: unix:///var/run/docker.sock
-    autoDeploy: true
-    disk:
-      name: django-storage
-      mountPath: /app/staticfiles
-      sizeGB: 1
-
-  - name: redis
-    type: redis
-    plan: free
-    region: oregon
-    ipAllowList: []
-
-  - name: python-env
-    type: background
-    env: docker
-    repo: https://github.com/faysalhassantorjo/RCE.git
-    plan: free
-    region: oregon
-    buildCommand: docker build -t python-env -f Dockerfile.ubuntu .
-    startCommand: bash
-    autoDeploy: true
-    disk:
-      name: code-storage
-      mountPath: /code_file
-      sizeGB: 1
+        fromDatabase:
+          name: redis_server
+          property: port  # Auto-injected Redis port
+      # Remove DOCKER_HOST (not supported on Render)
+    port: 8000  # Port your app listens on
+    dependsOn:
+      - redis_server 
