@@ -730,7 +730,9 @@
             let debounceTimer;
             let isLocalChange = false;
             const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-            const socket = new WebSocket(`${protocol}://${window.location.host}/ws/ac/${roomName}/{{userprofile.id}}`);
+            // const socket = new WebSocket(`${protocol}://${window.location.host}/ws/ac/${roomName}/{{userprofile.id}}`);
+            const socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
+
 
             editor.onDidChangeModelContent(() => {
                 if (!isLocalChange) {

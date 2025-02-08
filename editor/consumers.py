@@ -8,10 +8,10 @@ from asgiref.sync import async_to_sync, sync_to_async
 import redis
 
 # Replace with your Redis URL
-client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
+redis_client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
 
 try:
-    print(client.ping())  # Should return True if connected
+    print('redis_client_response',redis_client.ping())  # Should return True if connected
 except Exception as e:
     print(f"Error: {e}")
 
