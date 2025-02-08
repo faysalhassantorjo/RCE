@@ -89,28 +89,28 @@ DATABASES = {
 }
 
 
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             # "hosts": [("127.0.0.1", 6379)],
-#              "hosts": [('redis_server', 6379)],
-#         },
-#     },
-# }
-
-
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [
-                # "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@monorail.proxy.rlwy.net:19703"
-                "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@redis.railway.internal:6379"
-            ],
+            # "hosts": [("127.0.0.1", 6379)],
+             "hosts": [('redis_server', 6379)],
         },
     },
 }
+
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [
+#                 # "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@monorail.proxy.rlwy.net:19703"
+#                 "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@redis.railway.internal:6379"
+#             ],
+#         },
+#     },
+# }
 
 
 
@@ -163,6 +163,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 CSRF_TRUSTED_ORIGINS = [
     'https://rce-production.up.railway.app',
+    "*"
 ]
 
 # Default primary key field type

@@ -31,76 +31,76 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import tarfile,io
 import socket
-# client = docker.from_env()
+client = docker.from_env()
 import re
 
 
 # @shared_task
 def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, language=None):
-    # try:
-    #     usr = User.objects.get(username=code_executed_by)
-    #     userprofile = UserProfile.objects.get(user=usr)
-    #     user_container = UserContainer.objects.get(user=userprofile)
-    # except:
-    #     user_container = None
+    try:
+        usr = User.objects.get(username=code_executed_by)
+        userprofile = UserProfile.objects.get(user=usr)
+        user_container = UserContainer.objects.get(user=userprofile)
+    except:
+        user_container = None
 
-    # try:
-    #     if user_container:
-    #         container = client.containers.get(user_container.container_id)
-    #     else:
-    #         container = client.containers.get('realtime_code_editor-ubuntu_env-1')
+    try:
+        if user_container:
+            container = client.containers.get(user_container.container_id)
+        else:
+            container = client.containers.get('realtime_code_editor-environment-1')
             
         
-    #     if language == "C":
-    #         c_filename = f"{code_executed_by}_file.c"
-    #         executable_name = f"{code_executed_by}_c_output"
+        if language == "C":
+            c_filename = f"{code_executed_by}_file.c"
+            executable_name = f"{code_executed_by}_c_output"
             
-    #         # Transfer code to container
-    #         tar_stream = io.BytesIO()
-    #         with tarfile.open(fileobj=tar_stream,encoding="utf-8", mode='w') as tar:
-    #             file_data = code.encode('utf-8', errors='ignore')
-    #             tarinfo = tarfile.TarInfo(name=c_filename)
-    #             tarinfo.size = len(file_data)
-    #             tar.addfile(tarinfo, io.BytesIO(file_data))
+            # Transfer code to container
+            tar_stream = io.BytesIO()
+            with tarfile.open(fileobj=tar_stream,encoding="utf-8", mode='w') as tar:
+                file_data = code.encode('utf-8', errors='ignore')
+                tarinfo = tarfile.TarInfo(name=c_filename)
+                tarinfo.size = len(file_data)
+                tar.addfile(tarinfo, io.BytesIO(file_data))
                 
-    #         tar_stream.seek(0)
-    #         container.put_archive('/code_file', tar_stream.getvalue())
+            tar_stream.seek(0)
+            container.put_archive('/code_file', tar_stream.getvalue())
 
 
-    #         compile_cmd = f"gcc {c_filename} -o {executable_name}"
-    #         exit_code , output = container.exec_run(compile_cmd)
-    #         if output:
-    #             pass
-    #         else:
-    #             exe_cmd = f"./{executable_name}"
+            compile_cmd = f"gcc {c_filename} -o {executable_name}"
+            exit_code , output = container.exec_run(compile_cmd)
+            if output:
+                pass
+            else:
+                exe_cmd = f"./{executable_name}"
                 
-    #             exit_code , output = container.exec_run(exe_cmd)
+                exit_code , output = container.exec_run(exe_cmd)
 
-    #         output_decoded = output.decode('utf-8', errors='ignore')
+            output_decoded = output.decode('utf-8', errors='ignore')
 
 
-    #     elif language == "PYTHON":
+        elif language == "PYTHON":
             
-    #         py_filename = f"{code_executed_by}_file.py"
+            py_filename = f"{code_executed_by}_file.py"
             
-    #         tar_stream = io.BytesIO()
-    #         with tarfile.open(fileobj=tar_stream,encoding="utf-8", mode='w') as tar:
-    #             file_data = code.encode('utf-8', errors='ignore')
-    #             tarinfo = tarfile.TarInfo(name=py_filename)
-    #             tarinfo.size = len(file_data)
-    #             tar.addfile(tarinfo, io.BytesIO(file_data))
+            tar_stream = io.BytesIO()
+            with tarfile.open(fileobj=tar_stream,encoding="utf-8", mode='w') as tar:
+                file_data = code.encode('utf-8', errors='ignore')
+                tarinfo = tarfile.TarInfo(name=py_filename)
+                tarinfo.size = len(file_data)
+                tar.addfile(tarinfo, io.BytesIO(file_data))
 
-    #         # Transfer the tar archive to the container
-    #         tar_stream.seek(0)
-    #         container.put_archive('/code_file', tar_stream.getvalue())
+            # Transfer the tar archive to the container
+            tar_stream.seek(0)
+            container.put_archive('/code_file', tar_stream.getvalue())
             
-    #         exec_cmd = f'python3 {py_filename}'
+            exec_cmd = f'python3 {py_filename}'
             
-    #         exit_code, output = container.exec_run(exec_cmd)
+            exit_code, output = container.exec_run(exec_cmd)
             
 
-    #         output_decoded = output.decode('utf-8', errors='ignore')
-    try:
+            output_decoded = output.decode('utf-8', errors='ignore')
+    
         channel_layer = get_channel_layer()
         group_name = f"task_{room_name}"
 
@@ -109,7 +109,7 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, lang
                 group_name,
                 {
                     "type": "task.update", 
-                    "output": "output_decoded",
+                    "output": output_decoded,
                     "code_executed_by": code_executed_by,
                 }
             )

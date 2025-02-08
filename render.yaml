@@ -2,21 +2,30 @@ services:
   - type: web
     name: django-app
     env: docker
-    plan: free  # Change this to 'starter' or higher if needed
-    repo: https://github.com/faysalhassantorjo/RCE.git  # Replace with your actual GitHub repo
-    dockerfilePath: Dockerfile
+    buildCommand: |
+      docker build -t django-app -f Dockerfile .
+    startCommand: daphne -b 0.0.0.0 -p 8000 realtime_code_editor.asgi:application
     envVars:
       - key: REDIS_HOST
-        value: redis
+        value: redis-server
       - key: REDIS_PORT
         value: 6379
       - key: DOCKER_HOST
         value: unix:///var/run/docker.sock
+    ports:
+      - 8000
+    volumes:
+      - /app:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./staticfiles:/app/staticfiles
+    dependsOn:
+      - redis-server
 
   - type: redis
-    name: redis
-    plan: free  # Use a paid plan if you need persistence
-    ipAllowList: []  # Allow connections from any service on Render
+    name: redis-server
+    image: redis:latest
+    plan: free 
+    ipAllowList: []  
 
   # Environment Container (for Code Execution)
   # - type: docker

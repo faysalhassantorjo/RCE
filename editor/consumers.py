@@ -7,26 +7,26 @@ from .models import *
 from asgiref.sync import async_to_sync, sync_to_async
 import redis
 
-# redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
+redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
 # redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
 
 
-from urllib.parse import urlparse
+# from urllib.parse import urlparse
 
-# Your Railway Redis URL
-redis_url = "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@monorail.proxy.rlwy.net:19703"
+# # Your Railway Redis URL
+# redis_url = "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@monorail.proxy.rlwy.net:19703"
 
-# Parse the URL
-url = urlparse(redis_url)
+# # Parse the URL
+# url = urlparse(redis_url)
 
-# Initialize Redis client using parsed URL
-redis_client = redis.StrictRedis(
-    host=url.hostname,
-    port=url.port,
-    db=0,
-    password=url.password,
-    ssl=True  # Enable SSL for secure connection
-)
+# # Initialize Redis client using parsed URL
+# redis_client = redis.StrictRedis(
+#     host=url.hostname,
+#     port=url.port,
+#     db=0,
+#     password=url.password,
+#     ssl=True  # Enable SSL for secure connection
+# )
 
 
 class CodeEditorConsumer(AsyncWebsocketConsumer):
