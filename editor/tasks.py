@@ -100,6 +100,14 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, lang
             
 
         #     output_decoded = output.decode('utf-8', errors='ignore')
+        
+        result = subprocess.run(
+            ["python3", "-c", code],  # Command to run
+            capture_output=True,      # Capture stdout and stderr
+            text=True,                # Decode output as text
+            timeout=5                 # Timeout after 5 seconds
+        )
+
     
         channel_layer = get_channel_layer()
         group_name = f"task_{room_name}"
@@ -109,7 +117,7 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, lang
                 group_name,
                 {
                     "type": "task.update", 
-                    "output": "output_decoded",
+                    "output": result.stdout,
                     "code_executed_by": code_executed_by,
                 }
             )
