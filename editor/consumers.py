@@ -7,10 +7,17 @@ from .models import *
 from asgiref.sync import async_to_sync, sync_to_async
 import redis
 
+# Replace with your Redis URL
+client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
+
+try:
+    print(client.ping())  # Should return True if connected
+except Exception as e:
+    print(f"Error: {e}")
+
 # redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
 # redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
-client = redis.Redis(host="redis://red-cuj40v0gph6c73fqc0ig", port=6379, db=0)
-print(client.ping()) 
+
 
 
 # from urllib.parse import urlparse
