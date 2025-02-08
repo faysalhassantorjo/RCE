@@ -105,7 +105,8 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [
-                "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@monorail.proxy.rlwy.net:19703"
+                # "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@monorail.proxy.rlwy.net:19703"
+                "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@redis.railway.internal:6379"
             ],
         },
     },
