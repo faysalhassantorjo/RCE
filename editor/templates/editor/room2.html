@@ -734,15 +734,18 @@
             const socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
 
 
-            editor.onDidChangeModelContent((event) => {
+            editor.onDidChangeModelContent(() => {
                 if (!isLocalChange) {
                     clearTimeout(debounceTimer);
-                    const changes = event.changes; // Get the changes made
+                    const rawCode = editor.getValue();
+                    const coding_by = editorElement.dataset.user;
+                    const user_image = editorElement.dataset.user_image;
+
                     debounceTimer = setTimeout(() => {
                         socket.send(JSON.stringify({
-                            'changes': changes,
-                            'coding_by': editorElement.dataset.user,
-                            'user_image': editorElement.dataset.user_image
+                            'raw_code': rawCode,
+                            'coding_by': coding_by,
+                            'user_image': user_image
                         }));
                     }, 1000);
                 }
