@@ -734,18 +734,15 @@
             const socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
 
 
-            editor.onDidChangeModelContent(() => {
+            editor.onDidChangeModelContent((event) => {
                 if (!isLocalChange) {
                     clearTimeout(debounceTimer);
-                    const rawCode = editor.getValue();
-                    const coding_by = editorElement.dataset.user;
-                    const user_image = editorElement.dataset.user_image;
-
+                    const changes = event.changes; // Get the changes made
                     debounceTimer = setTimeout(() => {
                         socket.send(JSON.stringify({
-                            'raw_code': rawCode,
-                            'coding_by': coding_by,
-                            'user_image': user_image
+                            'changes': changes,
+                            'coding_by': editorElement.dataset.user,
+                            'user_image': editorElement.dataset.user_image
                         }));
                     }, 1000);
                 }
@@ -850,41 +847,59 @@
             };
 
             let taskId = null
+
             socket.onmessage = function (e) {
                 const data = JSON.parse(e.data);
                 console.log('Message received from server:', data);
 
-                if (data.raw_code && !isLocalChange) {
-                    const cursorPos = editor.getPosition()
+                if (data.raw_code) handleCodeUpdate(data);
+                if (data.coding_by) handleUserPresence(data);
+                if (data.connected_users) handleConnectedUsers(data);
+                if (data.type === "user_disconnected") handleUserDisconnect(data);
+            };
+
+            function handleCodeUpdate(data) {
+                if (!isLocalChange) {
+                    const cursorPos = editor.getPosition();
                     isLocalChange = true;
                     editor.setValue(data.raw_code);
                     editor.setPosition(cursorPos);
                     isLocalChange = false;
                     setTimeout(save_code_in_local_storage, 15000);
                 }
-                if (data.coding_by) {
-                    const coding_by_img = document.getElementById('coding_by_img')
-                    coding_by_img.src = data.user_image
-                    coding_by_img.title = data.coding_by
-                    const indicate = document.getElementById('indicate')
-                    indicate.classList.replace('hidden', 'not_hidden')
-                }
+            }
 
-                if (data.connected_users) {
-                    console.log('Connected users', data.connected_users)
-                    const connected_users = data.connected_users
-                    const x = document.getElementById('joined')
-                    connected_users.forEach(user => {
-                        addConnectedUser(user.username, user.image)
-                        // console.log(user.username, user.image)
-                        x.play()
+            function handleUserPresence(data) {
+                const coding_by_img = document.getElementById('coding_by_img');
+                coding_by_img.src = data.user_image;
+                coding_by_img.title = data.coding_by;
+                const indicate = document.getElementById('indicate');
+                indicate.classList.replace('hidden', 'not_hidden');
+            }
+
+            function handleConnectedUsers(data) {
+                const connected_users = data.connected_users;
+                const x = document.getElementById('joined');
+                connected_users.forEach(user => {
+                    addConnectedUser(user.username, user.image);
+                    x.play();
+                });
+            }
+
+            function handleUserDisconnect(data) {
+                removeConnectedUser(data.left_user);
+            }
+
+            function handleCodeUpdate(data) {
+                if (!isLocalChange) {
+                    isLocalChange = true;
+                    data.changes.forEach(change => {
+                        editor.executeEdits('', [change]);
                     });
-                    // addConnectedUser(data.user, data.userimage)
+                    isLocalChange = false;
+                    setTimeout(save_code_in_local_storage, 15000);
                 }
-                if (data.type === "user_disconnected") {
-                    removeConnectedUser(data.left_user);
-                }
-            };
+            }
 
 
             function addConnectedUser(username, imageUrl) {
