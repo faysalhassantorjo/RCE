@@ -8,34 +8,17 @@ from asgiref.sync import async_to_sync, sync_to_async
 import redis
 
 # Replace with your Redis URL
-# redis_client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
+redis_client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
 
 
 # redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
-redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
+# redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
 
 
 try:
     print('redis_client_response',redis_client.ping())  # Should return True if connected
 except Exception as e:
     print(f"Error: {e}")
-
-# from urllib.parse import urlparse
-
-# # Your Railway Redis URL
-# redis_url = "redis://default:EzgpogmHsxeRINvaqnOXTkIgSilcaPRb@monorail.proxy.rlwy.net:19703"
-
-# # Parse the URL
-# url = urlparse(redis_url)
-
-# # Initialize Redis client using parsed URL
-# redis_client = redis.StrictRedis(
-#     host=url.hostname,
-#     port=url.port,
-#     db=0,
-#     password=url.password,
-#     ssl=True  # Enable SSL for secure connection
-# )
 
 
 class CodeEditorConsumer(AsyncWebsocketConsumer):
@@ -145,21 +128,21 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
         
         print('Text Data Json: ====', text_data_json)
 
-        if 'raw_code' in text_data_json:
-            raw_code = text_data_json['raw_code']
-            coding_by = text_data_json.get('coding_by','')
-            user_image = text_data_json.get('user_image','')
+        # if 'raw_code' in text_data_json:
+        #     raw_code = text_data_json['raw_code']
+        #     coding_by = text_data_json.get('coding_by','')
+        #     user_image = text_data_json.get('user_image','')
 
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'send_code_output',
-                    'raw_code': raw_code,
-                    'coding_by':coding_by,
-                    'user_image':user_image,
-                    'text_data_json':text_data_json
-                }
-            )
+        #     await self.channel_layer.group_send(
+        #         self.room_group_name,
+        #         {
+        #             'type': 'send_code_output',
+        #             'raw_code': raw_code,
+        #             'coding_by':coding_by,
+        #             'user_image':user_image,
+        #             'text_data_json':text_data_json
+        #         }
+        #     )
             
         if text_data_json.get('type') == 'code_change':
             await self.channel_layer.group_send(
