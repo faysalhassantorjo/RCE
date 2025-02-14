@@ -376,4 +376,8 @@ def give_parmision(request):
         return JsonResponse({'msg':f'{userprofile} now has permission, Tell him to reload the page','id':user_id})
     else:
         return JsonResponse({'error':'Invalid HTTP method'})
+    
+
+def code_template(request):
+    return render(request,'editor/code_template.html')
         

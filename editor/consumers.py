@@ -8,17 +8,17 @@ from asgiref.sync import async_to_sync, sync_to_async
 import redis
 
 # Replace with your Redis URL
-redis_client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
+# redis_client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
+
+
+# redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
+redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
+
 
 try:
     print('redis_client_response',redis_client.ping())  # Should return True if connected
 except Exception as e:
     print(f"Error: {e}")
-
-# redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
-# redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
-
-
 
 # from urllib.parse import urlparse
 
@@ -160,6 +160,25 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
                     'text_data_json':text_data_json
                 }
             )
+            
+        if text_data_json.get('type') == 'code_change':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_code_change',
+                    'changes': text_data_json['changes'],
+                    'coding_by': text_data_json['coding_by'],
+                    'user_image': text_data_json['user_image']
+                }
+            )
+
+    async def broadcast_code_change(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'code_change',
+            'changes': event['changes'],
+            'coding_by': event['coding_by'],
+            'user_image': event['user_image']
+        }))
 
 
     # Broadcast the code or its output to all connected clients in the group
@@ -452,3 +471,144 @@ class CallConsumer(AsyncWebsocketConsumer):
     async def call_message(self, event):
         message = event['message']
         await self.send(text_data=json.dumps(message))
+
+
+
+
+
+
+class OTConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.document_id = "global_document"  # Single document for simplicity
+        self.group_name = f"document_{self.document_id}"
+
+        # Join the document's group
+        await self.channel_layer.group_add(
+            self.group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+        # Send the current document state to the new client
+        content = await self.get_document_content()
+        print('Initial document content:', content)
+
+        await self.send(text_data=json.dumps({
+            'type': 'update',
+            'content': content,
+        }))
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        operation = data['operation']
+        print('Received operation:', operation)
+
+        # Apply the operation to the document
+        content = await self.apply_operation(operation)
+
+        # Broadcast the updated content to all clients
+        await self.channel_layer.group_send(
+            self.group_name,
+            {
+                'type': 'send_update',
+                'operation': operation,  # Send only the delta update
+            }
+        )
+
+    async def send_update(self, event):
+        operation = event['operation']
+
+        # Exclude the sender by checking the channel name
+        if self.channel_name != event.get('sender_channel'):
+            await self.send(text_data=json.dumps({
+                'type': 'update',
+                'operation': operation
+            }))
+
+    @sync_to_async
+    def get_document_content(self):
+        # Retrieve the document content from Redis and decode it to a string
+        content = redis_client.get("document_content")
+        return content.decode('utf-8') if content else ""
+
+    @sync_to_async
+    def apply_operation(self, operation):
+        """
+        Apply an insert or delete operation to the document content stored in Redis.
+        """
+        # Validate the operation
+        if not self._is_valid_operation(operation):
+            raise ValueError("Invalid operation format")
+
+        # Retrieve the document content from Redis and decode it to a string
+        content = redis_client.get("document_content")
+        content = content.decode('utf-8') if content else ""
+        lines = content.split('\n')
+
+        # Extract position and type
+        position = operation['position']
+        line = position['line']
+        ch = position['ch']
+
+        if operation['type'] == 'insert':
+            lines = self._apply_insert(lines, line, ch, operation['text'])
+        elif operation['type'] == 'delete':
+            lines = self._apply_delete(lines, line, ch, operation['length'])
+
+        # Reconstruct the document content
+        updated_content = '\n'.join(lines)
+
+        # Save the updated content back to Redis (encode string to bytes)
+        redis_client.set("document_content", updated_content.encode('utf-8'))
+
+        return updated_content
+
+    def _is_valid_operation(self, operation):
+        """
+        Validate the structure of the operation object.
+        """
+        required_fields = {'type', 'position'}
+        if operation['type'] == 'insert':
+            required_fields.add('text')
+        elif operation['type'] == 'delete':
+            required_fields.add('length')
+        return all(field in operation for field in required_fields)
+
+    def _apply_insert(self, lines, line, ch, text):
+        """
+        Apply an insert operation to the document lines.
+        """
+        if line >= len(lines):
+            # Extend the list of lines if the target line doesn't exist
+            lines.extend([''] * (line - len(lines) + 1))
+        lines[line] = lines[line][:ch] + text + lines[line][ch:]
+        return lines
+
+    def _apply_delete(self, lines, line, ch, length):
+        """
+        Apply a delete operation to the document lines.
+        """
+        remaining_length = length
+        current_line = line
+
+        while remaining_length > 0 and current_line < len(lines):
+            line_length = len(lines[current_line])
+            chars_to_remove = min(remaining_length, line_length - ch)
+
+            if chars_to_remove > 0:
+                lines[current_line] = (
+                    lines[current_line][:ch] +
+                    lines[current_line][ch + chars_to_remove:]
+                )
+                remaining_length -= chars_to_remove
+
+            ch = 0  # Reset character index for subsequent lines
+            current_line += 1
+
+        return lines

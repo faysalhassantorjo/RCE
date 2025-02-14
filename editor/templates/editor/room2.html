@@ -24,7 +24,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap"
+        rel="stylesheet">
 
 
     <style>
@@ -389,7 +390,7 @@
                     <button id="run-code" class="icons" data-executed="{{request.user}}"
                         title="{{channel.programing_language}}" data-language="{{channel.programing_language}}">
                         <img id="run_code_icon" src="{% static 'icons/execute.png' %}" height="35" width="35" alt="">
-                      
+
                     </button>
                     <button id="save-code" class="icons">
                         <img src="{% static 'icons/file.png' %}" height="35" width="35" alt="">
@@ -410,23 +411,23 @@
                             <option value="vs-dark">Dark</option>
                             <option value="vs-light">Light</option>
                             <option value="hc-black">High Contrast</option>
-                        </select>    
+                        </select>
                     </div>
-     
-           
 
-                        <div id="container_status" class="hidden">
-                            <span  class="badge badge-success ">Connected</span>
-                        </div>
+
+
+                    <div id="container_status" class="hidden">
+                        <span class="badge badge-success ">Connected</span>
+                    </div>
 
                     {% if container_status == "exited" %}
                     <div class=" me-1">
                         <button id="start_container" onclick="startContainer(this)" class="btn btn-danger "
-                        data-user_id="{{userprofile.id}}">
-                        Connect Container
-                    </button>
+                            data-user_id="{{userprofile.id}}">
+                            Connect Container
+                        </button>
                     </div>
-       
+
                     {% else %}
                     <div class="me-2">
                         <span class="badge badge-success">{{container_status}}</span>
@@ -634,12 +635,12 @@
 
                         // Use the Clipboard API to copy the text
                         navigator.clipboard.writeText(copyText)
-                        .then(() => {
-                            // Alert the copied text
-                            alert("Copied the text: " + copyText);
-                        }).catch(err => {
-                            console.error('Failed to copy text: ', err);
-                        });
+                            .then(() => {
+                                // Alert the copied text
+                                alert("Copied the text: " + copyText);
+                            }).catch(err => {
+                                console.error('Failed to copy text: ', err);
+                            });
                     }
                 </script>
             </div>
@@ -734,22 +735,74 @@
             const socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
 
 
-            editor.onDidChangeModelContent(() => {
+            editor.onDidChangeModelContent((event) => {
                 if (!isLocalChange) {
-                    clearTimeout(debounceTimer);
-                    const rawCode = editor.getValue();
-                    const coding_by = editorElement.dataset.user;
-                    const user_image = editorElement.dataset.user_image;
+                    const changes = event.changes.map(change => ({
+                        range: {
+                            startLineNumber: change.range.startLineNumber,
+                            startColumn: change.range.startColumn,
+                            endLineNumber: change.range.endLineNumber,
+                            endColumn: change.range.endColumn
+                        },
+                        text: change.text
+                    }));
 
-                    debounceTimer = setTimeout(() => {
-                        socket.send(JSON.stringify({
-                            'raw_code': rawCode,
-                            'coding_by': coding_by,
-                            'user_image': user_image
-                        }));
-                    }, 1000);
+                    socket.send(JSON.stringify({
+                        type: 'code_change',
+                        changes: changes,
+                        coding_by: editorElement.dataset.user,
+                        user_image: editorElement.dataset.user_image
+                    }));
                 }
             });
+            socket.onmessage = function (e) {
+                const data = JSON.parse(e.data);
+                console.log('Message received from server:', data);
+                console.log('upro, ',data.coding_by, userprofile)
+                // const data = JSON.parse(e.data);
+
+                if (data.coding_by !== userprofile){
+                if (data.type === 'code_change' && !isLocalChange) {
+                    isLocalChange = true;
+                    const model = editor.getModel();
+                    // Apply each change individually
+                    model.applyEdits(data.changes.map(change => ({
+                        range: new monaco.Range(
+                            change.range.startLineNumber,
+                            change.range.startColumn,
+                            change.range.endLineNumber,
+                            change.range.endColumn
+                        ),
+                        text: change.text,
+                        // Optional: Force move markers (for cursors)
+                        forceMoveMarkers: true
+                    })));
+                    isLocalChange = false;
+                }
+            }
+                if (data.coding_by) {
+                    const coding_by_img = document.getElementById('coding_by_img')
+                    coding_by_img.src = data.user_image
+                    coding_by_img.title = data.coding_by
+                    const indicate = document.getElementById('indicate')
+                    indicate.classList.replace('hidden', 'not_hidden')
+                }
+
+                if (data.connected_users) {
+                    console.log('Connected users', data.connected_users)
+                    const connected_users = data.connected_users
+                    const x = document.getElementById('joined')
+                    connected_users.forEach(user => {
+                        addConnectedUser(user.username, user.image)
+                        // console.log(user.username, user.image)
+                        x.play()
+                    });
+                    // addConnectedUser(data.user, data.userimage)
+                }
+                if (data.type === "user_disconnected") {
+                    removeConnectedUser(data.left_user);
+                }
+            };
 
 
 
@@ -839,10 +892,10 @@
             }
 
             const btn = document.getElementById('run-code');
-        
+
 
             // const socket = new WebSocket('ws://' + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
- 
+
 
             socket.onopen = function () {
                 console.log('websocket opend')
@@ -850,41 +903,7 @@
             };
 
             let taskId = null
-            socket.onmessage = function (e) {
-                const data = JSON.parse(e.data);
-                console.log('Message received from server:', data);
 
-                if (data.raw_code && !isLocalChange) {
-                    const cursorPos = editor.getPosition()
-                    isLocalChange = true;
-                    editor.setValue(data.raw_code);
-                    editor.setPosition(cursorPos);
-                    isLocalChange = false;
-                    setTimeout(save_code_in_local_storage, 15000);
-                }
-                if (data.coding_by) {
-                    const coding_by_img = document.getElementById('coding_by_img')
-                    coding_by_img.src = data.user_image
-                    coding_by_img.title = data.coding_by
-                    const indicate = document.getElementById('indicate')
-                    indicate.classList.replace('hidden', 'not_hidden')
-                }
-
-                if (data.connected_users) {
-                    console.log('Connected users', data.connected_users)
-                    const connected_users = data.connected_users
-                    const x = document.getElementById('joined')
-                    connected_users.forEach(user => {
-                        addConnectedUser(user.username, user.image)
-                        // console.log(user.username, user.image)
-                        x.play()
-                    });
-                    // addConnectedUser(data.user, data.userimage)
-                }
-                if (data.type === "user_disconnected") {
-                    removeConnectedUser(data.left_user);
-                }
-            };
 
 
             function addConnectedUser(username, imageUrl) {
@@ -959,7 +978,7 @@
                 document.getElementById('output').innerText = data.output;
                 document.getElementById('executed-by').innerText = `Executed by: ${data.code_executed_by}`;
 
-                let img =document.getElementById('run_code_icon')
+                let img = document.getElementById('run_code_icon')
                 img.src = "{% static 'icons/execute.png' %}"
                 img.style.background = "none"
             }
@@ -994,9 +1013,9 @@
                 const inputs = null
                 let img = this.querySelector("img");
 
-                img.src =  "{% static 'icons/loading.gif' %}"; 
+                img.src = "{% static 'icons/loading.gif' %}";
                 startTask(code, code_executed_by, inputs, language);
-               
+
 
             });
 

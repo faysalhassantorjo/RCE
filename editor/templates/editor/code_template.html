@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Code Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/python/python.min.js"></script>
+</head>
+<body>
+    <textarea id="code-editor"></textarea>
+    <script>
+        // Initialize CodeMirror editor
+const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+    lineNumbers: true,
+    mode: "python",
+    theme: "default"
+});
+
+const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+const socket = new WebSocket(`${protocol}://${window.location.host}/ws/editor/`);
+
+let isLocalChange = false;
+
+// Listen for messages from the server
+socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log('Received data:', data);
+
+    if (data.type === 'update') {
+        const operation = data.operation;
+
+        // Temporarily disable local change tracking to avoid reapplying the same change
+        isLocalChange = false;
+
+        try {
+            if (operation.type === 'insert') {
+                editor.replaceRange(
+                    operation.text,
+                    { line: operation.position.line, ch: operation.position.ch } // Apply insert at the specified position
+                );
+            } else if (operation.type === 'delete') {
+                const from = { line: operation.position.line, ch: operation.position.ch };
+                const to = { line: operation.position.line, ch: operation.position.ch + operation.length }; // Use the length of the deletion
+                editor.replaceRange("", from, to); // Apply delete operation
+            }
+        } finally {
+            // Re-enable local change tracking after applying the update
+            isLocalChange = true;
+        }
+    }
+};
+
+// Listen for changes in the editor
+editor.on('change', (instance, change) => {
+    if (!isLocalChange) return; // Ignore changes not flagged as local
+
+    let operation;
+
+    if (change.text.join('') !== '') {
+        // Insert operation
+        const text = change.text.join('\n');
+        console.log('Insert operation:', { text, position: change.from });
+        operation = {
+            type: 'insert',
+            position: { line: change.from.line, ch: change.from.ch }, // Full position object
+            text: text, // Inserted text
+        };
+    } else if (change.removed.join('') !== '') {
+        // Delete operation
+        const length = change.removed.join('').length;
+        console.log('Delete operation:', { position: change.from, length });
+        operation = {
+            type: 'delete',
+            position: { line: change.from.line, ch: change.from.ch }, // Full position object
+            length: length, // Length of the deleted text
+        };
+    }
+
+    if (operation) {
+        socket.send(JSON.stringify({ operation })); // Send operation to the server
+    }
+});
+    </script>
+</body>
+</html>

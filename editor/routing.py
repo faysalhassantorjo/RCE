@@ -9,5 +9,6 @@ websocket_urlpatterns = [
     re_path(r'ws/global-chat/(?P<user>\w+)/$', consumers.GlobalChat.as_asgi()),
     # re_path(r'ws/call/(?P<room_name>\w+)/$', consumers.CallConsumer.as_asgi()),
     re_path(r'ws/call/(?P<room_name>[-\w]+)/$', consumers.CallConsumer.as_asgi()),
+    re_path(r'ws/editor/$', consumers.OTConsumer.as_asgi()),
 
 ]
