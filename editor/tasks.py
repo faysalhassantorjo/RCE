@@ -100,14 +100,29 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, lang
             
 
         #     output_decoded = output.decode('utf-8', errors='ignore')
-        
-        result = subprocess.run(
-            ["python3", "-c", code],  # Command to run
-            capture_output=True,      # Capture stdout and stderr
-            text=True,                # Decode output as text
-            timeout=5                 # Timeout after 5 seconds
-        )
+        try:
+            process = subprocess.Popen(
+                ['python', '-c', code],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
 
+            # Communicate with the process (send input and get output)
+            stdout, stderr = process.communicate(input=inputs, timeout=5)
+            if stdout:
+                output = stdout
+            else:
+                output = stderr
+            print('sub output',output)
+            # return JsonResponse({"output": output, "error": error})
+
+        except subprocess.TimeoutExpired:
+            process.kill()
+            output = "Execution timed out"
+
+        print('Core Output is: ', output)
     
         channel_layer = get_channel_layer()
         group_name = f"task_{room_name}"
@@ -117,7 +132,7 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, lang
                 group_name,
                 {
                     "type": "task.update", 
-                    "output": result.stdout,
+                    "output": output,
                     "code_executed_by": code_executed_by,
                 }
             )

@@ -8,11 +8,11 @@ from asgiref.sync import async_to_sync, sync_to_async
 import redis
 
 # Replace with your Redis URL
-redis_client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
+# redis_client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
 
 
 # redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
-# redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
+redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
 
 
 try:
@@ -62,6 +62,7 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
             }
         )
     async def allconnecteduser(self,event):
+        print('connected event is: ',event)
         
         all_users = redis_client.get(self.room_group_name)
         if all_users:
@@ -69,8 +70,11 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
             print("All Connected Users:")
             print(all_users)
 
+        first_user = all_users[0].get('username')
+        
         await self.send(text_data=json.dumps({
             'connected_users': all_users,
+            'first_user':first_user
         }))
         
 
@@ -143,6 +147,19 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
         #             'text_data_json':text_data_json
         #         }
         #     )
+        
+        if text_data_json.get('type') == 'sync_editor':
+            initial_code = text_data_json.get('initial_code')
+            print('Sync Code called : ', initial_code)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_initial_code',
+                    'initial_code':initial_code,
+                    'first_user':text_data_json['first_user']
+                }
+                
+            )
             
         if text_data_json.get('type') == 'code_change':
             await self.channel_layer.group_send(
@@ -161,6 +178,14 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
             'changes': event['changes'],
             'coding_by': event['coding_by'],
             'user_image': event['user_image']
+        }))
+    
+    async def broadcast_initial_code(self, event):
+        print('broadcasted_initial_code',event)
+        await self.send(text_data=json.dumps({
+            'type':'initial_change',
+            'initial_code':event.get('initial_code',''),
+            'first_user':event.get('first_user','')
         }))
 
 

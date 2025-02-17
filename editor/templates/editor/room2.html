@@ -105,6 +105,7 @@
             min-height: 400px;
             font-weight: 200;
             font-size: .9rem;
+            overflow-x: auto;
         }
 
         .code-editor {
@@ -598,7 +599,7 @@
 
             </div>
             <div id="output-container" class="output-container">
-                <!-- <div id="output-header" class="output-header">
+                <div id="output-header" class="output-header">
                     <span>Input <span style="opacity: .7; font-size: .8rem;">if you have any in your
                             code</span> </span>
                 </div>
@@ -619,7 +620,7 @@
                     </style>
                     <textarea id="inputs" class="inputs" id="" placeholder="Enter your input here" cols="40"
                         rows="10"></textarea>
-                </div> -->
+                </div>
 
                 <div id="output-header" class="output-header d-flex justify-content-between">
                     <span id="executed-by">Output</span>
@@ -690,6 +691,7 @@
             let lan;
             let value = '';
             let read_only = true;
+            let flag = true
             const roomName = "{{room_name}}";
 
             let permitted_users = "{{channel.has_permission.all}}"
@@ -710,7 +712,7 @@
                 lan = 'plaintext';
             }
 
-            console.log("Selected Language: {{channel.programing_language}}");
+            console.log("Selected Languagessss: {{channel.programing_language}}");
 
             editor = monaco.editor.create(document.getElementById('editor'), {
                 // value: value,
@@ -731,7 +733,6 @@
             let debounceTimer;
             let isLocalChange = false;
             const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-            // const socket = new WebSocket(`${protocol}://${window.location.host}/ws/ac/${roomName}/{{userprofile.id}}`);
             const socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
 
 
@@ -746,40 +747,48 @@
                         },
                         text: change.text
                     }));
-
-                    socket.send(JSON.stringify({
-                        type: 'code_change',
-                        changes: changes,
-                        coding_by: editorElement.dataset.user,
-                        user_image: editorElement.dataset.user_image
-                    }));
+                    // if (flag) {
+                        socket.send(JSON.stringify({
+                            type: 'code_change',
+                            changes: changes,
+                            coding_by: editorElement.dataset.user,
+                            user_image: editorElement.dataset.user_image
+                        }));
+                    // }
+                    // flag = true
                 }
             });
+
+
+            socket.onopen = function () {
+                console.log('websocket opend')
+                socket.send(JSON.stringify({ type: "allconnecteduser" }));
+            };
             socket.onmessage = function (e) {
                 const data = JSON.parse(e.data);
                 console.log('Message received from server:', data);
-                console.log('upro, ',data.coding_by, userprofile)
+                console.log('upro, ', data.coding_by, userprofile)
                 // const data = JSON.parse(e.data);
 
-                if (data.coding_by !== userprofile){
-                if (data.type === 'code_change' && !isLocalChange) {
-                    isLocalChange = true;
-                    const model = editor.getModel();
-                    // Apply each change individually
-                    model.applyEdits(data.changes.map(change => ({
-                        range: new monaco.Range(
-                            change.range.startLineNumber,
-                            change.range.startColumn,
-                            change.range.endLineNumber,
-                            change.range.endColumn
-                        ),
-                        text: change.text,
-                        // Optional: Force move markers (for cursors)
-                        forceMoveMarkers: true
-                    })));
-                    isLocalChange = false;
+                if (data.coding_by !== userprofile) {
+                    if (data.type === 'code_change' && !isLocalChange) {
+                        isLocalChange = true;
+                        const model = editor.getModel();
+                        // Apply each change individually
+                        model.applyEdits(data.changes.map(change => ({
+                            range: new monaco.Range(
+                                change.range.startLineNumber,
+                                change.range.startColumn,
+                                change.range.endLineNumber,
+                                change.range.endColumn
+                            ),
+                            text: change.text,
+                            // Optional: Force move markers (for cursors)
+                            forceMoveMarkers: true
+                        })));
+                        isLocalChange = false;
+                    }
                 }
-            }
                 if (data.coding_by) {
                     const coding_by_img = document.getElementById('coding_by_img')
                     coding_by_img.src = data.user_image
@@ -798,9 +807,29 @@
                         x.play()
                     });
                     // addConnectedUser(data.user, data.userimage)
+                    if (userprofile === data.first_user) {
+
+                        console.log('editor value is :  ', editor.getValue())
+                        socket.send(JSON.stringify({
+                            'type': 'sync_editor',
+                            'initial_code': editor.getValue(),
+                            'first_user': data.first_user
+                        }))
+                    }
                 }
                 if (data.type === "user_disconnected") {
                     removeConnectedUser(data.left_user);
+                }
+
+                if (data.type === "initial_change") {
+                    const initial_code = data.initial_code
+
+                    console.log('Initial_code is: ', initial_code, data.first_user, userprofile);
+                    if (data.first_user !== userprofile) {
+                        isLocalChange = true; // Set this to true to indicate a local change
+                        editor.setValue(initial_code); // Set the editor value without triggering WebSocket
+                        isLocalChange = false; // Reset after setting the value
+                    }
                 }
             };
 
@@ -826,7 +855,7 @@
                         editorElement.dataset.file_id = file_id
                         editorElement.dataset.file_name = file_name
                         console.log(editorElement.dataset.file_id);
-                        // document.getElementById('inputs').value = ''
+                        document.getElementById('inputs').value = ''
                         document.getElementById('output').innerText = ''
 
                     } else {
@@ -897,10 +926,7 @@
             // const socket = new WebSocket('ws://' + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
 
 
-            socket.onopen = function () {
-                console.log('websocket opend')
-                socket.send(JSON.stringify({ type: "allconnecteduser" }));
-            };
+
 
             let taskId = null
 
@@ -1010,7 +1036,7 @@
                 const code = editor.getValue();
                 const code_executed_by = btn.dataset['executed'];
                 const language = btn.dataset['language'];
-                const inputs = null
+                const inputs = document.getElementById('inputs').value
                 let img = this.querySelector("img");
 
                 img.src = "{% static 'icons/loading.gif' %}";
