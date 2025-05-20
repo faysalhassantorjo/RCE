@@ -94,8 +94,8 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             # "hosts": [("127.0.0.1", 6379)],
-             "hosts": [('redis_server', 6379)],
-            #  "hosts": [("redis://red-cuj40v0gph6c73fqc0ig:6379")],
+            #  "hosts": [('redis_server', 6379)],
+             "hosts": [("redis://red-cuj40v0gph6c73fqc0ig:6379")],
         },
     },
 }
