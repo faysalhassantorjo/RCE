@@ -10,5 +10,7 @@ websocket_urlpatterns = [
     # re_path(r'ws/call/(?P<room_name>\w+)/$', consumers.CallConsumer.as_asgi()),
     re_path(r'ws/call/(?P<room_name>[-\w]+)/$', consumers.CallConsumer.as_asgi()),
     re_path(r'ws/editor/$', consumers.OTConsumer.as_asgi()),
+    re_path(r'ws/code-paste/(?P<room_name>[\w-]+)/(?P<userprofile>[\w-]+)/$', consumers.CopypasteConsumer.as_asgi())
+
 
 ]

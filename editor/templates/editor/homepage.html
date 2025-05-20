@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-  {% load static %}
+{% load static %}
 
 <head>
   <meta charset="UTF-8">
@@ -8,134 +8,641 @@
   <title>Real-Time Code Editor</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
   <!-- Bootstrap Bundle with Popper (JS) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+  <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/theme/dracula.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Google Fonts -->
 
-  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Smooch+Sans:wght@100..900&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Lora:ital,wght@0,400..700;1,400..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
+    rel="stylesheet">
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.0.0/mdb.min.css" rel="stylesheet" />
   <style>
+    :root {
+      --primary-color: #4ecdd1;
+      --secondary-color: #bd93f9;
+      --dark-bg: #1e1e1e;
+      --darker-bg: #121212;
+      --light-bg: #252526;
+      --lighter-bg: #2d2d2d;
+      --text-color: #e0e0e0;
+      --text-muted: #858585;
+      --text-accent: #4ecdd1;
+      --accent-color: #ff79c6;
+      --border-color: #333333;
+      --success-color: #50fa7b;
+      --info-color: #8be9fd;
+      --warning-color: #f1fa8c;
+      --danger-color: #ff5555;
+    }
+
+    .form-control::placeholder {
+      color: #bbbbbb;
+    }
+
     body {
-      background-color: #282a36;
-      color: #f8f8f2;
-      font-family: "Smooch Sans", serif;
-            font-weight: 400;
-            font-style: normal;
+      background-color: var(--darker-bg);
+      color: var(--text-color);
+      font-family: "JetBrains Mono", serif;
+      min-height: 100vh;
     }
 
     .navbar {
-      background-color: #191a29 !important;
+      background-color: var(--dark-bg) !important;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      padding: 0.75rem 1rem;
+    }
+
+    .navbar-brand {
+      font-size: 1.5rem;
+      color: var(--primary-color) !important;
+    }
+
+    .nav-link {
+      color: var(--text-color) !important;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .nav-link:hover {
+      color: var(--primary-color) !important;
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 2px;
+      background-color: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after {
+      width: 70%;
     }
 
     .profile-avatar,
     .channel-avatar {
-      border: 2px solid #50fa7b;
+      border: 2px solid var(--primary-color);
+      object-fit: cover;
     }
 
     .profile-avatar {
-      width: 50px;
-      height: 50px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
     }
 
     .channel-avatar {
-      width: 70px;
+      width: 50px;
       height: 50px;
-      border-radius: 5px;
+      border-radius: 8px;
     }
 
     .people-list,
     .channel-list {
       list-style: none;
       padding: 0;
+      max-height: 60vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) var(--dark-bg);
+    }
+
+    .people-list::-webkit-scrollbar,
+    .channel-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .people-list::-webkit-scrollbar-track,
+    .channel-list::-webkit-scrollbar-track {
+      background: var(--dark-bg);
+      border-radius: 10px;
+    }
+
+    .people-list::-webkit-scrollbar-thumb,
+    .channel-list::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: 10px;
     }
 
     .people-list li,
     .channel-list li {
-      padding: 15px;
-      margin: 10px 0;
-      background-color: #44475a;
+      padding: 12px 15px;
+      margin: 8px 0;
+      background-color: var(--light-bg);
       border-radius: 8px;
       display: flex;
       align-items: center;
-      transition: transform 0.2s ease;
+      transition: all 0.3s ease;
+      border-left: 3px solid transparent;
     }
 
     .people-list li:hover,
     .channel-list li:hover {
-      transform: scale(1.03);
+      /* transform: translateY(5px); */
       cursor: pointer;
+      background-color: #343746;
+      border-left: 3px solid var(--primary-color);
     }
 
     h3 {
-      color: #50fa7b;
+      color: var(--primary-color);
       font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 i {
+      font-size: 1.1rem;
     }
 
     #create-channel {
-      background-color: #50fa7b;
-      color: #282a36;
-      font-weight: bold;
-    }
-
-    #joinChannelForm {
-      background-color: #191a29;
+      background-color: var(--primary-color);
+      color: var(--darker-bg);
+      font-weight: 600;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
     #create-channel:hover {
-      background-color: #45e07b;
+      background-color: #45e06b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(80, 250, 123, 0.2);
     }
 
-    .nav-text {
-      font-size: 1.2rem;
-      font-weight: bold;
-    }
-
-    .code-editor {
-      background-color: #191a29;
-      padding: 20px;
+    #joinChannelForm {
+      background-color: var(--dark-bg);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-      margin-top: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    .output-container {
-      background-color: #44475a;
-      color: #fff;
-      padding: 10px;
+    #joinChannelBtn {
+      background-color: var(--secondary-color);
+      color: var(--darker-bg);
+      font-weight: 600;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+
+    #joinChannelBtn:hover {
+      background-color: #a67ff4;
+      transform: translateY(-2px);
+    }
+
+    .icons {
+      height: 24px;
+      width: 24px;
+      object-fit: contain;
+    }
+
+    /* Chat Container Styles */
+    .chat-container {
+      max-width: 100%;
+      margin: 0 auto;
+      background-color: var(--dark-bg);
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+    }
+
+    .chat-header {
+      background-color: var(--light-bg);
+      color: var(--primary-color);
+      padding: 15px 20px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #chat-body {
+      height: 400px;
+      overflow-y: auto;
+      padding: 15px;
+      background-color: var(--dark-bg);
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) var(--darker-bg);
+      transition: height 0.3s ease, padding 0.3s ease;
+    }
+
+    #chat-body::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #chat-body::-webkit-scrollbar-track {
+      background: var(--darker-bg);
+    }
+
+    #chat-body::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: 6px;
+    }
+
+    .chat-message {
+      display: flex;
+      margin-bottom: 15px;
+      align-items: flex-start;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-message .user-image {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      margin-right: 12px;
+      object-fit: cover;
+      border: 2px solid var(--border-color);
+    }
+
+    .message-content {
+      flex: 1;
+    }
+
+    .user-info {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      margin-bottom: 4px;
+      gap: 10px;
+    }
+
+    .user {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--primary-color);
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .message-text {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-color);
+      padding-left: 8px;
+      border-left: 2px solid var(--border-color);
+      margin-left: 8px;
+    }
+
+    .chat-footer {
+      padding: 12px 15px;
+      background-color: var(--light-bg);
+      border-top: 1px solid var(--border-color);
+    }
+
+    #messageInput {
+      background-color: var(--dark-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 10px 15px;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+
+    #messageInput:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.2rem rgba(80, 250, 123, 0.25);
+    }
+
+    #send_btn {
+      background-color: var(--primary-color);
+      color: var(--darker-bg);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    #send_btn:hover {
+      background-color: #45e06b;
+      transform: scale(1.05);
+    }
+
+    /* Badge styles */
+    .badge {
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* Dropdown styles */
+    .dropdown-menu {
+      background-color: var(--light-bg);
+      border: 1px solid var(--border-color);
+    }
+
+    .dropdown-item {
+      color: var(--text-color);
+      transition: all 0.2s ease;
+    }
+
+    .dropdown-item:hover {
+      background-color: var(--dark-bg);
+      color: var(--primary-color);
+    }
+
+    /* Form styles */
+    .form-control,
+    .form-select {
+      background-color: var(--dark-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      background-color: var(--dark-bg);
+      border-color: var(--primary-color);
+      color: var(--text-color);
+      box-shadow: 0 0 0 0.2rem rgba(80, 250, 123, 0.25);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+
+      .people-list,
+      .channel-list {
+        max-height: 300px;
+      }
+
+      #chat-body {
+        height: 300px;
+      }
+    }
+
+    @media (max-width: 768px) {
+
+      .col-lg-2,
+      .col-lg-4,
+      .col-lg-6 {
+        margin-bottom: 1.5rem;
+      }
+
+      .chat-header {
+        font-size: 1rem;
+        padding: 12px 15px;
+      }
+
+      .message-text {
+        font-size: 13px;
+      }
+    }
+
+    /* Animation for new messages */
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .new-message {
+      animation: pulse 0.5s ease;
+    }
+
+    /* Custom scrollbar for the whole page */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--darker-bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: 10px;
+    }
+
+    /* New Channel Grid Styles */
+    .channels-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .channels-count {
+      background-color: var(--primary-color);
+      color: var(--darker-bg);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .channels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .channel-card {
+      background-color: var(--light-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .channel-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(78, 205, 209, 0.2);
+      border-color: var(--primary-color);
+    }
+
+    .channel-card-header {
+      padding: 1rem;
+      background-color: var(--dark-bg);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .channel-avatar {
+      width: 50px;
+      height: 50px;
       border-radius: 8px;
-      margin-top: 15px;
+      object-fit: cover;
+      border: 2px solid var(--primary-color);
     }
 
-    .output-header {
-      font-weight: bold;
-      color: #50fa7b;
+    .channel-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
-    .icons{
-      height: 30px;
-      width: 30px;
+
+    .channel-language {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .channel-card-body {
+      padding: 1rem;
+    }
+
+    .channel-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .channel-members {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .channel-members i {
+      color: var(--primary-color);
+    }
+
+    .channel-created {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .channel-admin {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .admin-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .admin-info {
+      font-size: 0.9rem;
+    }
+
+    .admin-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+
+    .admin-name {
+      font-weight: 500;
+      color: var(--primary-color);
+    }
+
+    .channel-card-footer {
+      padding: 0.75rem 1rem;
+      background-color: var(--dark-bg);
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    .join-channel-btn {
+      background-color: var(--primary-color);
+      color: var(--darker-bg);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .join-channel-btn:hover {
+      background-color: #45e06b;
+      transform: translateY(-2px);
+    }
+
+    .language-icon {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .channels-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 
 <body>
-
-
-
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-body-tertiary p-3">
-    <!-- Container wrapper -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
       <!-- Toggle button -->
-      <button data-mdb-collapse-init class="navbar-toggler" type="button" data-mdb-target="#navbarSupportedContent"
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <i class="fas fa-bars"></i>
       </button>
@@ -143,120 +650,118 @@
       <!-- Collapsible wrapper -->
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <!-- Navbar brand -->
-        <a class="navbar-brand mt-2 mt-lg-0" href="#">
-          <i class="fa-solid fa-code"></i>
+        <a class="navbar-brand" href="#">
+          <i class="fas fa-code"></i> CodeCollab
         </a>
         <!-- Left links -->
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" href="#">Dashboard</a>
+            <a class="nav-link active" href="/"><i class="fas fa-home me-1"></i> Dashboard</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Team</a>
-          </li>
-
         </ul>
         <!-- Left links -->
-      </div>
-      <!-- Collapsible wrapper -->
 
-      <!-- Right elements -->
-      <div class="d-flex align-items-center">
-        <!-- Icon -->
-        {% if request.user.is_authenticated %}
-        {% if container %}
-        <span class="text-info me-2">You Have a container</span>
-        {% else %}
-
-        <a class="btn btn-info me-2" href="{% url 'create_container' %}">Create Your Container </a>
-
-        {% endif %}
-        Hello {{userprofile.user.username}}! &nbsp;&nbsp;
-        {% else %}
-        <a data-mdb-ripple-init type="button" href="{% url 'login' %}" class="btn btn-link px-3 me-2">
-          Login
-        </a>
-        <a href="{% url 'register' %}" data-mdb-ripple-init type="button" class="btn btn-primary me-3">
-          Sign up for free
-        </a>
-        {% endif %}
-        <!-- Notifications -->
-        <div class="dropdown">
-          <a data-mdb-dropdown-init class="link-secondary me-3 dropdown-toggle hidden-arrow" href="#"
-            id="navbarDropdownMenuLink" role="button" aria-expanded="false">
-            <i class="fas fa-bell"></i>
-            <span class="badge rounded-pill badge-notification bg-danger">0</span>
+        <!-- Right elements -->
+        <div class="d-flex align-items-center">
+          <!-- User actions -->
+          {% if request.user.is_authenticated %}
+          {% if container %}
+          <span class="text-info me-3 d-none d-md-inline">
+            <i class="fas fa-server me-1"></i>Container Active
+          </span>
+          {% else %}
+          <a class="btn btn-info me-3" href="{% url 'create_container' %}">
+            <i class="fas fa-plus-circle me-1"></i>Create Container
           </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
-            <li>
-              <a class="dropdown-item" href="#">Some news</a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#">Another news</a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#">Something else here</a>
-            </li>
-          </ul>
-        </div>
-        <!-- Avatar -->
-        <div class="dropdown">
-          <a data-mdb-dropdown-init class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
-            id="navbarDropdownMenuAvatar" role="button" aria-expanded="false">
-            {% if userprofile %}
-            <img src="{{userprofile.imageURL}}" class="rounded-circle"
-              style="height: 35px; width: 35px; object-fit: cover;" alt="Black and White Portrait of a Man"
-              loading="lazy" />
-            {% else %}
-            <img
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY4lzrMEr0amU3ubAgMpsMXUw5kqMqHrylBNDQi82fS6QYpEC0TaE0FxSYhYmHGL4RGOU&usqp=CAU"
-              class="rounded-circle" style="height: 35px; width: 35px; object-fit: cover;" alt="" loading="lazy" />
-            {% endif %}
+          {% endif %}
+          <span class="me-3 d-none d-md-inline">
+            <i class="fas fa-user-circle me-1"></i>Hello {{userprofile.user.username}}!
+          </span>
+          {% else %}
+          <a type="button" href="{% url 'login' %}" class="btn btn-link px-3 me-2 text-white">
+            <i class="fas fa-sign-in-alt me-1"></i>Login
           </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
-            <li>
-              <a class="dropdown-item" href="#">My profile</a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#">Settings</a>
-            </li>
-            {% if request.user.is_authenticated %}
-            <li>
-              <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
-            </li>
-            {% else %}
-            <li>
-              <a class="dropdown-item" href="{% url 'login' %}">login</a>
-            </li>
-            {% endif %}
+          <a href="{% url 'register' %}" type="button" class="btn btn-primary me-3">
+            <i class="fas fa-user-plus me-1"></i>Sign Up
+          </a>
+          {% endif %}
 
-          </ul>
+          <!-- Notifications -->
+          <div class="dropdown me-3">
+            <a class="link-secondary dropdown-toggle" href="#" role="button" id="navbarDropdownMenuLink"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-bell"></i>
+              <span class="badge rounded-pill badge-notification bg-danger">0</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
+              <li><a class="dropdown-item" href="#">No new notifications</a></li>
+            </ul>
+          </div>
+
+          <!-- Avatar -->
+          <div class="dropdown">
+            <a class="dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdownMenuAvatar" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              {% if userprofile %}
+              <img src="{{userprofile.imageURL}}" class="rounded-circle"
+                style="height: 36px; width: 36px; object-fit: cover;" alt="Profile" />
+              {% else %}
+              <img
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY4lzrMEr0amU3ubAgMpsMXUw5kqMqHrylBNDQi82fS6QYpEC0TaE0FxSYhYmHGL4RGOU&usqp=CAU"
+                class="rounded-circle" style="height: 36px; width: 36px; object-fit: cover;" alt="Default" />
+              {% endif %}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
+              <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>My Profile</a></li>
+              <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+              {% if request.user.is_authenticated %}
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+              </li>
+              {% else %}
+              <li><a class="dropdown-item" href="{% url 'login' %}"><i class="fas fa-sign-in-alt me-2"></i>Login</a>
+              </li>
+              {% endif %}
+            </ul>
+          </div>
         </div>
+        <!-- Right elements -->
       </div>
-      <!-- Right elements -->
     </div>
-    <!-- Container wrapper -->
   </nav>
-  <!-- Navbar -->
+
+  <!-- Bootstrap JS Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Initialize dropdowns (optional - Bootstrap 5 should handle this automatically)
+    document.addEventListener('DOMContentLoaded', function () {
+      var dropdownElements = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+
+      dropdownElements.map(function (dropdownToggleEl) {
+        return new bootstrap.Dropdown(dropdownToggleEl);
+      });
+    });
+  </script>
 
   <div class="container-fluid mt-4">
     <div class="row">
       <!-- People List -->
-      <div class="col-lg-2 col-6 mb-4">
-        <div class="people-list-container p-3 rounded" style="background-color: #191a29;">
-          <h3 class="mb-4"><i class="fas fa-users"></i> People</h3>
+      <!-- <div class="col-lg-2 col-md-6 mb-4">
+        <div class="people-list-container p-3 rounded" style="background-color: var(--dark-bg);">
+          <h3><i class="fas fa-users"></i> People</h3>
           <ul class="people-list">
             {% for user in users %}
-            <a href="{% url 'chat_room' user_id=user.id %}" style="color: #f8f8f2">
+            <a href="{% url 'chat_room' user_id=user.id %}" style="color: inherit; text-decoration: none;">
               <li class="d-flex align-items-center">
                 <img src="{{user.imageURL}}" alt="User 1" class="profile-avatar me-3">
-                <span style="text-transform: capitalize;">{{user.user.username}}
-
-                  <span style=" z-index: 9;"><i class="fa-brands fa-rocketchat"></i></span>
+                <span style="text-transform: capitalize;">
+                  {{user.user.username}}
+                  <span class="ms-2"><i class="fas fa-comment-dots"></i></span>
                   {% if user.is_user_online %}
-                  <span class="badge bg-success badge-dot"
-                    style="height: 15px;width: 15px; z-index: 0; border-radius: 50%;"></span>
-                  <!-- <i class="fa-brands fa-rocketchat"></i> -->
+                  <span class="badge bg-success badge-dot ms-2"></span>
                   {% endif %}
                 </span>
               </li>
@@ -264,257 +769,186 @@
             {% endfor %}
           </ul>
         </div>
-      </div>
+      </div> -->
 
       <!-- Channel List -->
-      <div class="col-lg-4 col-6 mb-5">
-        <button id="joinChannelBtn" class="btn btn-primary mb-2">Join Channel</button>
-
-        <!-- Hidden Form (initially hidden) -->
-        <div id="joinChannelForm" class="card mt-1 mb-2  text-light d-none">
-          <div class="card-header">
-            <h4 class="card-title text-center">Join Channel</h4>
+      <div class="col-lg-8 col-md-6 mb-4">
+        <div class="channel-list-container p-3 rounded" style="background-color: var(--dark-bg);">
+          <div class="channels-header">
+            <h3><i class="fas fa-hashtag"></i> Channels <span class="channels-count">{{ channels|length }}
+                Channels</span></h3>
+            <div class="d-flex">
+              <button id="joinChannelBtn" class="btn btn-secondary me-2 mb-2">
+                <i class="fas fa-door-open me-2"></i>Join Channel
+              </button>
+              <button id="create-channel" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i> New Channel
+              </button>
+            </div>
           </div>
 
-          <div class="card-body ">
-            <form id="joinChannelFormElement">
-              <div class="mb-3">
-                <label for="room-id" class="form-label text-light">User must be authenticated</label>
-                <input type="text" id="room-id" class="form-control" placeholder="Enter Room ID" required>
-              </div>
-              <div class="text-center">
-                <button type="submit" class="btn btn-primary">Join</button>
-              </div>
-            </form>
+          <!-- Join Channel Form -->
+          <div id="joinChannelForm" class="card mb-4 text-light d-none">
+            <div class="card-header bg-primary">
+              <h4 class="card-title text-center mb-0"><i class="fas fa-sign-in-alt me-2"></i>Join Channel</h4>
+            </div>
+            <div class="card-body">
+              <form id="joinChannelFormElement">
+                <div class="mb-3">
+                  <label for="room-id" class="form-label">Channel ID</label>
+                  <input type="text" id="room-id" class="form-control" placeholder="Enter Room ID" required>
+                  <div class="form-text text-muted">You must be authenticated to join channels</div>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <button type="button" id="cancelJoinBtn" class="btn btn-secondary">
+                    <i class="fas fa-times me-1"></i>Cancel
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt me-1"></i>Join
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
 
-        <script>
-          // Toggle form visibility
-          const btn = document.getElementById('joinChannelBtn')
-          document.getElementById('joinChannelBtn').addEventListener('click', function () {
-            const form = document.getElementById('joinChannelForm');
-            form.classList.toggle('d-none');
-            btn.style.display = 'none';
-
-          });
-          // Handle form submission
-          document.getElementById('joinChannelFormElement').addEventListener('submit', function (event) {
-            event.preventDefault();  // Prevent default form submission
-            const roomId = document.getElementById('room-id').value;
-
-            if (roomId) {
-              // Construct the URL with the room ID and redirect
-              const joinUrl = `http://127.0.0.1:8000/join-channel/${roomId}/`;
-              window.location.href = joinUrl;
-            } else {
-              alert('Please enter a Room ID');
-            }
-          });
-        </script>
-
-        <style>
-          #channel-name,
-          #channel-type {
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-          }
-
-          #channel-name:focus,
-          #channel-type:focus {
-            border-color: #6200ea;
-            box-shadow: 0 0 0 0.2rem rgba(98, 0, 234, 0.25);
-          }
-
-          #submit-channel {
-            background-color: #6200ea;
-            border-color: #6200ea;
-          }
-
-          #submit-channel:hover {
-            background-color: #5b00d1;
-            border-color: #5b00d1;
-          }
-
-          .form-label {
-            font-weight: bold;
-            color: #333;
-          }
-
-          .text-danger {
-            font-size: 0.9rem;
-          }
-        </style>
-
-        <div class="channel-list-container p-3 rounded" style="background-color: #191a29;">
-          <div class="d-flex justify-content-between mb-3">
-            <h3><i class="fas fa-hashtag"></i> Channels</h3>
-            <button id="create-channel" class="btn">
-              <i class="fas fa-plus-circle"></i> Create Channel
-            </button>
-          </div>
-          <!-- Hidden form to create a channel -->
-          <div id="channel-form" class="mt-4 p-4 rounded shadow bg-light" style="display: none;">
-            <form action="{% url 'create_channel' %}" method="get">
+          <!-- Channel Creation Form -->
+          <div id="channel-form" class="mb-4 p-4 rounded" style="display: none; background-color: var(--light-bg);">
+            <form action="{% url 'create_channel' %}" method="post" enctype="multipart/form-data">
+              {% csrf_token %}
               <div class="mb-3">
                 <label for="channel-name" class="form-label">Channel Name</label>
-                <input type="text" id="channel-name" name="name" class="form-control" placeholder="Enter channel name"
-                  required />
+                <input type="text" id="channel-name" name="name" class="form-control text-light"
+                  placeholder="Enter channel name" required />
               </div>
-
               <div class="mb-3">
-                <label for="channel-type" class="form-label">Channel Type</label>
+                <label for="channel-type" class="form-label">Language</label>
                 <select id="channel-type" name="language" class="form-select" required>
-                  <option selected disabled>Select an option</option>
-                  <option value="PYTHON">python3.12.3</option>
-                  <option value="C">gcc 13.3.0</option>
+                  <option selected disabled>Select language</option>
+                  <option value="PYTHON">Python 3.12.3</option>
+                  <option value="C">GCC 13.3.0</option>
                 </select>
               </div>
-
-              <div class="d-flex justify-content-between align-items-center">
-                <button id="submit-channel" type="submit" class="btn btn-primary">
-                  Create
+              <div class="mb-3">
+                <label for="channel-picture" class="form-label">Picture</label>
+                <input type="file" name="channel_picture" class="form-control">
+              </div>
+              <div class="d-flex justify-content-between">
+                <button type="button" id="cancelChannelBtn" class="btn btn-secondary">
+                  <i class="fas fa-times me-1"></i>Cancel
                 </button>
-                <small id="error-message" class="text-danger" style="display: none;">
-                  Channel name is required
-                </small>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-check me-1"></i>Create
+                </button>
               </div>
             </form>
+
           </div>
 
-          <script>
-            document.getElementById('create-channel').addEventListener('click', function () {
-              // Show the channel creation form
-              document.getElementById('channel-form').style.display = 'block';
-            });
-
-
-          </script>
-          <ul class="channel-list">
+          <!-- Channels Grid -->
+          <div class="channels-grid">
             {% for channel in channels %}
-            <a href="{% url 'channel' channel.id %}" style="text-decoration: none; color: #fff;">
-              <li class="d-flex justify-content-between">
-                <img src="{{channel.imageURL}}" alt="Channel" class="channel-avatar me-3">
-                <span>{{channel.name}}</span>
-                {% if channel.programing_language == "PYTHON" %}  
-                <span><img class="icons" src="{% static 'icons/python.png' %}" alt=""></span>
-                {% elif channel.programing_language == "C" %}
-                <span><img class="icons" src="{% static 'icons/c.png' %}" alt=""></span>
-                {% endif %}
-              </li>
+            <a href="{% url 'channel' channel.id %}" class="text-light" style="text-decoration: none;">
+              <div class="channel-card">
+                <div class="channel-card-header">
+                  <img src="{{ channel.imageURL }}" alt="{{ channel.name }}" class="channel-avatar">
+                  <div>
+                    <div class="channel-title">
+                      {{ channel.name }}
+                      {% if channel.programing_language == "PYTHON" %}
+                      <img class="language-icon" src="{% static 'icons/python.png' %}" alt="Python">
+                      {% elif channel.programing_language == "C" %}
+                      <img class="language-icon" src="{% static 'icons/c.png' %}" alt="C">
+                      {% endif %}
+                    </div>
+                    <div class="channel-language">
+                      <i class="fas fa-code"></i>
+                      {% if channel.programing_language == "PYTHON" %}
+                      Python 3.12.3
+                      {% elif channel.programing_language == "C" %}
+                      GCC 13.3.0
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+                <div class="channel-card-body">
+                  <div class="channel-meta">
+                    <div class="channel-members">
+                      <i class="fas fa-users"></i>
+                      {{ channel.participants.count }} members
+                    </div>
+                    <div class="channel-created">
+                      <i class="far fa-calendar-alt"></i> {{ channel.created_at|date:"M d, Y" }}
+                    </div>
+                  </div>
+                  <div class="channel-admin d-flex justify-content-between">
+                    <div>
+                      <img src="{{ channel.created_by.imageURL }}" alt="{{ channel.admin.user.username }}"
+                        class="admin-avatar">
+                      <div class="admin-info">
+                        <div class="admin-label">Channel Admin</div>
+                        <div class="admin-name">@{{ channel.created_by.user.username }}</div>
+                      </div>
+                    </div>
+                    <style>
+                      .avatar-group {
+                        display: flex;
+                        align-items: center;
+                      }
+
+                      .avatar-group img {
+                        height: 25px;
+                        width: 25px;
+                        border-radius: 50%;
+                        border: 2px solid white;
+                        object-fit: cover;
+                      }
+
+                      .avatar-group img:not(:first-child) {
+                        margin-left: -8px;
+                        /* adjust overlap */
+                      }
+                    </style>
+
+                    <div class="avatar-group">
+                      {% for user in channel.participants.all|slice:":5" %}
+                      <img src="{{ user.imageURL }}" alt="{{ user.username }}">
+                      {% endfor %}
+                    </div>
+
+
+                  </div>
+                </div>
+                <!-- <div class="channel-card-footer">
+                <a href="{% url 'channel' channel.id %}" style="text-decoration: none;" class="join-channel-btn">
+                  <i class="fas fa-sign-in-alt me-1"></i> Join Channel
+                </a>
+              </div> -->
+              </div>
             </a>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+              <i class="fas fa-hashtag fa-3x mb-3" style="color: var(--text-muted);"></i>
+              <h4>No Channels Found</h4>
+              <p class="text-muted">Create your first channel to start collaborating</p>
+              <button id="create-channel" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Create Channel
+              </button>
+            </div>
             {% endfor %}
-          </ul>
+          </div>
         </div>
       </div>
 
-      <div class="col-lg-6">
-
-        <style>
-          .chat-container {
-            max-width: 100%;
-            margin: 20px auto;
-            background-color: #1f2937;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            color: #ffffff;
-          }
-
-          .chat-header {
-            background-color: #3b4048;
-            color: #ffffff;
-            padding: 15px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 18px;
-            border-bottom: 1px solid #444c56;
-          }
-
-          #chat-body {
-            height: 400px;
-            overflow-y: auto;
-            padding: 15px;
-            background-color: #111825;
-          }
-
-          .chat-message {
-            display: flex;
-            margin-bottom: 15px;
-            align-items: flex-start;
-          }
-
-          .chat-message .user-image {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-          }
-
-          .message-content {
-            flex: 1;
-          }
-
-          .user-info {
-            display: flex;
-            justify-content: space-start;
-            align-items: center;
-            margin-bottom: 5px;
-          }
-
-          .user {
-            font-weight: bold;
-            font-size: 14px;
-            color: #60a5fa;
-          }
-
-          .message-time {
-            font-size: 12px;
-            color: #9ca3af;
-          }
-
-          .message-text {
-            font-size: 14px;
-            line-height: 1.4;
-            margin-left: 20px;
-          }
-
-          .chat-footer {
-            padding: 10px 15px;
-            background-color: #3b4048;
-            border-top: 1px solid #444c56;
-            /* display: flex; */
-            align-items: center;
-          }
-
-          .chat-footer input {
-            flex: 1;
-            /* padding: 8px 12px; */
-            /* border-radius: 20px; */
-            border: none;
-            outline: none;
-            width: 100%;
-          }
-
-          .chat-footer button {
-            margin-left: 10px;
-            /* padding: 8px 20px; */
-            /* border-radius: 20px; */
-            border: none;
-            background-color: #60a5fa;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-          }
-
-          .chat-footer button:hover {
-            background-color: #3b82f6;
-          }
-        </style>
+      <!-- Global Chat -->
+      <div class="col-lg-4 col-12">
         <div class="chat-container">
-          <div class="chat-header">
-            Global Chat Room
+          <div class="chat-header d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-globe"></i> Global Chat</span>
+            <button id="toggleChat" style="background: none; border: none; color: white;">
+              <i id="toggleIcon" class="fas fa-chevron-down"></i>
+            </button>
           </div>
+
           <div id="chat-body">
             {% for chat in chats %}
             <div class="chat-message">
@@ -522,102 +956,142 @@
               <div class="message-content">
                 <div class="user-info">
                   <span class="user">{{chat.sender}}</span>
-                  <div class="message-text">{{chat.message}}</div>
-
                   <span class="message-time">{{chat.send_at}}</span>
                 </div>
+                <div class="message-text">{{chat.message}}</div>
               </div>
             </div>
             {% endfor %}
-
           </div>
+          <script>
+            const toggleBtn = document.getElementById('toggleChat');
+            const chatBody = document.getElementById('chat-body');
+            const toggleIcon = document.getElementById('toggleIcon');
+
+            let isCollapsed = false;
+    
+
+            toggleBtn.addEventListener('click', () => {
+              if (!isCollapsed) {
+                chatBody.style.height = '0';
+                chatBody.style.padding = '0';
+                toggleIcon.classList.remove('fa-chevron-down');
+                toggleIcon.classList.add('fa-chevron-up');
+              } else {
+                chatBody.style.height = '400px';
+                chatBody.style.padding = '';  // restore padding if needed
+                toggleIcon.classList.remove('fa-chevron-up');
+                toggleIcon.classList.add('fa-chevron-down');
+              }
+              isCollapsed = !isCollapsed;
+            });
+          </script>
+
           <div class="chat-footer">
-            <span id="chatForm" class="d-flex">
-              <input type="text" id="messageInput" class="form-control me-2" placeholder="Type a message...">
-              <button type="submit" class="btn btn-primary" id="send_btn" data-user="{{userprofile}}"
-                onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
-            </span>
-          </div>
-        </div>
-
-
-      </div>
-      <!-- Code Editor Section -->
-      <!-- <div class="col-lg-7">
-        <div class="code-editor p-3">
-          <form id="codeForm" method="POST" action="{% url 'home' %}">
-            <textarea id="editor" class="form-control" data-user="{{request.user}}"></textarea>
-            {% csrf_token %}
-            <input type="hidden" name="code" id="codeInput">
-            <input type="hidden" name="channel_id" value="{{channel.id}}">
-            <input type="hidden" name="file_id" id="code_file_input" value="">
-
-            <div class="mt-3 d-flex justify-content-start">
-              <button id="run-code" class="btn btn-success me-2" type="submit">Run Code</button>
-              <button id="save-code" class="btn btn-warning me-2">Save Code</button>
-              <button id="theme-toggle" class="btn btn-secondary">Change Theme</button>
+            <div id="chatForm" class="d-flex align-items-center">
+              <input type="text" id="messageInput" class="form-control me-2" placeholder="Type a message..."
+                aria-label="Message input">
+              <button type="button" class="btn" id="send_btn" data-user="{{userprofile}}">
+                <i class="fas fa-paper-plane"></i>
+              </button>
             </div>
-          </form>
-
-          <div id="output-container" class="output-container mt-4">
-            <div id="output-header" class="output-header">Output</div>
-            <div id="output" class="mt-2">{{output}}</div>
           </div>
         </div>
-      </div> -->
+      </div>
     </div>
   </div>
 
   <!-- Scripts -->
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/codemirror.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.3/mode/python/python.min.js"></script>
-
-  <!-- MDB -->
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/8.0.0/mdb.umd.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
+    $(document).ready(function () {
+      // Toggle join channel form
+      $('#joinChannelBtn').click(function () {
+        $('#joinChannelForm').removeClass('d-none');
+        $(this).hide();
+      });
 
+      $('#cancelJoinBtn').click(function () {
+        $('#joinChannelForm').addClass('d-none');
+        $('#joinChannelBtn').show();
+      });
 
+      // Toggle create channel form
+      $('#create-channel').click(function () {
+        $('#channel-form').slideToggle(300);
+      });
+
+      $('#cancelChannelBtn').click(function () {
+        $('#channel-form').slideUp(300);
+      });
+
+      // Handle form submission for joining channel
+      $('#joinChannelFormElement').submit(function (event) {
+        event.preventDefault();
+        const roomId = $('#room-id').val().trim();
+
+        if (roomId) {
+          window.location.href = `/join-channel/${roomId}/`;
+        } else {
+          alert('Please enter a valid Room ID');
+        }
+      });
+
+      // Auto-scroll chat to bottom
+      const chatBody = document.getElementById('chat-body');
+      chatBody.scrollTop = chatBody.scrollHeight;
+
+      // Handle Enter key in message input
+      $('#messageInput').keypress(function (e) {
+        if (e.which === 13) {
+          sendMessage();
+        }
+      });
+    });
+
+    // WebSocket for global chat
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-
     const chat_socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/global-chat/' + '{{request.user}}' + '/');
 
-
     chat_socket.onmessage = function (e) {
-      const data = JSON.parse(e.data); // Parse WebSocket data
-      const messageText = data.message; // Message text
-      const sender = data.sender; // Sender's name
-      const userImage = data.userImage || "https://www.pngplay.com/wp-content/uploads/12/User-Avatar-Profile-PNG-Free-File-Download.png"; // Sender's profile image
-      const messageTime = data.time
-      console.log(data)
-      // Create message element
+      const data = JSON.parse(e.data);
+      const messageText = data.message;
+      const sender = data.sender;
+      const userImage = data.userImage || "https://www.pngplay.com/wp-content/uploads/12/User-Avatar-Profile-PNG-Free-File-Download.png";
+      const messageTime = data.time;
+
+      // Create message element with animation
       const newMessage = document.createElement('div');
-      newMessage.classList.add('chat-message');
+      newMessage.classList.add('chat-message', 'new-message');
       newMessage.innerHTML = `
         <img src="${userImage}" alt="${sender}" class="user-image">
         <div class="message-content">
-            <div class="user-info">
-                <span class="user">${sender}</span>
-            <div class="message-text">${messageText}</div>
-
-                <span class="message-time">${messageTime}</span>
-            </div>
+          <div class="user-info">
+            <span class="user">${sender}</span>
+            <span class="message-time">${messageTime}</span>
+          </div>
+          <div class="message-text">${messageText}</div>
         </div>
-    `;
+      `;
 
       // Append to chat body
       const chatBody = document.getElementById('chat-body');
       chatBody.appendChild(newMessage);
 
-      // Scroll to the bottom
+      // Remove animation class after it completes
+      setTimeout(() => {
+        newMessage.classList.remove('new-message');
+      }, 500);
+
+      // Scroll to bottom
       chatBody.scrollTop = chatBody.scrollHeight;
     };
 
-
     chat_socket.onclose = function (e) {
       console.error('WebSocket closed unexpectedly');
+      // Show reconnect button or notification
     };
 
     chat_socket.onerror = function (e) {
@@ -627,28 +1101,44 @@
     function sendMessage() {
       const messageInput = document.getElementById('messageInput');
       const messageText = messageInput.value.trim();
+
       if (!messageText) {
-        alert("Message cannot be empty!");
+        // Add visual feedback for empty message
+        messageInput.classList.add('is-invalid');
+        setTimeout(() => {
+          messageInput.classList.remove('is-invalid');
+        }, 1000);
         return;
       }
 
       const current_user = document.getElementById("send_btn").dataset['user'];
-      console.log('Message:', messageText, 'User:', "{{current_user.id}}");
-      console.log('image url: ', "{{userprofile.imageURL}}")
       var d = new Date();
-      d.toLocaleString();
+
+      // Add sending animation to button
+      const sendBtn = document.getElementById('send_btn');
+      sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      sendBtn.disabled = true;
+
       chat_socket.send(JSON.stringify({
         "message": messageText,
         "sender": current_user,
         "userImage": "{{userprofile.imageURL}}",
         "user_id": "{{userprofile.id}}",
-        "time": d.toLocaleString()
+        "time": d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }));
 
-      messageInput.value = ""; // Clear the input field
-    }
+      // Reset button and input
+      setTimeout(() => {
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+        sendBtn.disabled = false;
+      }, 500);
 
+      messageInput.value = "";
+      messageInput.focus();
+    }
   </script>
+  <!-- MDB -->
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/9.0.0/mdb.umd.min.js"></script>
 </body>
 
 </html>

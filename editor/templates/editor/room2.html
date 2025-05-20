@@ -24,85 +24,64 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Lora:ital,wght@0,400..700;1,400..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
         rel="stylesheet">
 
+    <!-- <link rel="stylesheet" href="{% static 'css/room.css' %}"> -->
 
+
+
+</head>
+
+<body>
     <style>
         body {
 
-            background-color: #4c4f60;
+            background-color: #121212;
             color: #f8f8f2;
             display: flex;
             flex-direction: column;
             height: 100vh;
             max-width: 100%;
-            font-family: "Lora", serif;
+            /* font-family: "Lora", serif; */
+            font-family: "JetBrains Mono", serif;
+            /* font-family: "Source Code Pro", serif; */
             font-weight: 400;
             font-style: normal;
         }
 
-
-        .row {
-            max-width: 100%;
-        }
-
-        h1 {
-            margin-bottom: 10px;
-        }
-
-        h5 {
-            margin-bottom: 20px;
+        :root {
+            --editor-bg: #1e1e1e;
+            --sidebar-bg: #252526;
+            --header-bg: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #9e9e9e;
+            --accent-color: #4ecdd1;
+            --success-color: #50fa7b;
+            --danger-color: #ff5555;
+            --warning-color: #ffb86c;
+            --border-color: #333;
+            --highlight-color: rgba(78, 205, 209, 0.2);
         }
 
         #editor {
             width: 100%;
-            height: 90vh;
-        }
-
-        #run-code {
-            background-color: #50fa7b;
-            color: #282a36;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .output-container {
-            width: 100%;
-            /* min-height: 50px; */
-            /* Consistent width with editor */
-            margin-top: 20px;
-            /* Space between button and output */
-            border: 1px solid #6272a4;
-            border-radius: 5px;
-            /* Rounded corners */
-            background-color: #44475a;
-            /* Background color */
-            padding: 10px;
+            height: 100vh;
         }
 
         .output-header {
             font-weight: bold;
             color: #f6f6f6;
-            /* Highlighted color for user */
             margin-bottom: 10px;
-            /* Space between header and output */
         }
 
         .output {
             color: #f8f8f2;
-
             white-space: pre-wrap;
-
             padding: 15px;
-
-            border: 1px solid #6272a4;
-
-            border-radius: 3px;
-
-            background-color: #191a29;
+            min-height: 100vh;
             width: 100%;
-            min-height: 400px;
             font-weight: 200;
             font-size: .9rem;
             overflow-x: auto;
@@ -115,65 +94,8 @@
         #run-code {
             background-color: #4ecdd1;
         }
-    </style>
-    <style>
-        .people-list-container {
-            background-color: #191a29;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 15px;
-            margin-bottom: 20px;
-            max-width: 250px;
-        }
 
-        .navbar {
-            background-color: #191a29;
-        }
 
-        .file-list-container {
-            background-color: #191a29;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 15px;
-            margin: 20px;
-            /* margin-bottom: 20px; */
-            height: 100%;
-        }
-
-        .people-list-container h3,
-        .file-list-container h3 {
-            font-size: 1.2em;
-            margin-bottom: 15px;
-            color: #4ecdd1;
-        }
-
-        .participants-list {
-            padding: 0;
-        }
-
-        .participants-list li {
-            display: flex;
-            /* justify-content:space-around; */
-            align-items: center;
-            padding: 10px;
-            /* border-bottom: 1px solid #282828; */
-            transition: background-color 0.3s;
-        }
-
-        /* .participants-list li:hover {
-            background-color: #282a36;
-        } */
-
-        .participants-list li span {
-            font-size: 1em;
-            /* color: #ffffff; */
-            opacity: .6;
-        }
-
-        .participants-list li i {
-            color: #4ecdd1;
-            font-size: 1em;
-        }
 
         .now-coding {
             display: block;
@@ -182,17 +104,6 @@
 
         .j {
             display: none;
-        }
-
-        .file-button {
-            color: #e7e7e7b6;
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-
-        .file-button:hover {
-            color: #ffffff;
         }
 
         .hidden {
@@ -221,261 +132,566 @@
             z-index: 1000;
             border-radius: 5px;
             backdrop-filter: blur(10px);
-
         }
 
-        #file-name {
-            width: 300px;
-            padding: 5px;
-            border-radius: 5px;
-            /* margin-bottom: 10px; */
-        }
+
 
         .icons {
             border-radius: 6px;
-            /* background: none; */
+        }
+
+        .paste-highlight {
+            background-color: rgba(255, 215, 0, 0.3);
+            border: 1px dashed rgba(255, 165, 0, 0.5);
+        }
+
+        #notification {
+            display: none;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        #notification {
+            transition: opacity 0.3s ease;
+        }
+
+        #notification[style*="none"] {
+            display: block !important;
+            opacity: 0;
+        }
+
+        .line-number {
+            color: #6c757d;
+            display: inline-block;
+            width: 2em;
+            margin-left: -2.5em;
+            padding-right: 0.5em;
+            text-align: right;
+            user-select: none;
+            position: relative;
+            left: -1px;
+        }
+
+        /* File styling */
+        .file-list-container {
+            /* padding: 15px; */
+            /* background-color: #1e1e1e; */
+        }
+
+        .sidebar-header {
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        .folder-title {
+            color: #bbbbbb;
+            font-weight: 500;
+        }
+
+
+
+        /* editor icon */
+        .icons {
+            height: 30px;
+            /* consistent height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            background: none;
+            border: none;
+            color: #f8f8f2;
+            font-size: 14px;
+        }
+
+        #theme-selector {
+            height: 30px;
+            font-size: 12px;
+        }
+
+        #theme-selector option {
+            background: none;
+        }
+
+        #file-name {
+            height: 38px;
+        }
+
+        .tool-btn {
+            background: none;
+            border: none;
+            color: #f8f8f2;
+        }
+
+        .status-connected {
+            background-color: #50fa7b;
+            color: #121212;
+        }
+
+
+        /* Member Control */
+        .members {
+            position: absolute;
+            top: 0;
+            right: -500px;
+            /* Hidden off-screen */
+            width: 500px;
+            height: auto;
+            background-color: rgba(0, 0, 0, 0.212);
+            overflow-y: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: right 1s ease;
+            /* Smooth animation */
+            z-index: 9;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            position: fixed;
+        }
+
+        .members.visible {
+            right: 0;
+            /* Slide into view */
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #333;
+            z-index: 10;
+        }
+
+        .close-btn:hover {
+            color: red;
+        }
+
+        .row>* {
+            padding-right: 0;
+            padding-left: 0;
+        }
+
+        .sidebar {
+            border-left: 1px solid #1e1e1e;
+            border-right: 1px solid #1e1e1e;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: #1e1e1e;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile {
+            background-color: var(--sidebar-bg);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile:hover {
+            background-color: #2a2a2a;
+        }
+
+        .user-profile img {
+            border: 2px solid #4ecdd1;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .user-profile img:hover {
+            transform: scale(1.05);
+        }
+
+        .user-profile .info h6 {
+            font-weight: 500;
+            color: #f8f8f2;
+        }
+
+        .user-profile .info small {
+            font-size: 0.75rem;
+            color: #858585;
+        }
+
+        .sidebar-header {
+            color: #f8f8f2;
+            font-size: 1rem;
+            border-bottom: 1px solid #333;
+            padding: 10px 0;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-header i {
+            color: #4ecdd1;
+            margin-right: 8px;
+        }
+
+        .sidebar-header button {
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-header button:hover {
+            background-color: rgba(78, 205, 209, 0.1) !important;
+            color: #4ecdd1 !important;
+        }
+
+        .file-list {
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .file-item {
+            margin-bottom: 5px;
+        }
+
+        .file-button {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            background-color: transparent;
+            border: none;
+            color: #d4d4d4;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .file-button:hover {
+            background-color: #252526;
+            color: #f8f8f2;
+        }
+
+        .file-button.active {
+            background-color: rgba(78, 205, 209, 0.15);
+            color: #4ecdd1;
+            border-left: 3px solid #4ecdd1;
+        }
+
+        .file-icon {
+            color: #569cd6;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .file-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.85rem;
+        }
+
+        /* Scrollbar styling */
+        .sidebar::-webkit-scrollbar {
+            width: 1px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #252526;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            border-radius: 3px;
+        }
+
+        /* Responsive adjustments */
+        /* @media (max-width: 992px) {
+            .sidebar {
+                width: 220px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                z-index: 100;
+                left: -250px;
+            }
+
+            .sidebar.visible {
+                left: 0;
+            }
+        } */
+
+        .file-list {
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            /* Firefox */
+            scrollbar-color: rgba(100, 100, 100, 0.4) transparent;
+            /* Firefox */
+        }
+
+        /* Chrome, Edge, Safari */
+        .file-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .file-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .file-list::-webkit-scrollbar-thumb {
+            background-color: rgba(100, 100, 100, 0.4);
+            border-radius: 4px;
         }
     </style>
-</head>
 
-<body>
+    <div class="row" style="max-width: 100%; padding-right: 0;">
 
-    <nav class="navbar navbar-expand-lg p-3 navbar-dark">
-        <!-- Container wrapper -->
-        <div class="container-fluid">
-            <!-- Toggle button -->
-            <button data-mdb-collapse-init class="navbar-toggler" type="button"
-                data-mdb-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <i class="fas fa-bars"></i>
-            </button>
-
-            <!-- Collapsible wrapper -->
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <!-- Navbar brand -->
-                <a class="navbar-brand mt-2 mt-lg-0" href="/">
-                    <i class="fa-solid fa-code"></i>
-                </a>
-                <!-- Left links -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Team</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Projects</a>
-                    </li>
-                </ul>
-                <!-- Left links -->
-            </div>
-            <!-- Collapsible wrapper -->
-
-            <!-- Right elements -->
-            <div class="d-flex align-items-center">
-                <!-- Icon -->
-                {% if request.user.is_authenticated %}
-                Hello {{userprofile.user.username}}! &nbsp;&nbsp;
-                {% else %}
-                <a data-mdb-ripple-init type="button" href="{% url 'login' %}" class="btn btn-link px-3 me-2">
-                    Login
-                </a>
-                <button data-mdb-ripple-init type="button" class="btn btn-primary me-3">
-                    Sign up for free
-                </button>
-                {% endif %}
-                <!-- Notifications -->
-                <div class="dropdown">
-                    <a data-mdb-dropdown-init class="link-secondary me-3 dropdown-toggle hidden-arrow" href="#"
-                        id="navbarDropdownMenuLink" role="button" aria-expanded="false">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge rounded-pill badge-notification bg-danger">0</span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuLink">
-                        <li>
-                            <a class="dropdown-item" href="#">Some news</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#">Another news</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#">Something else here</a>
-                        </li>
-                    </ul>
+        <div class="col-lg-2 col-md-2 col-0 sidebar p-2 ">
+            <div class="file-list-container p-2">
+                <div class="user-profile p-3">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ userprofile.imageURL }}" class="rounded-circle me-3" height="35" width="35"
+                            alt="User Avatar" loading="lazy" />
+                        <div class="info">
+                            <h6 class="mb-0 text-white" style="font-size: 15px;">@{{ userprofile.user.username }}</h6>
+                            <small class="text-secondary">{{ userprofile.user.email }}</small>
+                        </div>
+                    </div>
                 </div>
-                <!-- Avatar -->
-                <div class="dropdown">
-                    <a data-mdb-dropdown-init class="dropdown-toggle d-flex align-items-center hidden-arrow" href="#"
-                        id="navbarDropdownMenuAvatar" role="button" aria-expanded="false">
-                        {% if userprofile %}
-                        <img src="{{userprofile.imageURL}}" class="rounded-circle" height="35"
-                            alt="Black and White Portrait of a Man" loading="lazy" />
-                        {% else %}
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY4lzrMEr0amU3ubAgMpsMXUw5kqMqHrylBNDQi82fS6QYpEC0TaE0FxSYhYmHGL4RGOU&usqp=CAU"
-                            class="rounded-circle" height="25" alt="" loading="lazy" />
-                        {% endif %}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMenuAvatar">
-                        <li>
-                            <a class="dropdown-item" href="#">My profile</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#">Settings</a>
-                        </li>
-                        {% if request.user.is_authenticated %}
-                        <li>
-                            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
-                        </li>
-                        {% else %}
-                        <li>
-                            <a class="dropdown-item" href="{% url 'login' %}">login</a>
-                        </li>
-                        {% endif %}
 
-                    </ul>
-                </div>
-            </div>
-            <!-- Right elements -->
-        </div>
-        <!-- Container wrapper -->
-    </nav>
+                    <div class="tools mb-1" style="background-color: var(--sidebar-bg); border-radius: 8px;">
+                        <a href=""> <img src="{% static 'editor/icons/google-meet.png' %}" height="50" class="p-2"
+                                alt=""></a>
+                    </div>
 
+                <h3 class="sidebar-header p-1 d-flex justify-content-between">
+                    <span>
+                        <i class="fa-solid fa-folder"></i>
+                        <span class="folder-title">Code Files</span>
+                    </span>
+                    <span>
+                        <button id="new-file-btn" style="background: none;border: none; color: #ffffff;">
+                            <i class="fa-solid fa-plus"></i> New
+                        </button>
+                    </span>
 
-    <!-- <hr color="#fff"> -->
-
-    <div class="row mt-3">
-
-        <div class="col-lg-2 col-md-0 col-0 ">
-
-            <div class="file-list-container mt-3">
-
-                <h3><i class="fa-solid fa-folder"></i>&nbsp;<span style="color: #ffffff; opacity: .8;">
-                        <span style="font-size: 1rem; opacity: .8; font-weight: bold;">Code File</span> </span>
                 </h3>
-                <ul class="participants-list" style="list-style: none;">
+
+                <form name="file_creation">
+                    <div class="create-file-section d-flex hidden mb-2" style="width: 100%;">
+                        <input type="text" class="form-control me-2" name="name" placeholder="Enter file name"
+                            style="background: none; border: none; border-bottom: 1px solid #f6f6f6; border-radius: 0px;">
+                        <button id="file-create-confrim" type="submit"
+                            style="border: none; background: none; color: #4ecdd1;" class="p-2">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                    </div>
+                </form>
+                <ul class="file-list">
                     {% for channels_file in channels_files %}
-                    <li>
-                        <button class="file-button " data-content="{{ channels_file.file }}"
-                            data-file_id="{{channels_file.id}}" data-file_name="{{channels_file.file_name}}">
-                            <i class="fa-solid fa-file"></i>
-                            &nbsp;
-                            <span style="opacity: .8;">
-                                {% if channels_file.file_name %}
-                                {{channels_file.file_name}}
-                                {% else %}
-                                {{ channels_file }}
-                                {% endif %}
-                            </span>
+                    <li class="file-item">
+                        <button class="file-button w-100 text-start d-block" data-content="{{ channels_file.file }}"
+                            data-file_id="{{ channels_file.id }}" data-file_name="{{ channels_file.file_name }}">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <!-- Left: Icon + File name -->
+                                <div class="d-flex align-items-center">
+                                    <i class="fa-solid fa-file file-icon me-2"></i>
+                                    <span class="file-name">
+                                        {{ channels_file.file_name|default:channels_file }}
+                                    </span>
+                                    &nbsp;
+                                    <!-- Right: Image -->
+                                    <img src="{{ channels_file.user.imageURL|default:'#' }}" height="20" width="20"
+                                        alt="User" class="rounded-circle">
+                                </div>
+
+                            </div>
                         </button>
                     </li>
                     {% endfor %}
                 </ul>
+                <hr>
+                <style>
+                    .connected-users {
+                        margin: 20px 0;
+                    }
+
+                    .connected-users .folder-title {
+                        font-weight: bold;
+                        margin-bottom: 10px;
+                        display: block;
+                    }
+
+                    #connected-users {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 5px;
+                        padding-left: 0;
+                        list-style: none;
+                        width: 100%;
+                        max-width: 300px;
+                    }
+
+                    .user-card {
+                        background-color: var(--sidebar-bg);
+                        padding: 12px;
+                        text-align: center;
+                        border-radius: 10px;
+                        color: #fff;
+                    }
+
+                    .user-avatar {
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        background: #eee;
+                        overflow: hidden;
+                        margin: 0 auto;
+                    }
+
+                    .user-avatar img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    }
+
+                    .user-name {
+                        display: block;
+                        margin-top: 8px;
+                        font-size: 14px;
+                    }
+                </style>
+
+                <div class="connected-users">
+                    <span class="folder-title">
+                        <i class="fa-solid fa-user-group" style="color: var(--accent-color);"></i>
+                         Connected Users (<span id="user-count" class="text-success">0</span>)</span>
+                    <ul id="connected-users"></ul>
+                </div>
+
+
+
+
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const fileButtons = document.querySelectorAll('.file-button');
+
+                        fileButtons.forEach(button => {
+                            button.addEventListener('click', function () {
+                                // Remove 'active' class from all buttons
+                                fileButtons.forEach(btn => btn.classList.remove('active'));
+
+                                // Add 'active' class to the clicked button
+                                this.classList.add('active');
+                            });
+                        });
+                    });
+                </script>
+
             </div>
         </div>
-        <!-- <div class="col-lg-1 col-md-2 col-2 p-3">
-            <div class="people-list-container">
-                <h6>Connected</h6>
-                <hr>
-                <ul class="list-group list-group-light" id="connected-users">
+        <div class="col-lg-6 col-md-8 col-12 sidebar ">
+            <div class="code-editor ">
+                <div class=" d-flex justify-content-between p-2">
 
-                </ul>
-            </div>
+                    <div class="d-flex flex-row">
 
-
-        </div> -->
-        <div class="col-lg-6 col-md-10 col-10">
-            <div class="code-editor ps-3">
-
-                <div class="my-2 d-flex felx-row">
-                    <button id="run-code" class="icons" data-executed="{{request.user}}"
-                        title="{{channel.programing_language}}" data-language="{{channel.programing_language}}">
-                        <img id="run_code_icon" src="{% static 'icons/execute.png' %}" height="35" width="35" alt="">
-
-                    </button>
-                    <button id="save-code" class="icons">
-                        <img src="{% static 'icons/file.png' %}" height="35" width="35" alt="">
-
-                    </button>
-
-                    <div id="input-container" class="hidden">
-                        <input type="text" id="file-name" placeholder="Enter a name" required />
-                        <button id="submit-name" class="btn btn-primary">Submit</button>
-                    </div>
-                    <div>
-                        <button class="icons" title="load the code from the local storage" id="load_data">
-                            <img src="{% static 'icons/load.png' %}" height="35" width="35" alt="">
+                        <button id="run-code" class="icons" data-executed="{{request.user}}"
+                            title="{{channel.programing_language}}" data-language="{{channel.programing_language}}">
+                            <i class="fa-solid fa-play me-2"></i> Run
                         </button>
-                    </div>
-                    <div class="ms-1 me-1">
-                        <select id="theme-selector" style="padding:7px; border-radius: 5px;">
-                            <option value="vs-dark">Dark</option>
-                            <option value="vs-light">Light</option>
-                            <option value="hc-black">High Contrast</option>
-                        </select>
-                    </div>
 
-
-
-                    <div id="container_status" class="hidden">
-                        <span class="badge badge-success ">Connected</span>
-                    </div>
-
-                    {% if container_status == "exited" %}
-                    <div class=" me-1">
-                        <button id="start_container" onclick="startContainer(this)" class="btn btn-danger "
-                            data-user_id="{{userprofile.id}}">
-                            Connect Container
+                        <button id="save-code" class="icons">
+                            <i class="fa-solid fa-floppy-disk me-2"></i> Save
                         </button>
-                    </div>
 
-                    {% else %}
-                    <div class="me-2">
-                        <span class="badge badge-success">{{container_status}}</span>
-                    </div>
-                    {% endif %}
-
-                    <span>
-
-                        <div class="hidden d-inline-flex position-relative" id="indicate">
-                            <span class="position-absolute top-0 start-100 translate-middle">
-                                <img src="{% static 'icons/light-bulb.gif' %}" class="gif " alt="">
-                            </span>
-                            <img class="rounded-4 shadow-4 " src="" id="coding_by_img" alt="" data-mdb-tooltip-init
-                                title="" style="width: 35px; height: 35px;">
+                        <div id="input-container" class="hidden d-flex"
+                            style="background: var(--header-bg); border: none;">
+                            <input type="text" id="file-name" placeholder="Enter a name" required />
+                            <button id="submit-name"
+                                style="background-color: var(--accent-color); color: var(--editor-bg); padding:5px; border: 1px solid var(--border-color); border-radius: 5px;">Submit</button>
+                            <button onclick="hide_container()" id="hide-button" class="btn btn-danger">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
                         </div>
-                    </span>
-                    <script>
-                        function startContainer(button) {
-                            const userId = button.dataset.user_id;
-                            const container_button = document.getElementById('start_container')
-                            fetch('/start-container/', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    "user_id": userId
-                                })
-                            })
-                                .then(response => response.json())
-                                .then(data => {
-                                    console.log('resposne: ', data)
-                                    const status = data['container_status']
-                                    container_button.innerHTML = status
-                                    container_button.style.display = "none"
-                                    document.getElementById('container_status').classList.remove('hidden')
-                                })
-                        }
-                    </script>
-                    <div>
-                        <ul class="list-group list-group-light d-flex flex-row" id="connected-users">
+                        <script>
+                            document.getElementById('hide-button').addEventListener('click', function () {
+                                document.getElementById('input-container').classList.add('hidden');
+                            });
 
-                        </ul>
+                        </script>
+                        <div>
+                            <button class="icons" title="load the code from the local storage" id="load_data">
+                                <i class="fa-solid fa-upload me-2"></i> Load
+                            </button>
+                        </div>
+
+                        <div class="ms-1 me-1">
+                            <select id="theme-selector"
+                                style="padding:7px; border-radius: 5px; background: none; color: #f8f8f2;">
+                                <option style="background-color: none;" value="vs-dark">Dark</option>
+                                <option value="vs-light">Light</option>
+                                <option value="hc-black">High Contrast</option>
+                            </select>
+                        </div>
+
+                        <div id="container_status" class="hidden">
+                            <i class="fa-solid fa-check-circle"></i> Connected
+                        </div>
+
+                        {% if container_status == "exited" %}
+                        <div class="me-1">
+                            <button id="start_container" onclick="startContainer(this)" class="btn btn-danger"
+                                data-user_id="{{userprofile.id}}">
+                                Connect Container
+                            </button>
+                        </div>
+                        {% else %}
+                        <span class="text-success me-2"
+                            style="border: none; border-radius: 12px; font-size: 12px; height: auto;">
+                            <i class="fa-solid fa-check-circle"></i> Connected
+                        </span>
+                        {% endif %}
+
+                        <span>
+                            <div class="hidden d-inline-flex position-relative me-2" id="indicate">
+                                <span class="position-absolute top-0 start-100 translate-middle">
+                                    <img src="{% static 'icons/light-bulb.gif' %}" class="gif" alt="">
+                                </span>
+                                <img class="rounded-4 shadow-4" src="" id="coding_by_img" alt="" data-mdb-tooltip-init
+                                    title="" style="width: 30px; height: 30px;">
+                            </div>
+                        </span>
+
+                        <div>
+                            <ul class="list-group list-group-light d-flex flex-row" id="connected-users"></ul>
+                        </div>
 
                     </div>
+                    <div class="d-flex">
+                        <button id="toggleMembers" class="tool-btn ms-3" title="Manage Members">
+                            <i class="fa-solid fa-users"></i>
+                        </button>
 
+                        <button id="toggleButton" title="Paste History" class="tool-btn">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                        </button>
+                    </div>
                 </div>
+
+                <div id="notification">Content pasted!</div>
+
                 <form id="codeForm" method="POST" action="{% url 'save_code' %}">
                     <div id="editor" data-user="{{request.user}}" data-user_image="{{userprofile.imageURL}}"></div>
                     {% csrf_token %}
@@ -483,55 +699,20 @@
                     <input type="hidden" name="channel_id" value="{{channel.id}}">
                     <input type="hidden" name="file_id" id="coe_file_input" value="">
                 </form>
-
             </div>
         </div>
 
-        <style>
-            .members {
-                position: absolute;
-                top: 0;
-                right: -500px;
-                /* Hidden off-screen */
-                width: 500px;
-                height: auto;
-                background-color: rgba(0, 0, 0, 0.212);
-                overflow-y: auto;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-                transition: right 1s ease;
-                /* Smooth animation */
-                z-index: 9;
-                padding: 20px;
-                backdrop-filter: blur(10px);
-                position: fixed;
-            }
-
-            .members.visible {
-                right: 0;
-                /* Slide into view */
-            }
-
-            .close-btn {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background: none;
-                border: none;
-                font-size: 1.5rem;
-                cursor: pointer;
-                color: #333;
-                z-index: 10;
-            }
-
-            .close-btn:hover {
-                color: red;
-            }
-        </style>
-        <div class="col-lg-4">
-            <button id="toggleMembers" class="icons">
-                <!-- <img src="{% static 'icons/member.png' %}" height="35" width="35" alt=""> -->
-                Manage Permission
-            </button>
+        <div class="col-lg-4 col-md-2 col-0 sidebar">
+            <div class="container">
+                <div id="pasteHistory" class="card"
+                    style="display: none; max-height: 100vh; overflow-y: auto;  background-color: #1e1e1e; color: #f8f8f2;">
+                    <div class="card-body">
+                        <h5 class="card-title" style="font-size: 14px;">Paste History</h5>
+                        <ul id="pasteList" class="list-group list-group-light">
+                        </ul>
+                    </div>
+                </div>
+            </div>
             <div id="membersContainer" class="members p-3 ">
                 <button id="closeMembers" class="close-btn text-light">&times;</button>
                 <span class="text-light">All Members</span>
@@ -599,7 +780,7 @@
 
             </div>
             <div id="output-container" class="output-container">
-                <div id="output-header" class="output-header">
+                <!-- <div id="output-header" class="output-header">
                     <span>Input <span style="opacity: .7; font-size: .8rem;">if you have any in your
                             code</span> </span>
                 </div>
@@ -612,47 +793,75 @@
 
                             color: #f6f6f6;
                         }
-
-                        /* .inputs:focus{
-                            border:2px solid black;
-                            background-color: red;
-                        } */
                     </style>
                     <textarea id="inputs" class="inputs" id="" placeholder="Enter your input here" cols="40"
                         rows="10"></textarea>
-                </div>
+                </div> -->
 
-                <div id="output-header" class="output-header d-flex justify-content-between">
-                    <span id="executed-by">Output</span>
-                    <button style="background: none; border: none; color: #4ecdd1;" onclick="copy_output()">
-                        <i class="fa-solid fa-copy"></i>
-                    </button>
+                <div id="output-header" class="output-header p-1" style="border-bottom: 1px solid #191a29; ">
+                    <div class="div  d-flex justify-content-between p-1">
+                        <span id="executed-by">Output</span>
+                        <button style="background: none; border: none; color: #4ecdd1;" onclick="copy_output()">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+
                 </div>
                 <div id="output" class="output"></div>
-                <script>
-                    function copy_output() {
-                        // Get the text content of the #output div
-                        const copyText = document.getElementById('output').innerText;
 
-                        // Use the Clipboard API to copy the text
-                        navigator.clipboard.writeText(copyText)
-                            .then(() => {
-                                // Alert the copied text
-                                alert("Copied the text: " + copyText);
-                            }).catch(err => {
-                                console.error('Failed to copy text: ', err);
-                            });
-                    }
-                </script>
             </div>
 
         </div>
 
-
-
     </div>
 
+    <div id="remote-user-indicator" style="position: absolute; display: none; z-index: 1000;">
+        <img id="remote-user-image" src="" style="width: 24px; height: 24px; border-radius: 50%;" />
+        <span id="remote-user-name"
+            style="background: #1e1e1e; color: white; padding: 2px 6px; font-size: 10px; border-radius: 4px; margin-left: 5px;"></span>
+    </div>
+
+
     <audio src="{% static 'sound/join.mp3' %}" id="joined"></audio>
+
+
+    <!-- Coneect Container -->
+    <script>
+        function startContainer(button) {
+            const userId = button.dataset.user_id;
+            const container_button = document.getElementById('start_container')
+            fetch('/start-container/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "user_id": userId
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('resposne: ', data)
+                    const status = data['container_status']
+                    container_button.innerHTML = status
+                    container_button.style.display = "none"
+                    document.getElementById('container_status').classList.remove('hidden')
+                })
+        }
+    </script>
+    <!--  -->
+    <script>
+        function copy_output() {
+            const copyText = document.getElementById('output').innerText;
+
+            navigator.clipboard.writeText(copyText)
+                .then(() => {
+                    alert("Copied the text: " + copyText);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+        }
+    </script>
     <script>
 
 
@@ -681,6 +890,7 @@
 
 
         require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor/min/vs' } });
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
 
 
         const channel_id = "{{channel.id}}";
@@ -719,9 +929,120 @@
                 language: lan,
                 theme: 'vs-dark',
                 automaticLayout: true,
-                readOnly: read_only
+                readOnly: read_only,
+                fontFamily: " 'JetBrains Mono', serif",
+                fontSize: 14, // Optional: Adjust font size
+                fontLigatures: true // Enable ligatures if the font supports it
             });
-            console.log("read only status: ", read_only)
+            const notification = document.getElementById("notification");
+            const code_paste = new WebSocket(`${protocol}://${window.location.host}/ws/code-paste/${roomName}/${userprofile}/`);
+
+
+            let currentDecorations = [];
+
+            editor.onDidPaste((event) => {
+                const range = event.range;
+                const pastedContent = editor.getModel()?.getValueInRange(range) || "Unable to get pasted content";
+
+                if (code_paste.readyState === WebSocket.OPEN) {
+                    code_paste.send(JSON.stringify({
+                        type: 'paste_event',
+                        user: userprofile,
+                        room: roomName,
+                        content: pastedContent,
+                        range: {
+                            startLine: range.startLineNumber,
+                            startCol: range.startColumn,
+                            endLine: range.endLineNumber,
+                            endCol: range.endColumn,
+                        },
+                        timestamp: new Date().toISOString()
+                    }));
+                }
+            });
+
+            code_paste.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+
+                // Clear previous highlights
+                currentDecorations = editor.deltaDecorations(currentDecorations, []);
+
+                if (data.range) {
+                    const range = new monaco.Range(
+                        data.range.startLine,
+                        data.range.startCol,
+                        data.range.endLine,
+                        data.range.endCol
+                    );
+
+                    console.log('start-line:', data.range.startLine)
+                    console.log('endLine-line:', data.range.endLine)
+
+                    currentDecorations = editor.deltaDecorations([], [
+                        {
+                            range: range,
+                            options: {
+                                className: 'paste-highlight',
+                                isWholeLine: false,
+                                stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+                            }
+                        }
+                    ]);
+
+                    setTimeout(() => {
+                        currentDecorations = editor.deltaDecorations(currentDecorations, []);
+                    }, 3000);
+                }
+
+                notification.style.display = "block";
+                setTimeout(() => {
+                    notification.style.display = "none";
+                }, 2000);
+
+                if (data.content) {
+                    const rangeInfo = data.range ?
+                        `Pasted at: L${data.range.startLine}:${data.range.startCol}` +
+                        (data.range.endLine !== data.range.startLine ?
+                            ` → L${data.range.endLine}:${data.range.endCol}` :
+                            `:${data.range.endCol}`)
+                        : "";
+
+                    // Add line numbers to the code
+                    const codeWithLineNumbers = data.content
+                        .split('\n')
+                        .map((line, i) => {
+                            const lineNum = data.range ? data.range.startLine + i : i + 1;
+                            return `<span class="line-number">${lineNum}</span> ${escapeHtml(line)}`;
+                        })
+                        .join('\n');
+
+                    const listItem = document.createElement("li");
+                    listItem.className = "list-group-item";
+                    listItem.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <strong class='text-secondary'>${data.user}</strong>
+        <small class="text-secondary">${new Date(data.timestamp).toLocaleString()}</small>
+    </div>
+    ${rangeInfo ? `<div class="text-danger small mb-2">${rangeInfo}</div>` : ""}
+<pre class="bg-light p-2 rounded"
+     style="white-space: pre; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; position: relative;">
+    <code style="display: block; padding-left: 2.5em;">${codeWithLineNumbers}</code>
+</pre>
+
+`;
+
+                    pasteList.prepend(listItem);
+                }
+
+                function escapeHtml(text) {
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML
+                        .replace(/"/g, '&quot;')  // Escape quotes for attribute safety
+                        .replace(/'/g, '&#39;');   // Escape single quotes
+                }
+            };
+
 
             document.getElementById("theme-selector").addEventListener("change", function (e) {
                 const selectedTheme = e.target.value;
@@ -729,10 +1050,11 @@
                 monaco.editor.setTheme(selectedTheme);
             });
 
+
+
             console.log(lan)
             let debounceTimer;
             let isLocalChange = false;
-            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
             const socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
 
 
@@ -748,12 +1070,13 @@
                         text: change.text
                     }));
                     // if (flag) {
-                        socket.send(JSON.stringify({
-                            type: 'code_change',
-                            changes: changes,
-                            coding_by: editorElement.dataset.user,
-                            user_image: editorElement.dataset.user_image
-                        }));
+                    socket.send(JSON.stringify({
+                        type: 'code_change',
+                        changes: changes,
+                        coding_by: editorElement.dataset.user,
+                        user_image: editorElement.dataset.user_image,
+                        cursor_position: editor.getPosition()
+                    }));
                     // }
                     // flag = true
                 }
@@ -786,6 +1109,39 @@
                             // Optional: Force move markers (for cursors)
                             forceMoveMarkers: true
                         })));
+
+
+                        // ====== MOVE the indicator div to cursor position ======
+                        const { lineNumber, column } = data.cursor_position;
+                        const cursorCoords = editor.getScrolledVisiblePosition({ lineNumber, column });
+                        console.log('hello torjo')
+                        if (cursorCoords) {
+                            console.log('hello torjo inside')
+
+                            const editorDomNode = editor.getDomNode();
+                            const editorRect = editorDomNode.getBoundingClientRect();
+
+                            const indicator = document.getElementById('remote-user-indicator');
+                            const img = document.getElementById('remote-user-image');
+                            const name = document.getElementById('remote-user-name');
+
+                            img.src = data.user_image;
+                            name.textContent = data.coding_by;
+
+                            indicator.classList.remove('hidden');
+                            indicator.style.left = `${editorRect.left + cursorCoords.left}px`;
+                            indicator.style.top = `${editorRect.top + cursorCoords.top - 30}px`; // 30px above cursor
+                            indicator.style.display = 'flex';
+                            // Clear previous timeout if needed
+                            if (indicator.hideTimeout) {
+                                clearTimeout(indicator.hideTimeout);
+                            }
+                            indicator.hideTimeout = setTimeout(() => {
+                                indicator.classList.add('hidden');
+                            }, 5000);
+
+                        }
+
                         isLocalChange = false;
                     }
                 }
@@ -844,25 +1200,28 @@
 
             const editorElement = document.getElementById('editor');
 
-
-            document.querySelectorAll('.file-button').forEach(button => {
-                button.addEventListener('click', function () {
+            document.querySelector('.file-list').addEventListener('click', function (e) {
+                const button = e.target.closest('.file-button');
+                if (button) {
                     if (!read_only) {
-                        const content = this.getAttribute('data-content');
-                        const file_id = this.dataset.file_id
-                        const file_name = this.dataset.file_name
+                        const content = button.getAttribute('data-content');
+                        const file_id = button.dataset.file_id;
+                        const file_name = button.dataset.file_name;
                         editor.setValue(content);
-                        editorElement.dataset.file_id = file_id
-                        editorElement.dataset.file_name = file_name
+                        editorElement.dataset.file_id = file_id;
+                        editorElement.dataset.file_name = file_name;
                         console.log(editorElement.dataset.file_id);
-                        document.getElementById('inputs').value = ''
-                        document.getElementById('output').innerText = ''
+                        document.getElementById('output').innerText = '';
 
+                        // Handle active class
+                        document.querySelectorAll('.file-button').forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
                     } else {
-                        alert("You Don't Have any permission Permisssion")
+                        alert("You Don't Have any Permission");
                     }
-                });
+                }
             });
+
 
 
             document.getElementById('save-code').addEventListener('click', () => {
@@ -931,6 +1290,13 @@
             let taskId = null
 
 
+            function updateUserCount() {
+                const userList = document.getElementById('connected-users');
+                const countSpan = document.getElementById('user-count');
+                if (userList && countSpan) {
+                    countSpan.textContent = userList.children.length;
+                }
+            }
 
             function addConnectedUser(username, imageUrl) {
                 const userList = document.getElementById('connected-users');
@@ -950,16 +1316,18 @@
 
                 // Create the new user list item
                 const listItem = document.createElement('li');
-                listItem.className = 'd-flex justify-content-center align-items-center me-1';
 
                 listItem.innerHTML = `
-            <div class="align-items-center">
-                <img src="${imageUrl}" alt="" style="width: 30px; height: 30px" 
-                    title="${username}" class="rounded-circle" />
+        <div class="user-card">
+            <div class="user-avatar">
+                <img src="${imageUrl}" alt="${username}" title="${username}">
             </div>
-        `;
+            <span class="user-name">${username}</span>
+        </div>
+    `;
 
                 userList.appendChild(listItem);
+                updateUserCount();
             }
 
             function removeConnectedUser(username) {
@@ -978,8 +1346,10 @@
                 if (userItem) {
                     userList.removeChild(userItem);
                     console.log(`User ${username} has been removed.`);
+                    updateUserCount();
                 }
             }
+
 
 
 
@@ -1001,7 +1371,8 @@
                 console.log(event)
                 console.log("Task ouput is : ", JSON.parse(event.data))
                 data = JSON.parse(event.data)
-                document.getElementById('output').innerText = data.output;
+                const output_dev = document.getElementById('output')
+                output_dev.textContent += data.output;
                 document.getElementById('executed-by').innerText = `Executed by: ${data.code_executed_by}`;
 
                 let img = document.getElementById('run_code_icon')
@@ -1036,10 +1407,12 @@
                 const code = editor.getValue();
                 const code_executed_by = btn.dataset['executed'];
                 const language = btn.dataset['language'];
-                const inputs = document.getElementById('inputs').value
-                let img = this.querySelector("img");
+                const inputs = ""
+                // let img = this.querySelector("img");
+                // const output_dev = document.getElementById('output')
+                // output_dev.textContent = ""
 
-                img.src = "{% static 'icons/loading.gif' %}";
+                // img.src = "{% static 'icons/loading.gif' %}";
                 startTask(code, code_executed_by, inputs, language);
 
 
@@ -1130,6 +1503,83 @@
             });
 
 
+
+
+
+
+
+
+            // File Creation
+
+            document.getElementById('new-file-btn').addEventListener('click', () => {
+                document.querySelector('.create-file-section').classList.toggle('hidden');
+            });
+
+            document.getElementById('file-create-confrim').addEventListener('click', (e) => {
+                e.preventDefault(); // Prevent default form submission
+
+                const file_name = document.forms['file_creation']['name'].value;
+
+                fetch('/create-file/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file_name: file_name,
+                        channel_id: channel_id,
+                        user_id: "{{userprofile.id}}"
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            notification.innerText = "File Created Successfully"
+                            notification.style.display = 'block'
+                            setTimeout(() => {
+                                notification.style.display = "none";
+                            }, 2000);
+
+                            const fileList = document.querySelector('.file-list');
+
+                            const li = document.createElement('li');
+                            li.classList.add('file-item');
+
+                            console.log(data)
+
+                            li.innerHTML = `
+                            <button class="file-button w-100 text-start d-block" data-content="" data-file_id="${data.id}" data-file_name="${file_name}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <!-- Left side: Icon and file name -->
+                                    <div class="d-flex align-items-center">
+                                        <i class="fa-solid fa-file file-icon me-2"></i>
+                                        <span class="file-name">${file_name}</span>
+                                        &nbsp;
+                                    <img src="${data.user_image}" height="25" width="25" alt="User" class="rounded-circle ">
+
+                                    </div>
+                                    
+                                    <!-- Right side: User image (optional or placeholder) -->
+                                </div>
+                            </button>
+                        `;
+
+
+                            fileList.prepend(li); // ✅ add to the end, or use prepend if needed
+                            document.querySelector('.create-file-section').classList.toggle('hidden');
+
+                        }
+                        else if (data.error) {
+                            notification.innerText = "Something went worng"
+                            notification.style.display = 'block'
+                        }
+
+                        // optionally reset form or hide input
+                    });
+            });
+
+
+
         });
 
     </script>
@@ -1149,9 +1599,24 @@
             setTimeout(foo, 10000);
         }
         // foo();
-        document.getElementById('inputs').setAttribute('placeholder', "input1 \ninput2 \n.....")
+        // document.getElementById('inputs').setAttribute('placeholder', "input1 \ninput2 \n.....")
 
 
+
+    </script>
+
+
+    <script>
+
+        const toggleButton = document.getElementById("toggleButton");
+        const pasteHistory = document.getElementById("pasteHistory");
+        const pasteList = document.getElementById("pasteList");
+
+        toggleButton.addEventListener("click", () => {
+            const isVisible = pasteHistory.style.display === "block";
+            pasteHistory.style.display = isVisible ? "none" : "block";
+            // toggleButton.textContent = isVisible ? "Show Paste History" : "X";
+        });
 
     </script>
 

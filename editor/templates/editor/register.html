@@ -1,118 +1,348 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Register | CodeCollab</title>
+    <!-- MDBootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #4ecdd1;
+            --secondary-color: #bd93f9;
+            --dark-bg: #1e1e1e;
+            --darker-bg: #121212;
+            --light-bg: #252526;
+            --text-color: #e0e0e0;
+            --text-muted: #858585;
+            --border-color: #44475a;
+        }
+
         body {
-            background-color: #121212; /* Dark background */
-            color: #ffffff; /* White text */
+            background-color: var(--darker-bg);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+
         .navbar {
-            background-color: #1f1f1f;
+            background-color: var(--light-bg) !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
         }
+
+        .navbar-brand {
+            color: var(--primary-color) !important;
+            font-weight: 600;
+        }
+
+        .nav-link {
+            color: var(--text-color) !important;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+        }
+
         .form-container {
-            margin-top: 50px;
-            min-width: 600px;
-            background-color: #1f1f1f;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+            background-color: var(--light-bg);
+            border-radius: 10px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            margin: 2rem 0;
         }
+
+        .form-container h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .form-label {
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
         .form-control {
-            background-color: #2c2c2c;
-            color: #ffffff;
-            border: 1px solid #444444;
-        }
-        .form-control:focus {
-            background-color: #d3d3d3a2;
-            border-color: #6c757d;
-            box-shadow: none;
-        }
-        .btn-primary {
-            background-color: #007bff;
-            border-color: #0056b3;
-        }
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-        .alert {
-            position: fixed;
-            top: 70px;
-            right: 20px;
-            z-index: 1050;
-            padding: 10px 20px;
+            background-color: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px 15px;
             border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 205, 209, 0.25);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: #3eb5b9;
+            transform: translateY(-2px);
+        }
+
+        .alert-container {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 0 15px;
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+
+        .alert.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .alert-success {
+            background-color: rgba(80, 250, 123, 0.2);
+            color: #50fa7b;
+            border-left: 4px solid #50fa7b;
+        }
+
+        .alert-error {
+            background-color: rgba(255, 85, 85, 0.2);
+            color: #ff5555;
+            border-left: 4px solid #ff5555;
+        }
+
+        .alert-info {
+            background-color: rgba(139, 233, 253, 0.2);
+            color: #8be9fd;
+            border-left: 4px solid #8be9fd;
+        }
+
+        .alert-warning {
+            background-color: rgba(241, 250, 140, 0.2);
+            color: #f1fa8c;
+            border-left: 4px solid #f1fa8c;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        .password-input-container {
+            position: relative;
+        }
+
+        .login-link {
+            color: var(--text-muted);
+            text-align: center;
+            display: block;
+            margin-top: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .login-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        input[type=text] {
+
+            background: none;
+        }
+
+        input:focus {
+            outline: none;
+            border: none;
         }
     </style>
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">MyApp</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-code me-2"></i>CodeCollab
+            </a>
+            <button class="navbar-toggler" type="button" data-mdb-toggle="collapse" data-mdb-target="#navbarNav">
+                <i class="fas fa-bars"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Home</a>
+                        <a class="nav-link" href="#"><i class="fas fa-home me-1"></i> Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">About</a>
+                        <a class="nav-link" href="#"><i class="fas fa-info-circle me-1"></i> About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Contact</a>
+                        <a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt me-1"></i> Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'register' %}"><i class="fas fa-user-plus me-1"></i>
+                            Register</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Messages -->
-    <div>
+    <!-- Messages Container - Fixed Position -->
+    <div class="alert-container">
         {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="fas 
+                    {% if message.tags == 'success' %}fa-check-circle
+                    {% elif message.tags == 'error' %}fa-exclamation-circle
+                    {% elif message.tags == 'warning' %}fa-exclamation-triangle
+                    {% else %}fa-info-circle{% endif %} 
+                    me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
         {% endif %}
     </div>
-
     <!-- Registration Form -->
-    <div class="container d-flex justify-content-center align-items-center">
+    <div class="container d-flex justify-content-center align-items-center flex-grow-1">
         <div class="form-container">
-            <h2 class="text-center mb-4">Register</h2>
+            <h2 class="text-center mb-4"><i class="fas fa-user-plus me-2"></i>Register</h2>
             <form method="post">
                 {% csrf_token %}
-                <div class="mb-3">
+                <div class="mb-4">
                     <label for="username" class="form-label">Username</label>
                     <input type="text" class="form-control" id="username" name="username" required>
+                    <small class="text-muted">Choose a unique username</small>
                 </div>
-                <div class="mb-3">
+
+                <div class="mb-4">
                     <label for="email" class="form-label">Email</label>
                     <input type="email" class="form-control" id="email" name="email" required>
+                    <small class="text-muted">We'll never share your email</small>
                 </div>
-                <div class="mb-3">
+
+                <div class="mb-4 password-input-container">
                     <label for="password1" class="form-label">Password</label>
                     <input type="password" class="form-control" id="password1" name="password1" required>
+                    <i class="fas fa-eye password-toggle" onclick="togglePassword('password1')"></i>
+                    <small class="text-muted">At least 8 characters</small>
                 </div>
-                <div class="mb-3">
+
+                <div class="mb-4 password-input-container">
                     <label for="password2" class="form-label">Confirm Password</label>
                     <input type="password" class="form-control" id="password2" name="password2" required>
+                    <i class="fas fa-eye password-toggle" onclick="togglePassword('password2')"></i>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Register</button>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-user-plus me-2"></i>Register
+                </button>
+
+                <div class="login-link">
+                    Already have an account? <a href="{% url 'login' %}">Login here</a>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- MDBootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
+    <script>
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            const icon = input.nextElementSibling;
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
+        }
+
+
+        // Auto-show alerts and set timeout for dismissal
+        document.addEventListener('DOMContentLoaded', function () {
+            const alerts = document.querySelectorAll('.alert');
+
+            alerts.forEach(alert => {
+                // Show alert with animation
+                setTimeout(() => {
+                    alert.classList.add('show');
+                }, 100);
+
+                // Set timeout to auto-dismiss after 5 seconds
+                const dismissTime = 5000;
+                const closeButton = alert.querySelector('.btn-close');
+
+                if (closeButton) {
+                    setTimeout(() => {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }, dismissTime);
+                }
+            });
+
+            // Password toggle function [same as before]
+            function togglePassword(id) {
+                const input = document.getElementById(id);
+                const icon = input.nextElementSibling;
+                if (input.type === "password") {
+                    input.type = "text";
+                    icon.classList.replace("fa-eye", "fa-eye-slash");
+                } else {
+                    input.type = "password";
+                    icon.classList.replace("fa-eye-slash", "fa-eye");
+                }
+            }
+
+            // Make toggle function globally available
+            window.togglePassword = togglePassword;
+        });
+    </script>
 </body>
+
 </html>

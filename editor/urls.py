@@ -19,5 +19,10 @@ urlpatterns = [
     path('start-call/',start_call,name='start_call'),
     path('give-permision/', give_parmision, name='give_permission'),
     
-    path('code-template/',code_template)
+    path('code-template/',code_template),
+    
+    path('create-file/',create_file ,name="create_file"),
+    
+    path('profile/<str:pk>', profile)
+    
 ]

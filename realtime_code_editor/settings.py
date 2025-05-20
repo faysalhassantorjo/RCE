@@ -89,37 +89,37 @@ DATABASES = {
 }
 
 
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": [("127.0.0.1", 6379)],
-#             #  "hosts": [('redis_server', 6379)],
-#             #  "hosts": [("redis://red-cuj40v0gph6c73fqc0ig:6379")],
-#         },
-#     },
-# }
-
-
-# settings.py
-
-REDIS_URL = "redis://red-cuj40v0gph6c73fqc0ig:6379/0"
-
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": REDIS_URL,
-    }
-}
-
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [REDIS_URL],
+            # "hosts": [("127.0.0.1", 6379)],
+             "hosts": [('redis_server', 6379)],
+            #  "hosts": [("redis://red-cuj40v0gph6c73fqc0ig:6379")],
         },
     },
 }
+
+
+# settings.py
+
+# REDIS_URL = "redis://red-cuj40v0gph6c73fqc0ig:6379/0"
+
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.redis.RedisCache",
+#         "LOCATION": REDIS_URL,
+#     }
+# }
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [REDIS_URL],
+#         },
+#     },
+# }
 
 
 
@@ -161,6 +161,8 @@ USE_TZ = True
 import os
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
+
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

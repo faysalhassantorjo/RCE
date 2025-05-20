@@ -8,10 +8,10 @@ from asgiref.sync import async_to_sync, sync_to_async
 import redis
 
 # Replace with your Redis URL
-redis_client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
+# redis_client = redis.Redis.from_url("redis://red-cuj40v0gph6c73fqc0ig:6379/0")
 
 
-# redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
+redis_client = redis.StrictRedis(host='redis_server', port=6379,db=0)
 # redis_client = redis.StrictRedis(host='127.0.0.1', port=6379,db=0)
 
 
@@ -168,7 +168,8 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
                     'type': 'broadcast_code_change',
                     'changes': text_data_json['changes'],
                     'coding_by': text_data_json['coding_by'],
-                    'user_image': text_data_json['user_image']
+                    'user_image': text_data_json['user_image'],
+                    'cursor_position': text_data_json['cursor_position'],
                 }
             )
 
@@ -177,7 +178,8 @@ class CodeEditorConsumer(AsyncWebsocketConsumer):
             'type': 'code_change',
             'changes': event['changes'],
             'coding_by': event['coding_by'],
-            'user_image': event['user_image']
+            'user_image': event['user_image'],
+            'cursor_position': event['cursor_position'],
         }))
     
     async def broadcast_initial_code(self, event):
@@ -441,7 +443,46 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
 
 
+class CopypasteConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.user = self.scope['url_route']['kwargs']['userprofile']
+        self.room_group_name = f"code_paste_{self.room_name}"
 
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        if data['type'] == 'paste_event':
+            await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'broadcast_paste',
+                        'user': data['user'],
+                        'content': data['content'],
+                        'timestamp': data['timestamp'],
+                        'range': data['range'],
+                    }
+                )
+
+    async def broadcast_paste(self, event):
+        await self.send(text_data=json.dumps({
+            'message': f"code pasted",
+            'user':event['user'],
+            'content': event['content'],
+            'time':event['timestamp'],
+            'range':event['range']
+        }))
 
 
 

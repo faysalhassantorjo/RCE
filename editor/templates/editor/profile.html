@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user_profile.user.username }}'s Profile | CodeCollab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+        }
+        .online-dot {
+            box-shadow: 0 0 0 2px #1f2937;
+        }
+        .tab-active {
+            border-bottom: 2px solid #818cf8;
+            color: white;
+        }
+        .tab-inactive {
+            color: #9ca3af;
+        }
+        .code-block {
+            background-color: #1e1e1e;
+            font-family: 'Fira Code', monospace;
+        }
+        .channel-card:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="text-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 py-4 px-6 shadow-lg">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-code text-indigo-400 text-xl"></i>
+                <span class="font-bold text-xl bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">CodeCollab</span>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fas fa-home mr-1"></i> Home</a>
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fas fa-comment mr-1"></i> Messages</a>
+                <div class="relative">
+                    <img src="{{ user_profile.profile_picture.url }}" alt="Profile" class="w-8 h-8 rounded-full cursor-pointer">
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Profile Header -->
+        <div class="bg-gray-800 rounded-xl shadow-xl overflow-hidden mb-8">
+            <!-- Cover Photo -->
+            <div class="h-48 bg-gradient-to-r from-indigo-900 to-gray-900 relative">
+                <div class="absolute bottom-4 right-4">
+                    {% if user_profile.user.id == request.user.id %}
+                    <button class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+                        <i class="fas fa-camera mr-2"></i>Change Cover
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Profile Info -->
+            <div class="px-8 pb-8 relative">
+                <div class="absolute -top-16 left-8 border-4 border-gray-800 rounded-full">
+                    <img src="{{ user_profile.profile_picture.url }}" alt="Profile Picture" 
+                         class="w-32 h-32 rounded-full object-cover shadow-lg">
+                    <div class="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-green-500 online-dot 
+                                {% if not user_profile.is_online %}hidden{% endif %}"></div>
+                </div>
+
+                <div class="pt-20 flex justify-between items-start">
+                    <div>
+                        <h1 class="text-3xl font-bold">{{ user_profile.user.username }}</h1>
+                        <div class="flex items-center mt-2 space-x-4">
+                            <span class="flex items-center text-gray-400">
+                                <i class="fas fa-circle text-xs mr-2 {% if user_profile.is_online %}text-green-500{% else %}text-gray-500{% endif %}"></i>
+                                {% if user_profile.is_online %}Online now{% else %}Last seen {{ user_profile.last_activity|timesince }} ago{% endif %}
+                            </span>
+                            <span class="text-gray-600">|</span>
+                            <span class="text-gray-400"><i class="fas fa-calendar-alt mr-2"></i>Joined {{ user_profile.user.date_joined|date:"M Y" }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if is_owner %}
+                    <button class="bg-indigo-600 hover:bg-indigo-700 px-6 py-2 rounded-lg font-medium transition flex items-center">
+                        <i class="fas fa-edit mr-2"></i> Edit Profile
+                    </button>
+                    {% else %}
+                    <div class="flex space-x-3">
+                        <button class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-comment-dots mr-2"></i> Message
+                        </button>
+                        <button class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-user-plus mr-2"></i> Follow
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Tabs -->
+        <div class="border-b border-gray-700 mb-8">
+            <div class="flex space-x-8">
+                <button id="activity-tab" class="py-3 px-1 font-medium tab-active" onclick="switchTab('activity')">Activity</button>
+                <button id="projects-tab" class="py-3 px-1 font-medium tab-inactive" onclick="switchTab('projects')">Projects</button>
+                <button id="channels-tab" class="py-3 px-1 font-medium tab-inactive" onclick="switchTab('channels')">Channels</button>
+                <button id="files-tab" class="py-3 px-1 font-medium tab-inactive" onclick="switchTab('files')">Code Files</button>
+            </div>
+        </div>
+
+        <!-- Tab Content Sections -->
+        <div id="activity-section" class="content-active">
+            <!-- Two Column Layout for Activity -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left Column -->
+                <div class="lg:col-span-2">
+                    <!-- Recent Activity -->
+                    <div class="bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+                        <h2 class="text-xl font-bold mb-6 flex items-center">
+                            <i class="fas fa-history mr-3 text-indigo-400"></i> Recent Activity
+                        </h2>
+                        
+                        <div class="space-y-6">
+                            <!-- Activity Item -->
+                            <div class="flex space-x-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-indigo-900 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-code text-indigo-400"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-medium">Created new file</span>
+                                        <span class="text-gray-400 text-sm">2 hours ago</span>
+                                    </div>
+                                    <p class="text-gray-400 mt-1">main.py in <a href="#" class="text-indigo-400 hover:underline">Python Team</a></p>
+                                    <div class="code-block rounded-lg p-4 mt-3 text-sm overflow-x-auto">
+                                        <pre><code class="text-gray-300">def hello_world():
+    print("Hello, World!")</code></pre>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Activity Item -->
+                            <div class="flex space-x-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-purple-900 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-comment text-purple-400"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-medium">Posted message</span>
+                                        <span class="text-gray-400 text-sm">5 hours ago</span>
+                                    </div>
+                                    <p class="text-gray-400 mt-1">in <a href="#" class="text-indigo-400 hover:underline">Web Dev Group</a></p>
+                                    <div class="bg-gray-700 rounded-lg p-4 mt-3">
+                                        <p>"Has anyone worked with Django Channels before? I need help with WebSocket implementation."</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div>
+                    <!-- About Section -->
+                    <div class="bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+                        <h2 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-user mr-3 text-indigo-400"></i> About
+                        </h2>
+                        <div class="space-y-4">
+                            <div>
+                                <h3 class="text-gray-400 text-sm">BIO</h3>
+                                <p class="mt-1">
+                                    {% if user_profile.bio %}
+                                        {{ user_profile.bio }}
+                                    {% else %}
+                                        No bio yet
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div>
+                                <h3 class="text-gray-400 text-sm">SKILLS</h3>
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    <span class="bg-indigo-900 text-indigo-300 px-3 py-1 rounded-full text-sm">Python</span>
+                                    <span class="bg-indigo-900 text-indigo-300 px-3 py-1 rounded-full text-sm">Django</span>
+                                    <span class="bg-indigo-900 text-indigo-300 px-3 py-1 rounded-full text-sm">JavaScript</span>
+                                    {% if is_owner %}
+                                    <button class="text-gray-400 hover:text-indigo-400">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Channels Section -->
+                    <div class="bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h2 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-users mr-3 text-indigo-400"></i> Channels
+                        </h2>
+                        <div class="space-y-3">
+                            {% for channel in user_profile.created_rooms.all %}
+                            <a href="#" class="channel-card block bg-gray-700 hover:bg-gray-600 rounded-lg p-4 transition">
+                                <div class="flex items-center space-x-3">
+                                    <img src="{{ channel.channel_picture.url }}" alt="{{ channel.name }}" class="w-10 h-10 rounded-full">
+                                    <div>
+                                        <h3 class="font-medium">{{ channel.name }}</h3>
+                                        <p class="text-gray-400 text-sm">{{ channel.participants.count }} members</p>
+                                    </div>
+                                </div>
+                            </a>
+                            {% endfor %}
+                            
+                            {% if user_channels.count > 5 %}
+                            <button class="text-indigo-400 text-sm font-medium mt-2 hover:underline">
+                                View all {{ user_channels.count }} channels →
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-gray-400 text-sm">
+            <p>© 2023 CodeCollab. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+
+        // Online status check
+        function checkOnlineStatus() {
+            fetch('/api/check-online/{{ user_profile.user.id }}/')
+                .then(response => response.json())
+                .then(data => {
+                    const onlineDot = document.querySelector('.online-dot');
+                    const statusText = document.querySelector('.status-text');
+                    
+                    if (data.is_online) {
+                        onlineDot.classList.remove('hidden');
+                        onlineDot.classList.add('bg-green-500');
+                        statusText.textContent = 'Online now';
+                    } else {
+                        onlineDot.classList.add('hidden');
+                        statusText.textContent = `Last seen ${data.last_activity} ago`;
+                    }
+                });
+        }
+        
+        // Check every minute
+        setInterval(checkOnlineStatus, 60000);
+    </script>
+</body>
+</html>

@@ -6,6 +6,8 @@ from django.db.models import Count
 import docker
 from django.views.decorators.csrf import csrf_exempt
 
+from django.contrib.auth.decorators import login_required
+
 # Create your views here.
 # client = docker.from_env()
 
@@ -32,15 +34,17 @@ def channel(request,channel_id):
             # container = client.containers.get(user_container.container_id)
             # container_status = container.status
         except:
-            container_status = "You are using Global Container"
+            container_status = "Global Container"
         context.update({
             'userprofile':userprofile, 
             'container_status':container_status
             })
     return render (request, 'editor/room2.html',context)
+@login_required(login_url='/login/')
 def home(request):
-    channels = Channel.objects.all()
     users = UserProfile.objects.all()
+    user = request.user
+    channels = Channel.objects.filter(participants__user = user).order_by('-id')
     chats = GlobalChatRoom.objects.all()
     
     
@@ -169,17 +173,28 @@ def chat_room(request,user_id):
     return render(request, 'editor/chat.html',context)
 
 def create_channel(request):
-    if request.method == "GET":
-        name = request.GET.get('name')
-        language = request.GET.get('language')
-        print(f'Channel Name is : {name}')
-        u=request.user
+    if request.method == "POST":
+        name = request.POST.get('name')
+        language = request.POST.get('language')
+        picture = request.FILES.get('channel_picture')
+
+        u = request.user
         uprofile = UserProfile.objects.get(user=u)
-        channel = Channel.objects.create(name=name,created_by = uprofile,programing_language=language)
+
+        channel = Channel.objects.create(
+            name=name,
+            created_by=uprofile,
+            programing_language=language,
+            channel_picture=picture if picture else 'profile_pictures/default.jpg'
+        )
         channel.participants.add(uprofile)
         channel.has_permission.add(uprofile)
-        return redirect('channel', channel_id = channel.id)
-    else: return HttpResponse('Some error occured')
+
+        return redirect('channel', channel_id=channel.id)
+
+    return HttpResponse('Invalid request method', status=400)
+
+    
 def join_channel(request,channel_id):
     if request.user.is_authenticated and channel_id:
         try:
@@ -380,4 +395,58 @@ def give_parmision(request):
 
 def code_template(request):
     return render(request,'editor/code_template.html')
+
+
+from .lexical_analysis import main
+@csrf_exempt
+def lexical_analysis(request):
+    if request.method =='POST':
+        data = json.loads(request.body)
+        # print(data)
+        code = data.get('code','')
+        tokens = main(code)
+        serialized_tokens = []
+        for token in tokens:
+            serialized_tokens.append({
+                'type': token.type,
+                'value': str(token.value) if token.value is not None else None,
+                'line': token.line,
+                'column': token.column
+            })
+            
+        return JsonResponse({
+            'success': True,
+            'tokens': serialized_tokens,
+            'count': len(serialized_tokens)
+        })
+    return JsonResponse({'analyzed_data':"analyzed_data"})
+    
+@csrf_exempt
+def create_file(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        print('data',data)
+        try:
+            file = CodeFile.objects.create(
+                file_name = data.get('file_name','new_file'),
+                channel_id = data.get('channel_id'),
+                user_id = data.get('user_id')
+            )
+            imageURL = file.user.imageURL()
+            print(imageURL)
+            return JsonResponse({'success':'Yes','id':file.id, 'user_image':imageURL})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'error':'Something went worng'})
         
+    return JsonResponse({'success':'no'})
+
+def profile(request, pk):
+    
+    user_profile = UserProfile.objects.get(user_id = pk)
+    
+    context ={
+        'user_profile':user_profile
+    }
+    
+    return render(request, 'editor/profile.html',context)

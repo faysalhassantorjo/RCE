@@ -42,6 +42,7 @@ class CodeFile(models.Model):
     file = models.TextField(blank=True,null=True)
     channel = models.ForeignKey('Channel',on_delete=models.CASCADE,related_name='channels_file', blank=True, null=True)
     date = models.DateTimeField(default=now, blank=True)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, null=True, blank=True, related_name='users_file')
    
     def __str__(self) -> str:
         return f'{self.file_name}'
