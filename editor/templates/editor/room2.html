@@ -452,12 +452,177 @@
             background-color: rgba(100, 100, 100, 0.4);
             border-radius: 4px;
         }
+
+        /* Socket Status Badge Styles */
+        #socket-status-container {
+            z-index: 1000;
+        }
+
+        #socket-status-text {
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        #socket-status-text.connected {
+            background-color: rgba(80, 250, 123, 0.2);
+            color: #50fa7b;
+            border-color: #50fa7b;
+        }
+
+        #socket-status-text.connecting {
+            background-color: rgba(255, 184, 108, 0.2);
+            color: #ffb86c;
+            border-color: #ffb86c;
+        }
+
+        #socket-status-text.disconnected {
+            background-color: rgba(255, 85, 85, 0.2);
+            color: #ff5555;
+            border-color: #ff5555;
+        }
+
+        #socket-status-text.error {
+            background-color: rgba(255, 85, 85, 0.2);
+            color: #ff5555;
+            border-color: #ff5555;
+        }
+
+        /* User line indicators */
+        .user-line-indicator {
+            position: absolute;
+            left: -30px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #4ecdd1;
+            background-size: cover;
+            background-position: center;
+            z-index: 10;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .user-line-indicator:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(78, 205, 209, 0.5);
+        }
+
+        .user-line-indicator::after {
+            content: attr(data-username);
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(30, 30, 30, 0.9);
+            color: #f8f8f2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .user-line-indicator:hover::after {
+            opacity: 1;
+        }
+
+        .line-user-info {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(78, 205, 209, 0.1);
+            color: #4ecdd1;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            border: 1px solid rgba(78, 205, 209, 0.3);
+        }
+
+        /* Active user indicator */
+        .active-user-indicator {
+            background: linear-gradient(90deg, rgba(78, 205, 209, 0.1) 0%, transparent 100%);
+            border-left: 3px solid #4ecdd1;
+        }
+
+        /* User cursor indicator */
+        .user-cursor {
+            position: absolute;
+            width: 2px;
+            height: 18px;
+            background: #4ecdd1;
+            z-index: 5;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .user-cursor::before {
+            content: attr(data-username);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.9);
+            color: #f8f8f2;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .user-cursor:hover::before {
+            opacity: 1;
+        }
+
+        /* User activity section */
+        .user-activity {
+            margin-top: 20px;
+        }
+
+        .user-activity .folder-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        #active-coders {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #active-coders::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #active-coders::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #active-coders::-webkit-scrollbar-thumb {
+            background-color: rgba(100, 100, 100, 0.4);
+            border-radius: 2px;
+        }
     </style>
 
     <div class="row" style="max-width: 100%; padding-right: 0;">
 
         <div class="col-lg-2 col-md-2 col-0 sidebar p-2 ">
             <div class="file-list-container p-2">
+                <p class="fw-light text-center" style="font-size: 14px; margin-bottom: 0;">{{channel.name}}</p>
+                <p class="fw-light text-center text-muted" style="margin-bottom: 2px;"><small>{{channel.get_programing_language_display }}</small></p>
+
                 <div class="user-profile p-3">
                     <div class="d-flex align-items-center">
                         <img src="{{ userprofile.imageURL }}" class="rounded-circle me-3" height="35" width="35"
@@ -469,10 +634,127 @@
                     </div>
                 </div>
 
-                    <div class="tools mb-1" style="background-color: var(--sidebar-bg); border-radius: 8px;">
-                        <a href=""> <img src="{% static 'editor/icons/google-meet.png' %}" height="50" class="p-2"
-                                alt=""></a>
+                <div class="tools mb-1" style="background-color: var(--sidebar-bg); border-radius: 8px;">
+                    <a href=""> <img src="{% static 'editor/icons/google-meet.png' %}" height="50" class="p-2"
+                            alt=""></a>
+                    {% if request.user == channel.created_by.user %}
+                    <a href="{% url 'test_monitor' channel.id %}"><img src="{% static 'editor/icons/monitoring.png' %}"
+                            height="50" class="p-2" alt=""></a></a>
+                    {% endif %}
+
+                    {% if channel.labtest.first.available %}
+                    <button style="background: none;border:none" id="showModalBtn"><img
+                            src="{% static 'editor/icons/paper.png' %}" height="50" class="p-2" alt=""></button>
+                    {% endif %}
+                </div>
+
+                <div id="testModal"
+                    class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center d-none"
+                    style="z-index: 1050; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
+
+                    <!-- Modal Dialog -->
+                    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+                        <div class="modal-content border-0 shadow-lg rounded-4">
+
+                            <!-- Modal Header -->
+                            <div class="modal-header bg-warning text-dark border-0 rounded-top-4 p-4">
+                                <div class="w-100 text-center">
+                                    <i class="fas fa-exclamation-triangle fs-1 mb-2"></i>
+                                    <h3 class="modal-title fw-bold mb-0">Confirm Test Attempt</h3>
+                                </div>
+                            </div>
+
+                            <!-- Modal Body -->
+                            <div class="modal-body p-4">
+                                <div class="text-center mb-4">
+                                    <h5 class="text-muted mb-3">Are you sure you want to attempt the test right now?
+                                    </h5>
+                                    <p class="text-secondary small">Once started, the timer cannot be paused or reset.
+                                    </p>
+                                </div>
+
+                                <!-- Test Details Card -->
+                                <div class="card bg-light border-0 mb-4">
+                                    <div class="card-body p-3">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-play-circle text-success me-2"></i>
+                                                    <small class="text-muted fw-medium">Test starts at:</small>
+                                                    <div class="fw-bold text-dark">{{lab_test.start_at}}</div>
+
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-stop-circle text-danger me-2"></i>
+                                                    <small class="text-muted fw-medium">Test ends at:</small>
+                                                    <div class="fw-bold text-dark">{{lab_test.end_at}}</div>
+
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="fas fa-clock text-primary me-2"></i>
+                                                    <small class="text-muted fw-medium">Duration:</small>
+                                                    <div class="fw-bold text-primary fs-5">{{lab_test.duration}}</div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal Footer -->
+                            <div class="modal-footer border-0 p-4 pt-0">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-center w-100">
+                                    <button type="button" id="cancelBtn" class="btn btn-outline-secondary btn-lg px-4 me-md-2">
+                                        <i class="fas fa-times me-2"></i>
+                                        No, Cancel
+                                    </button>
+                                    {% if lab_test.available %}
+                                    <a href="{% url 'test_editor' lab_test.id %}" class="btn btn-success btn-lg px-4">
+                                        <i class="fas fa-check me-2"></i>
+                                        Yes, Start Test
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
+                </div>
+
+                <script>
+                    const modal = document.getElementById('testModal');
+                    const showModalBtn = document.getElementById('showModalBtn');
+                    const cancelBtn = document.getElementById('cancelBtn');
+
+                    showModalBtn.addEventListener('click', function () {
+                        modal.classList.remove('d-none');
+                        // Add smooth fade-in animation
+                        modal.style.opacity = '0';
+                        setTimeout(() => {
+                            modal.style.transition = 'opacity 0.3s ease';
+                            modal.style.opacity = '1';
+                        }, 10);
+                    });
+                    cancelBtn.addEventListener('click', function () {
+                        hideModal();
+                    });
+                    function hideModal() {
+                        modal.style.transition = 'opacity 0.3s ease';
+                        modal.style.opacity = '0';
+                        setTimeout(() => {
+                            modal.classList.add('d-none');
+                            modal.style.transition = '';
+                            modal.style.opacity = '';
+                        }, 300);
+                    }
+                </script>
 
                 <h3 class="sidebar-header p-1 d-flex justify-content-between">
                     <span>
@@ -576,14 +858,10 @@
                 <div class="connected-users">
                     <span class="folder-title">
                         <i class="fa-solid fa-user-group" style="color: var(--accent-color);"></i>
-                         Connected Users (<span id="user-count" class="text-success">0</span>)</span>
+                        Connected Users (<span id="user-count" class="text-success">0</span>)</span>
                     <ul id="connected-users"></ul>
                 </div>
-
-
-
-
-
+                
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         const fileButtons = document.querySelectorAll('.file-button');
@@ -647,31 +925,41 @@
                             </select>
                         </div>
 
-                        <div id="container_status" class="hidden">
-                            <i class="fa-solid fa-check-circle"></i> Connected
-                        </div>
 
-                        {% if container_status == "exited" %}
-                        <div class="me-1">
-                            <button id="start_container" onclick="startContainer(this)" class="btn btn-danger"
-                                data-user_id="{{userprofile.id}}">
-                                Connect Container
-                            </button>
-                        </div>
+                        {% if container %}
+                            {% if container_status == "running" %}
+                            <span class="text-success me-2"
+                                style="border: none; border-radius: 12px; font-size: 12px; height: auto;">
+                                <i class="fa-solid fa-check-circle"></i> connected
+                            </span>
+                            {% else %}
+                            {% if container_status == "exited" %}
+                            <div class="me-1 ms-1">
+                                <button id="start_container" onclick="startContainer(this)" class="btn-sm" 
+                                style="
+                                    border: 1px solid var(--border-color);
+                                    border-radius: 5px;
+                                    background-color: #f7f7f7e9;
+                                    " 
+                                    data-user_id="{{userprofile.id}}">
+                                    connect <i class="fa-brands fa-docker"></i>
+                                </button>
+                            </div>
+                            {% endif %}
+                            {% endif %}
                         {% else %}
-                        <span class="text-success me-2"
-                            style="border: none; border-radius: 12px; font-size: 12px; height: auto;">
-                            <i class="fa-solid fa-check-circle"></i> Connected
-                        </span>
+
+                        <p>
+                            <a href="{% url 'create_container' %}"class="badge bg-info me-2">create container</a>
+                        </p>
+                       
                         {% endif %}
 
                         <span>
                             <div class="hidden d-inline-flex position-relative me-2" id="indicate">
-                                <span class="position-absolute top-0 start-100 translate-middle">
-                                    <img src="{% static 'icons/light-bulb.gif' %}" class="gif" alt="">
-                                </span>
+                                
                                 <img class="rounded-4 shadow-4" src="" id="coding_by_img" alt="" data-mdb-tooltip-init
-                                    title="" style="width: 30px; height: 30px;">
+                                    title="" style="width: 30px; height: 30px; border:2px solid #4ecdd1;">
                             </div>
                         </span>
 
@@ -717,9 +1005,9 @@
             <div id="membersContainer" class="members p-3 ">
                 <button id="closeMembers" class="close-btn text-light">&times;</button>
                 <span class="text-light">All Members</span>
-                <hr>
+                <!-- <hr>
                 <button class="btn btn-success">Give Everyone Access</button>
-                <hr>
+                <hr> -->
                 <ul class="list-group list-group-light mt-3">
                     {% for user in channel.participants.all %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -825,6 +1113,11 @@
 
     <audio src="{% static 'sound/join.mp3' %}" id="joined"></audio>
 
+    <div id="socket-status-container" class="position-absolute top-0 end-0 m-3">
+        <div id="socket-status-text" class="badge rounded-pill p-2">
+            <i class="fa-solid fa-spinner fa-spin"></i> Connecting...
+        </div>
+    </div>
 
     <!-- Coneect Container -->
     <script>
@@ -845,8 +1138,9 @@
                     console.log('resposne: ', data)
                     const status = data['container_status']
                     container_button.innerHTML = status
-                    container_button.style.display = "none"
-                    document.getElementById('container_status').classList.remove('hidden')
+                    container_button.classList.add('btn-success')
+                    container_button.disabled = true;
+                    container_button.style.cursor = 'not-allowed';
                 })
         }
     </script>
@@ -896,49 +1190,255 @@
 
         const channel_id = "{{channel.id}}";
         const userprofile = "{{userprofile}}"
+        const userprofile_id = "{{userprofile.id}}"
+        const roomName = "{{room_name}}";
+        const permitted_users = "{{channel.has_permission.all}}"
+        const selected_programing_language = "{{channel.programing_language}}";
+
 
         require(['vs/editor/editor.main'], function () {
             let editor;
             let lan;
             let value = '';
             let read_only = true;
-            let flag = true
-            const roomName = "{{room_name}}";
+            let flag = true;
+            
+            let userPositions = new Map(); // Track user positions
+            let userDecorations = new Map(); // Track user decorations
+            let cursorDecorations = new Map(); // Track cursor decorations
+            let lineDecorations = new Map(); // Track line decorations
 
-            let permitted_users = "{{channel.has_permission.all}}"
-            if (permitted_users.includes("{{userprofile}}")) {
-                console.log("Yes you have permission")
+            if (permitted_users.includes(userprofile)) {
                 read_only = false;
             } else {
-                console.log('no you do no have any permission')
                 read_only = true;
             }
 
-            if ("{{channel.programing_language}}" === "PYTHON") {
+            if (selected_programing_language === "PYTHON") {
                 lan = 'python';
-                value = `# Write your Python code here\nprint("Hello, World!")`;
-            } else if ("{{channel.programing_language}}" === "C") {
+            } else if (selected_programing_language === "C") {
                 lan = 'cpp';
             } else {
                 lan = 'plaintext';
             }
 
-            console.log("Selected Languagessss: {{channel.programing_language}}");
 
             editor = monaco.editor.create(document.getElementById('editor'), {
-                // value: value,
                 language: lan,
                 theme: 'vs-dark',
                 automaticLayout: true,
                 readOnly: read_only,
                 fontFamily: " 'JetBrains Mono', serif",
-                fontSize: 14, // Optional: Adjust font size
-                fontLigatures: true // Enable ligatures if the font supports it
+                fontSize: 14, 
+                fontLigatures: true,
+                lineNumbers: 'on',
+                glyphMargin: true,
+                folding: true,
+                lineDecorationsWidth: 50
             });
+
+            // Function to update user position and display
+            function updateUserPosition(username, userImage, position, isTyping = false) {
+                if (!position) return;
+                 
+                const { lineNumber, column } = position;
+                userPositions.set(username, { position, userImage, isTyping });
+                
+                // Remove old decorations for this user
+                if (userDecorations.has(username)) {
+                    editor.deltaDecorations(userDecorations.get(username), []);
+                    userDecorations.delete(username);
+                }
+                if (cursorDecorations.has(username)) {
+                    editor.deltaDecorations(cursorDecorations.get(username), []);
+                    cursorDecorations.delete(username);
+                }
+                if (lineDecorations.has(username)) {
+                    editor.deltaDecorations(lineDecorations.get(username), []);
+                    lineDecorations.delete(username);
+                }
+                
+                // Add new decorations
+                const decorations = [];
+                
+                // Line indicator (user avatar on the left)
+                const lineIndicator = {
+                    range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+                    options: {
+                        glyphMarginClassName: `user-line-indicator user-avatar-${username}`,
+                        glyphMarginHoverMessage: { value: `${username} is coding here` },
+                        stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+                    }
+                };
+                decorations.push(lineIndicator);
+                
+                // Cursor indicator
+                const cursorIndicator = {
+                    range: new monaco.Range(lineNumber, column, lineNumber, column + 1),
+                    options: {
+                        className: 'user-cursor',
+                        hoverMessage: { value: `${username}'s cursor` },
+                        stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+                    }
+                };
+                decorations.push(cursorIndicator);
+                
+                // Line background highlight if typing
+                // if (isTyping) {
+                //     const lineHighlight = {
+                //         range: new monaco.Range(lineNumber, 1, lineNumber, 1),
+                //         options: {
+                //             className: 'active-user-indicator',
+                //             stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+                //         }
+                //     };
+                //     decorations.push(lineHighlight);
+                // }
+                
+                // Apply decorations
+                const decorationIds = editor.deltaDecorations([], decorations);
+                userDecorations.set(username, decorationIds);
+                
+                // Store individual decoration IDs for later removal
+                cursorDecorations.set(username, [decorationIds[1]]);
+                lineDecorations.set(username, [decorationIds[0]]);
+                
+                // Add CSS for user avatar
+                const styleId = `user-avatar-style-${username}`;
+                if (!document.getElementById(styleId)) {
+                    const style = document.createElement('style');
+                    style.id = styleId;
+                    style.textContent = `
+                        .user-avatar-${username} {
+                            background-image: url('${userImage}') !important;
+                            background-size: cover !important;
+                            background-position: center !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                // Update the merged users display
+                updateMergedUsersDisplay();
+            }
+            
+            // Function to remove user position
+            function removeUserPosition(username) {
+                userPositions.delete(username);
+                
+                if (userDecorations.has(username)) {
+                    editor.deltaDecorations(userDecorations.get(username), []);
+                    userDecorations.delete(username);
+                }
+                if (cursorDecorations.has(username)) {
+                    editor.deltaDecorations(cursorDecorations.get(username), []);
+                    cursorDecorations.delete(username);
+                }
+                if (lineDecorations.has(username)) {
+                    editor.deltaDecorations(lineDecorations.get(username), []);
+                    lineDecorations.delete(username);
+                }
+                
+                updateMergedUsersDisplay();
+            }
+            
+            // Function to update merged users display (active coders first, then connected users)
+            function updateMergedUsersDisplay() {
+                const mergedContainer = document.getElementById('merged-users-container');
+                if (!mergedContainer) return;
+                
+                mergedContainer.innerHTML = '';
+                
+                // Get all connected users
+                const connectedUsersList = document.getElementById('connected-users');
+                const connectedUsers = Array.from(connectedUsersList.children).map(item => {
+                    const img = item.querySelector('img');
+                    return {
+                        username: img.title,
+                        imageUrl: img.src
+                    };
+                });
+                
+                // Create a map of active coders
+                const activeCoders = new Map();
+                userPositions.forEach((userData, username) => {
+                    activeCoders.set(username, userData);
+                });
+                
+                // Separate active coders and regular connected users
+                const activeCoderUsers = [];
+                const regularConnectedUsers = [];
+                
+                connectedUsers.forEach(user => {
+                    if (activeCoders.has(user.username)) {
+                        activeCoderUsers.push(user);
+                    } else {
+                        regularConnectedUsers.push(user);
+                    }
+                });
+                
+                // Display active coders first
+                activeCoderUsers.forEach(user => {
+                    const userData = activeCoders.get(user.username);
+                    const { position, isTyping } = userData;
+                    const { lineNumber, column } = position;
+                    
+                    const userElement = document.createElement('div');
+                    userElement.className = 'd-flex align-items-center mb-2 p-2';
+                    userElement.style.cssText = `
+                        background-color: var(--sidebar-bg);
+                        border-radius: 6px;
+                        border-left: 3px solid ${isTyping ? '#4ecdd1' : '#666'};
+                    `;
+                    
+                    userElement.innerHTML = `
+                        <img src="${user.imageUrl}" alt="${user.username}" class="rounded-circle me-2" 
+                             style="width: 25px; height: 25px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-white" style="font-size: 12px;">${user.username}</div>
+                            <div class="text-muted" style="font-size: 10px;">
+                                Line ${lineNumber}, Col ${column}
+                                ${isTyping ? '<span class="text-success ms-1">• typing</span>' : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    mergedContainer.appendChild(userElement);
+                });
+                
+                // Display regular connected users
+                regularConnectedUsers.forEach(user => {
+                    const userElement = document.createElement('div');
+                    userElement.className = 'd-flex align-items-center mb-2 p-2';
+                    userElement.style.cssText = `
+                        background-color: var(--sidebar-bg);
+                        border-radius: 6px;
+                        border-left: 3px solid #666;
+                    `;
+                    
+                    userElement.innerHTML = `
+                        <img src="${user.imageUrl}" alt="${user.username}" class="rounded-circle me-2" 
+                             style="width: 25px; height: 25px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                            <div class="fw-bold text-white" style="font-size: 12px;">${user.username}</div>
+                            <div class="text-muted" style="font-size: 10px;">Connected</div>
+                        </div>
+                    `;
+                    
+                    mergedContainer.appendChild(userElement);
+                });
+                
+                // Update user count
+                const countSpan = document.getElementById('user-count');
+                if (countSpan) {
+                    countSpan.textContent = connectedUsers.length;
+                }
+            }
             const notification = document.getElementById("notification");
+            
+            
+            // Paste on the editor Notification implementation
             const code_paste = new WebSocket(`${protocol}://${window.location.host}/ws/code-paste/${roomName}/${userprofile}/`);
-
-
             let currentDecorations = [];
 
             editor.onDidPaste((event) => {
@@ -965,7 +1465,6 @@
             code_paste.onmessage = function (event) {
                 const data = JSON.parse(event.data);
 
-                // Clear previous highlights
                 currentDecorations = editor.deltaDecorations(currentDecorations, []);
 
                 if (data.range) {
@@ -1020,17 +1519,17 @@
                     const listItem = document.createElement("li");
                     listItem.className = "list-group-item";
                     listItem.innerHTML = `
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <strong class='text-secondary'>${data.user}</strong>
-        <small class="text-secondary">${new Date(data.timestamp).toLocaleString()}</small>
-    </div>
-    ${rangeInfo ? `<div class="text-danger small mb-2">${rangeInfo}</div>` : ""}
-<pre class="bg-light p-2 rounded"
-     style="white-space: pre; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; position: relative;">
-    <code style="display: block; padding-left: 2.5em;">${codeWithLineNumbers}</code>
-</pre>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class='text-secondary'>${data.user}</strong>
+                                <small class="text-secondary">${new Date(data.timestamp).toLocaleString()}</small>
+                            </div>
+                            ${rangeInfo ? `<div class="text-danger small mb-2">${rangeInfo}</div>` : ""}
+                        <pre class="bg-light p-2 rounded"
+                            style="white-space: pre; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; position: relative;">
+                            <code style="display: block; padding-left: 2.5em;">${codeWithLineNumbers}</code>
+                        </pre>
 
-`;
+                        `;
 
                     pasteList.prepend(listItem);
                 }
@@ -1039,26 +1538,91 @@
                     const div = document.createElement('div');
                     div.textContent = text;
                     return div.innerHTML
-                        .replace(/"/g, '&quot;')  // Escape quotes for attribute safety
-                        .replace(/'/g, '&#39;');   // Escape single quotes
+                        .replace(/"/g, '&quot;')  
+                        .replace(/'/g, '&#39;');  
                 }
             };
 
+            code_paste.onclose = function () {
+                console.log('Code paste WebSocket connection closed');
+            };
 
+            code_paste.onerror = function (error) {
+                console.error('Code paste WebSocket error:', error);
+            };
+
+            // Paste on the editor Notification implementation ends here
+
+
+            // Theme selector implementation
             document.getElementById("theme-selector").addEventListener("change", function (e) {
                 const selectedTheme = e.target.value;
                 console.log('Selected Theme:', selectedTheme);
                 monaco.editor.setTheme(selectedTheme);
             });
+            // Theme selector implementation ends here
 
 
+            
+            // Function to update socket status badge
+            function updateSocketStatus(status, message = '') {
+                const statusElement = document.getElementById('socket-status-text');
+                const iconElement = statusElement.querySelector('i');
+                
+                // Remove all status classes
+                statusElement.classList.remove('connected', 'connecting', 'disconnected', 'error');
+                
+                switch(status) {
+                    case 'connected':
+                        statusElement.classList.add('connected');
+                        iconElement.className = 'fa-solid fa-check-circle';
+                        statusElement.innerHTML = `<i class="fa-solid fa-check-circle"></i> Connected`;
 
-            console.log(lan)
+                        setTimeout(() => {
+                            statusElement.style.display = 'none';
+
+                        }, 3000);
+
+                        break;
+                    case 'connecting':
+                        statusElement.classList.add('connecting');
+                        iconElement.className = 'fa-solid fa-spinner fa-spin';
+                        statusElement.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Connecting...`;
+                        break;
+                    case 'disconnected':
+                        statusElement.classList.add('disconnected');
+                        iconElement.className = 'fa-solid fa-times-circle';
+                        statusElement.innerHTML = `<i class="fa-solid fa-times-circle"></i> Disconnected`;
+
+                        break;
+                    case 'error':
+                        statusElement.classList.add('error');
+                        iconElement.className = 'fa-solid fa-exclamation-triangle';
+                        statusElement.innerHTML = `<i class="fa-solid fa-exclamation-triangle"></i> ${message || 'Connection Error'}`;
+                        break;
+                }
+            }
+
+            // WebSocket connection for real-time code collaboration
+            const socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/ac/' + roomName + '/' + userprofile_id);
+
             let debounceTimer;
             let isLocalChange = false;
-            const socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
-
-
+            
+            // Track cursor position changes
+            editor.onDidChangeCursorPosition((event) => {
+                if (!isLocalChange) {
+                    const position = editor.getPosition();
+                    console.log('editorElement.dataset.user', editorElement.dataset.user, 'userprofile', editorElement.dataset.user_image)
+                    socket.send(JSON.stringify({
+                        type: 'cursor_position',
+                        cursor_position: position,
+                        coding_by: editorElement.dataset.user,
+                        user_image: editorElement.dataset.user_image
+                    }));
+                }
+            });
+            
             editor.onDidChangeModelContent((event) => {
                 if (!isLocalChange) {
                     const changes = event.changes.map(change => ({
@@ -1070,31 +1634,55 @@
                         },
                         text: change.text
                     }));
-                    // if (flag) {
+                    
+                    const position = editor.getPosition();
                     socket.send(JSON.stringify({
                         type: 'code_change',
                         changes: changes,
                         coding_by: editorElement.dataset.user,
                         user_image: editorElement.dataset.user_image,
-                        cursor_position: editor.getPosition()
+                        cursor_position: position,
+                        is_typing: true
                     }));
-                    // }
-                    // flag = true
+                    
+                    // Update local user position as typing
+                    updateUserPosition(editorElement.dataset.user, editorElement.dataset.user_image, position, true);
+                    
+                    // Clear typing indicator after a delay
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        updateUserPosition(editorElement.dataset.user, editorElement.dataset.user_image, position, false);
+                    }, 2000);
                 }
             });
 
 
             socket.onopen = function () {
-                console.log('websocket opend')
-                socket.send(JSON.stringify({ type: "allconnecteduser" }));
+                console.log('websocket opened')
+                updateSocketStatus('connected');
+                if (socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ type: "allconnecteduser" }));
+                    
+                    // Send current position
+                    const position = editor.getPosition();
+                    socket.send(JSON.stringify({
+                        type: 'cursor_position',
+                        cursor_position: position,
+                        coding_by: editorElement.dataset.user,
+                        user_image: editorElement.dataset.user_image
+                    }));
+                }
             };
             socket.onmessage = function (e) {
                 const data = JSON.parse(e.data);
-                console.log('Message received from server:', data);
-                console.log('upro, ', data.coding_by, userprofile)
-                // const data = JSON.parse(e.data);
 
                 if (data.coding_by !== userprofile) {
+                    // Handle cursor position updates
+                    if (data.type === 'cursor_position') {
+                        updateUserPosition(data.coding_by, data.user_image, data.cursor_position, false);
+                    }
+                    
+                    // Handle code changes
                     if (data.type === 'code_change' && !isLocalChange) {
                         isLocalChange = true;
                         const model = editor.getModel();
@@ -1107,40 +1695,14 @@
                                 change.range.endColumn
                             ),
                             text: change.text,
-                            // Optional: Force move markers (for cursors)
                             forceMoveMarkers: true
                         })));
 
-
-                        // ====== MOVE the indicator div to cursor position ======
-                        const { lineNumber, column } = data.cursor_position;
-                        const cursorCoords = editor.getScrolledVisiblePosition({ lineNumber, column });
-                        console.log('hello torjo')
-                        if (cursorCoords) {
-                            console.log('hello torjo inside')
-
-                            const editorDomNode = editor.getDomNode();
-                            const editorRect = editorDomNode.getBoundingClientRect();
-
-                            const indicator = document.getElementById('remote-user-indicator');
-                            const img = document.getElementById('remote-user-image');
-                            const name = document.getElementById('remote-user-name');
-
-                            img.src = data.user_image;
-                            name.textContent = data.coding_by;
-
-                            indicator.classList.remove('hidden');
-                            indicator.style.left = `${editorRect.left + cursorCoords.left}px`;
-                            indicator.style.top = `${editorRect.top + cursorCoords.top - 30}px`; // 30px above cursor
-                            indicator.style.display = 'flex';
-                            // Clear previous timeout if needed
-                            if (indicator.hideTimeout) {
-                                clearTimeout(indicator.hideTimeout);
-                            }
-                            indicator.hideTimeout = setTimeout(() => {
-                                indicator.classList.add('hidden');
-                            }, 5000);
-
+                        const cursorPosition = data.cursor_position;
+                        if (cursorPosition && userprofile !== data.coding_by) {
+                            editor.setPosition(cursorPosition);
+                            // Update user position as typing
+                            updateUserPosition(data.coding_by, data.user_image, cursorPosition, data.is_typing || false);
                         }
 
                         isLocalChange = false;
@@ -1160,10 +1722,14 @@
                     const x = document.getElementById('joined')
                     connected_users.forEach(user => {
                         addConnectedUser(user.username, user.image)
-                        // console.log(user.username, user.image)
                         x.play()
+                        
+                        // Initialize user position if they're not the current user
+                        // if (user.username !== userprofile) {
+                        //     // Set initial position at line 1, column 1
+                        //     updateUserPosition(user.username, user.image, { lineNumber: 1, column: 1 }, false);
+                        // }
                     });
-                    // addConnectedUser(data.user, data.userimage)
                     if (userprofile === data.first_user) {
 
                         console.log('editor value is :  ', editor.getValue())
@@ -1176,6 +1742,8 @@
                 }
                 if (data.type === "user_disconnected") {
                     removeConnectedUser(data.left_user);
+                    // Remove user position indicators
+                    removeUserPosition(data.left_user);
                 }
 
                 if (data.type === "initial_change") {
@@ -1189,15 +1757,19 @@
                     }
                 }
             };
+            socket.onclose = function (e) {
+                console.log('WebSocket closed unexpectedly');
+                updateSocketStatus('disconnected');
+            };
+            socket.onerror = function (error) {
+                console.error('WebSocket error:', error);
+                updateSocketStatus('error', 'Connection failed');
+            };
+
+            // End of WebSocket connection for real-time code collaboration
 
 
 
-
-            function scrollToBottom() {
-                const scrollHeight = document.body.scrollHeight;
-
-                // window.scrollTo(0, scrollHeight);
-            }
 
             const editorElement = document.getElementById('editor');
 
@@ -1283,10 +1855,6 @@
             const btn = document.getElementById('run-code');
 
 
-            // const socket = new WebSocket('ws://' + window.location.host + '/ws/ac/' + roomName + '/' + "{{userprofile.id}}");
-
-
-
 
             let taskId = null
 
@@ -1354,20 +1922,23 @@
 
 
 
-            socket.onclose = function (e) {
-                console.log('WebSocket closed unexpectedly');
-            };
+ 
 
-
-
-            // ===========================================================================================================================
-
-
-
-            // ===========================================================================================================================
-            // const task_socket = new WebSocket('ws://' + window.location.host + '/ws/task-result/' + roomName + '/');
-
+            //  Task execution and result handling
             const task_socket = new WebSocket(`${protocol}://${window.location.host}/ws/task-result/${roomName}/`);
+            
+            task_socket.onopen = function () {
+                console.log('Task socket connected');
+            };
+            
+            task_socket.onclose = function () {
+                console.log('Task socket closed');
+            };
+            
+            task_socket.onerror = function (error) {
+                console.error('Task socket error:', error);
+            };
+            
             task_socket.onmessage = function (event) {
                 console.log(event)
                 console.log("Task ouput is : ", JSON.parse(event.data))
@@ -1376,9 +1947,17 @@
                 output_dev.textContent += data.output;
                 document.getElementById('executed-by').innerText = `Executed by: ${data.code_executed_by}`;
 
-                let img = document.getElementById('run_code_icon')
-                img.src = "{% static 'icons/execute.png' %}"
-                img.style.background = "none"
+                btn.disabled = false;
+                btn.className = 'icons'; // Reset to original class
+                btn.innerHTML = '<i class="fa-solid fa-play me-2"></i> Run';
+                btn.style.backgroundColor = ''; // Remove inline style
+                btn.style.cursor = '';
+                btn.style.pointerEvents = '';
+                btn.style.opacity = '';
+                btn.style.color = '';
+                btn.style.borderColor = '';
+                btn.style.boxShadow = '';
+                btn.style.transform = '';
             }
             function startTask(code, code_executed_by, inputs, language) {
                 fetch('/start-task/', {
@@ -1409,12 +1988,21 @@
                 const code_executed_by = btn.dataset['executed'];
                 const language = btn.dataset['language'];
                 const inputs = ""
-                // let img = this.querySelector("img");
-                // const output_dev = document.getElementById('output')
-                // output_dev.textContent = ""
 
-                // img.src = "{% static 'icons/loading.gif' %}";
+                console.log('language is: ', language)
+
                 startTask(code, code_executed_by, inputs, language);
+
+                btn.disabled = true;
+                btn.style.backgroundColor = '#ccc';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running...';
+                btn.style.cursor = 'not-allowed';
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.7';
+                btn.style.color = '#666';
+                btn.style.borderColor = '#ccc';
+                btn.style.boxShadow = 'none';
+                btn.style.transform = 'none';
 
 
             });
@@ -1427,12 +2015,25 @@
                     'inputs': inputs
                 }));
             }
-            // ===========================================================================================================================
+
+            // Permission handling
 
 
 
-
+            // WebSocket connection for permission handling
             const permission_socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/permission/' + roomName + '/')
+            
+            permission_socket.onopen = function () {
+                console.log('Permission socket connected');
+            };
+            
+            permission_socket.onclose = function () {
+                console.log('Permission socket closed');
+            };
+            
+            permission_socket.onerror = function (error) {
+                console.error('Permission socket error:', error);
+            };
 
 
             permission_socket.onmessage = function (e) {
@@ -1467,7 +2068,7 @@
                     }
                 }
 
-                if (data.user === "{{userprofile}}") {
+                if (data.user === userprofile) {
                     if (type === "remove") {
                         editor.updateOptions({ readOnly: true });
                         statusBadge.innerHTML = '<span class="text-danger">No permission</span>';
@@ -1503,7 +2104,7 @@
                 });
             });
 
-
+            // End of Permission handling
 
 
 

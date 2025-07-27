@@ -4,7 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: django_app
-    command: daphne -b 0.0.0.0 -p 8000 realtime_code_editor.asgi:application
+    # command: daphne -b 0.0.0.0 -p 8000 realtime_code_editor.asgi:application
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
       - /var/run/docker.sock:/var/run/docker.sock
@@ -25,36 +26,25 @@ services:
     ports:
       - "6379:6379"
 
-  # celery:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: celery_worker
-  #   command: celery -A realtime_code_editor worker --loglevel=info
-  #   volumes:
-  #     - .:/app
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   depends_on:
-  #     - redis
-  #   environment:
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #     - DOCKER_HOST=unix:///var/run/docker.sock
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_worker
+    command: celery -A realtime_code_editor worker --loglevel=info
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DOCKER_HOST=unix:///var/run/docker.sock
 
-  # python_env:
-  #   image: python:3.10-slim
-  #   container_name: python_global_container
-  #   stdin_open: true
-  #   tty: true
-  #   volumes:
-  #     - .:/app
-  #   command: python
-  
   environment:
     build:
       context: .
       dockerfile: Dockerfile.environment
-    volumes:
-      - ./code:/code_file  
     working_dir: /code_file
     tty: true  

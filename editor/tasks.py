@@ -31,188 +31,188 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import tarfile,io
 import socket
-# client = docker.from_env()
+client = docker.from_env()
 import re
+import base64
 
-
-# @shared_task
-def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, language=None):
+@shared_task
+def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, language=None, from_test_editor=False, test_eidtor_channel_name=None):
     try:
-        usr = User.objects.get(username=code_executed_by)
-        userprofile = UserProfile.objects.get(user=usr)
-        user_container = UserContainer.objects.get(user=userprofile)
-    except:
-        user_container = None
 
-    try:
-        # if user_container:
-        #     container = client.containers.get(user_container.container_id)
-        # else:
-        #     container = client.containers.get('realtime_code_editor-environment-1')
-        container = None
-        
-        channel_layer = get_channel_layer()
-        group_name = f"task_{room_name}"
-        
-        if language == "C":
-            print('C file execution Started')
-            c_filename = f"{code_executed_by}_file.c"
-            executable_name = f"{code_executed_by}_c_output"
-            
-            # Transfer code to container
-            tar_stream = io.BytesIO()
-            with tarfile.open(fileobj=tar_stream,encoding="utf-8", mode='w') as tar:
-                file_data = code.encode('utf-8', errors='ignore')
-                tarinfo = tarfile.TarInfo(name=c_filename)
-                tarinfo.size = len(file_data)
-                tar.addfile(tarinfo, io.BytesIO(file_data))
-                
-            tar_stream.seek(0)
-            container.put_archive('/code_file', tar_stream.getvalue())
-
-
-            compile_cmd = f"gcc {c_filename} -o {executable_name}"
-            exit_code , output = container.exec_run(compile_cmd)
-            if output:
-                pass
-            else:
-                exe_cmd = f"./{executable_name}"
-                
-                exit_code , output = container.exec_run(exe_cmd)
-
-            output_decoded = output.decode('utf-8', errors='ignore')
-            print('C file Decoded output- ',output_decoded)
-            async_to_sync(channel_layer.group_send)(
-                    group_name,
-                    {
-                        "type": "task.update", 
-                        "output": output_decoded,
-                        "code_executed_by": code_executed_by,
-                    }
-                )
-
-
-        elif language == "PYTHON":
-            
-            py_filename = f"{code_executed_by}_file.py"
-            
-            tar_stream = io.BytesIO()
-            with tarfile.open(fileobj=tar_stream,encoding="utf-8", mode='w') as tar:
-                file_data = code.encode('utf-8', errors='ignore')
-                tarinfo = tarfile.TarInfo(name=py_filename)
-                tarinfo.size = len(file_data)
-                tar.addfile(tarinfo, io.BytesIO(file_data))
-
-            # Transfer the tar archive to the container
-            tar_stream.seek(0)
-            container.put_archive('/code_file', tar_stream.getvalue())
-            
-            exec_cmd = f'python3 {py_filename}'
-            
-            exec_instance = container.exec_run(
-                exec_cmd,
-                socket=True,
-                tty=True
-            )
-            
-            socket = exec_instance.output
-            
-
-    
-        channel_layer = get_channel_layer()
-        group_name = f"task_{room_name}"
-
+        # Get container
         try:
-            while True:
-                line = socket._sock.recv(1024)
-                if not line:
-                    break
+            usr = User.objects.get(username=code_executed_by)
+            userprofile = UserProfile.objects.get(user=usr)
+            user_container = UserContainer.objects.get(user=userprofile)
+            container = client.containers.get(user_container.container_id)
+        except Exception:
+            container = client.containers.get('realtime_code_editor-environment-1')
+
+        # Prepare communication
+        channel_layer = get_channel_layer()
+        group_name = f"task_{room_name}"
+
+        result_output = ""
+        error_output = ""
+        exit_code = -1
+
+        if language == "PYTHON":
+            filename = f"{code_executed_by}_file.py"
+
+            # Write file using base64
+            encoded = base64.b64encode(code.encode()).decode()
+            write_cmd = f"bash -c 'echo {encoded} | base64 -d > /code_file/{filename}'"
+            container.exec_run(write_cmd)
+
+            # Execute with 10s timeout
+            exec_cmd = f"timeout --kill-after=2s 5s python3 {filename}"
+            exit_code, output = container.exec_run(
+                exec_cmd,
+                tty=False,
+                demux=True,
+                workdir="/code_file",
+                environment={'PYTHONUNBUFFERED': '1'}
+            )
+        
+        elif language == "C":
+            filename = f"{code_executed_by}_file.c"
+            binary_name = f"{code_executed_by}_a.out"
+
+            # Write C code to file
+            encoded = base64.b64encode(code.encode()).decode()
+            write_cmd = f"bash -c 'echo {encoded} | base64 -d > /code_file/{filename}'"
+            container.exec_run(write_cmd)
+
+            # Compile C code
+            compile_cmd = f"gcc -o {binary_name} {filename}"
+            compile_exit_code, compile_output = container.exec_run(
+                compile_cmd,
+                workdir="/code_file",
+                demux=True
+            )
+
+            stdout, stderr = compile_output
+            stdout = stdout.decode(errors='ignore') if stdout else ""
+            stderr = stderr.decode(errors='ignore') if stderr else ""
+
+            if compile_exit_code != 0:
+                final_output = f"[COMPILATION ERROR]: {stderr or 'Unknown compilation error.'}"
                 async_to_sync(channel_layer.group_send)(
                     group_name,
                     {
-                        "type": "task.update", 
-                        "output": line.decode(),
+                        "type": "task.update",
+                        "output": final_output,
                         "code_executed_by": code_executed_by,
                     }
                 )
-            print("---------------------------------------------------------------")
+                return
+
+            # Run the binary with timeout
+            exec_cmd = f"timeout --kill-after=2s 5s ./{binary_name}"
+            exit_code, output = container.exec_run(
+                exec_cmd,
+                tty=False,
+                demux=True,
+                workdir="/code_file"
+            )
         
-            # return f"Message sent to group {group_name}"
-        except Exception as send_error:
-            return f"Error sending message to group: {send_error}"
-        finally:
+        elif language == "JAVA":
+            # Try to extract the public class name from the code
+            match = re.search(r'public\s+class\s+(\w+)', code)
+            if match:
+                java_class = match.group(1)
+            else:
+                # Fallback to default class name
+                java_class = f"{code_executed_by}_Main"
+                # Replace class name in code if not present
+                code = re.sub(r'class\s+\w+', f'class {java_class}', code, count=1)
+            java_file = f"{java_class}.java"
+
+            # 1. Save code to .java file
+            encoded = base64.b64encode(code.encode()).decode()
+            write_cmd = f"bash -c 'echo {encoded} | base64 -d > /code_file/{java_file}'"
+            container.exec_run(write_cmd)
+
+            # 2. Compile Java code
+            compile_cmd = f"javac {java_file}"
+            compile_exit_code, compile_output = container.exec_run(
+                compile_cmd,
+                workdir="/code_file",
+                demux=True
+            )
+
+            stdout, stderr = compile_output
+            stdout = stdout.decode(errors='ignore') if stdout else ""
+            stderr = stderr.decode(errors='ignore') if stderr else ""
+
+            if compile_exit_code != 0:
+                final_output = f"[COMPILATION ERROR]: {stderr or 'Unknown error'}"
+                async_to_sync(channel_layer.group_send)(
+                    group_name,
+                    {
+                        "type": "task.update",
+                        "output": final_output,
+                        "code_executed_by": code_executed_by,
+                    }
+                )
+                return
+
+            # 3. Run compiled class with timeout
+            exec_cmd = f"timeout --kill-after=2s 5s java {java_class}"
+            exit_code, output = container.exec_run(
+                exec_cmd,
+                tty=False,
+                demux=True,
+                workdir="/code_file"
+            )
             
-            async_to_sync(channel_layer.group_send)(
-                group_name,
+            
+        stdout, stderr = output
+        result_output = stdout.decode(errors='ignore') if stdout else ""
+        error_output = stderr.decode(errors='ignore') if stderr else ""
+
+        # Build final message
+        if exit_code == 124:
+            final_output = "[TIMEOUT] Execution exceeded 10 seconds.\n"
+        elif error_output:
+            final_output = f"[ERROR]: {error_output}"
+        else:
+            final_output = result_output or "[INFO] No output."
+
+        
+        if from_test_editor:
+            async_to_sync(channel_layer.send)(
+                test_eidtor_channel_name,
                 {
-                    "type": "task.update", 
-                    "output": "\n========.Code execution Done successfully.=====\n",
+                    "type": "test_editor_update",
+                    "output": final_output,
                     "code_executed_by": code_executed_by,
                 }
             )
+            
+        else:
+        # Send once to WebSocket
+            async_to_sync(channel_layer.group_send)(
+                group_name,
+                {
+                    "type": "task.update",
+                    "output": final_output,
+                    "code_executed_by": code_executed_by,
+                }
+            )
+
     except Exception as e:
-        return f'Exception: {e}'
-
-
-
-            # output_decoded = output.decode('utf-8', errors='ignore')
-        # try:
-        #     process = subprocess.Popen(
-        #         ['python', '-c', code],
-        #         stdin=subprocess.PIPE,
-        #         stdout=subprocess.PIPE,
-        #         stderr=subprocess.PIPE,
-        #         text=True
-        #     )
-
-        #     # Communicate with the process (send input and get output)
-        #     stdout, stderr = process.communicate(input=inputs, timeout=5)
-        #     if stdout:
-        #         output = stdout
-        #     else:
-        #         output = stderr
-        #     print('sub output',output)
-        #     # return JsonResponse({"output": output, "error": error})
-
-        # except subprocess.TimeoutExpired:
-        #     process.kill()
-        #     output = "Execution timed out"
-
-        # print('Core Output is: ', output)
-
-
-# def run_code_task(code,inputs=None):
-#     # Convert Windows path to WSL path
-#     python_executable = "/mnt/d/RCE/packages/user_1/Scripts/python.exe"
-    
-#     # Debugging log
-#     logger.info(f"Checking Python executable at {python_executable}")
-    
-#     # Ensure the executable exists
-#     if not os.path.isfile(python_executable):
-#         return f"Python executable not found at {python_executable} (cwd={os.getcwd()}, PATH={os.environ['PATH']})."
-
-#     # Modify environment to ensure PATH is correct
-#     env = os.environ.copy()
-#     env["PATH"] = os.path.dirname(python_executable) + ":" + env["PATH"]
-
-#     try:
-#         # simulated_input = "\n".join(inputs)
-#         result = subprocess.Popen(
-#             [python_executable, "-c", code],
-#             text=True,
-#             # capture_output=True,
-#             # check=True,
-#             env=env,
-#             stdin=subprocess.PIPE,
-#             stdout=subprocess.PIPE,
-#             stderr=subprocess.PIPE
-#         )
-#         stdout, stderr = result.communicate(input=inputs)
-#         return stdout
-#     except subprocess.CalledProcessError as e:
-#         return e.stderr
-
+        fallback_output = f"[FATAL ERROR] {str(e)}"
+        async_to_sync(channel_layer.group_send)(
+            f"task_{room_name}",
+            {
+                "type": "task.update",
+                "output": fallback_output,
+                "code_executed_by": code_executed_by,
+            }
+        )
+        
+        
 @shared_task
 def stop_container_task(container_id):
     try:
@@ -221,6 +221,14 @@ def stop_container_task(container_id):
         return f"Container {container_id} stopped successfully."
     except Exception as e:
         return f"Error stopping container {container_id}: {e}"
+    
+
+@shared_task
+def finish_lab_test(test_id):
+    obj = LabTest.objects.get(id = test_id)
+    obj.available = False
+    obj.save()
+    return "Lab test is Finished!"
 
 
 
@@ -270,3 +278,6 @@ def install_package(package_name, user_env_path):
         print(f'File not found: {pip_path}')
     except subprocess.CalledProcessError as e:
         print(f'Subprocess called error: {e.output.decode()}')
+        
+        
+

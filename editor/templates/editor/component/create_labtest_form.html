@@ -1,0 +1,84 @@
+<!-- Quill's CSS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+<!-- Quill's JS -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- File input -->
+    <div class="mb-3">
+        <label for="title" class="form-label fw-light">Title</label>
+        <input class="form-control" type="text" id="title" name="title">
+    </div>
+    <div class="mb-3">
+        <label for="textq" class="form-label fw-light">Text Question</label>
+        <!-- Quill container -->
+        <div id="rich-text-editor-container" style="height: 200px;"></div>
+        <textarea class="form-control" id="textq" name="text-question" rows="3" hidden></textarea>
+    </div>
+
+    <input name="raw_ques" id="raw_ques" hidden>
+
+    <!-- <div class="mb-3">
+        <label for="formFile" class="form-label fw-light">Upload a question Picture</label>
+        <input class="form-control" type="file" id="formFile" name="question">
+    </div> -->
+
+    <!-- Hidden room ID -->
+    <input type="hidden" name="room_id" value="{{ room_id }}">
+
+    <!-- Duration input -->
+    <div class="d-flex justify-content-center">
+        <div class="mb-3">
+            <label for="duration" class="form-label fw-light text-center">Test Duration (minutes)</label>
+            <input type="number" class="form-control text-center" id="duration" style="width: 180px;" name="duration"
+                value="{{ labtest.duration }}" min="1" max="120" required>
+        </div>
+    </div>
+
+
+    <div class="d-flex justify-content-around">
+        <div class="mb-3">
+            <label for="start_at" class="form-label fw-light ">Test Start At</label><br>
+            <p class="badge bg-info">Now</p>
+        </div>
+
+        <div class="mb-3">
+            <label for="end_at" class="form-label fw-light">Test end At</label>
+            <input type="time" class="form-control" id="end_at" name="end_at" min="1" required>
+        </div>
+    </div>
+
+
+    <!-- Submit button -->
+    <div class="text-center">
+        <button type="submit" class="btn btn-success w-100 py-2 fw-semibold">Submit</button>
+    </div>
+</form>
+
+
+<script>
+   var quill = new Quill('#rich-text-editor-container', {
+  theme: 'snow',
+  modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      ['code-block'],  // ✅ Now it will appear!
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      ['clean']
+    ]
+  }
+});
+
+
+    // On form submit, copy HTML to hidden input
+    var form = document.querySelector('form');
+    form.onsubmit = function () {
+        var plainTextContent = quill.getText().trim();
+        document.getElementById('raw_ques').value= plainTextContent;
+        var richTextInput = document.querySelector('#textq');
+        richTextInput.value = quill.root.innerHTML;
+    };
+</script>

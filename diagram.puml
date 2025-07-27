@@ -1,0 +1,39 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor Student
+actor Teacher
+
+rectangle "Authentication" {
+    Student --> (Login)
+    Teacher --> (Login)
+}
+
+rectangle "Channel Management" {
+    Teacher --> (Create Channel)
+    Teacher --> (Grant Edit Permission)
+    Student --> (Join Channel)
+}
+
+rectangle "Collaborative Code Editor" {
+    Student --> (Write Code)
+    Teacher --> (Restrict Editing)
+}
+
+rectangle "Lab Test" {
+    Teacher --> (Create LabTest)
+    (Create LabTest) --> (Set Time Limit)
+    (Create LabTest) --> (Attach to Channel)
+    
+    Student --> (Attempt LabTest)
+    (Attempt LabTest) --> (Submit Code)
+    (Submit Code) --> (Code Analysis by AI)
+    (Submit Code) --> (Store Paste History)
+    
+    Teacher --> (View Student Attempt)
+    Teacher --> (View Paste History)
+    Teacher --> (Check AI Generated Code)
+}
+
+@enduml

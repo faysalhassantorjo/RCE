@@ -7,22 +7,31 @@ urlpatterns = [
     path('save-code/',save_file, name='save_code'),
     path('login/', auth_views.LoginView.as_view(template_name='editor/loginpage.html'), name='login'),
     path('logout/', logout_view, name='logout'),
-     path('register/', register, name='register'),
+    path('register/', register, name='register'),
     path('chat/<str:user_id>/', chat_room, name='chat_room'),
     path('create-channel/',create_channel, name='create_channel'),
     path('join-channel/<str:channel_id>/',join_channel,name='join_channel'),
     path('install-package/',install_package_view,name='install-package'),
     path('package/',package_install,name='package'),
     path('create-container/',create_container,name='create_container'),
+    path('delete-container/',delete_container,name='delete_container'),
     path('start-task/',start_task,name='start_task'),
     path('start-container/',start_container,name='start_container'),
     path('start-call/',start_call,name='start_call'),
     path('give-permision/', give_parmision, name='give_permission'),
-    
     path('code-template/',code_template),
-    
     path('create-file/',create_file ,name="create_file"),
-    
-    path('profile/<str:pk>', profile)
+    path('profile/<str:pk>', profile, name='profile'),
+    path('test-monitor/<str:pk>',test_monitor, name='test_monitor'),
+    path('test-editor/<str:pk>',test_editor, name='test_editor'),
+    path('manage-lab-test/',manage_lab_test, name='manage_lab_test'),
+    path('finish-lab-test/',finish_test, name='finish_test'),
+     path('save-statistic/', save_typing_statistic, name='save_statistic'),
+     path('get-statistic/', get_typing_statistic, name='get_statistic'),
+     path('labtest-list/', labtest_list, name='labtest_list'),
+     path('ai-analyse-code/', ai_analyse_code, name='ai_analyse_code'),
+     path('catch-pasted-code/', catch_pasted_code, name='catch_pasted_code'),
+     path('get-pasted-code/', get_pasted_code, name='get_pasted_code'),
+     path('view-available-lab/', view_available_lab, name='view_available_lab'),
     
 ]

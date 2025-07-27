@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi Monaco Editors - Live Code Monitor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'editor/css/codemonitor.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
+
+  <style>
+    body {
+      font-family: "Raleway", sans-serif;
+    }
+
+    .custom-button {
+      border: 1px solid #999999;
+      color: #999999;
+      padding: 4px;
+      border-radius: 6px;
+      background: none;
+    }
+
+    p {
+      margin-bottom: 0;
+    }
+
+    /* Chart modal styles */
+    .chart-container {
+      width: 100%;
+      height: 400px;
+      margin-top: 20px;
+    }
+
+    .ql-editor {
+      font-family: "Raleway", sans-serif;
+    }
+
+    .ql-editor::before {
+      font-family: "Raleway", sans-serif;
+    }
+  </style>
+</head>
+
+<body data-room_id="{{room_id}}" data-startat="{{ labtest.start_at|time:'H:i' }}"
+  data-endat="{{ labtest.end_at|time:'H:i' }}">
+  <!-- Connection Status -->
+  <div id="connection-status" class="connection-status">
+    <div class="status-badge status-connecting">
+      <i class="fas fa-circle-notch fa-spin"></i>
+      <span>Connecting...</span>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- Header Section -->
+    <div class="header-section">
+      <div class="header-content" style="padding: 5px;">
+        <div class="d-flex justify-content-around">
+          <div class="div">
+            <h4 class="" style="margin-bottom: 0px;">
+              <span class="fw-light" style="opacity: .7; font-size:medium;">{{labtest.channel.name}}</span> -
+              <span class="fw-light">{{labtest.title}}</span>
+            </h4>
+            <div class="admin-info d-flex mt-1">
+              <img src="{{user.userprofile.imageURL}}" class="rounded me-2" height="25" alt="">
+              <p class="header-subtitle me-2" style="margin-bottom: 0px;">@{{request.user.username}}</p>
+            </div>
+          </div>
+
+          <div class="time">
+            <p class="fw-light">Start at <span class="badge bg-secondary fw-semibold"> {{labtest.start_at}} </span></p>
+            <p class="fw-light">End at &nbsp; <span class="badge bg-danger fw-semibold">{{labtest.end_at}}</span></p>
+
+          </div>
+        </div>
+
+
+      </div>
+      <div class="stats-bar">
+        <div class="stat-item">
+          <i class="fas fa-users"></i>
+          <span>Active Users</span>
+          <span id="user-count" class="stat-value">0</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-wifi"></i>
+          <span>Connection</span>
+          <span id="connection-indicator" class="stat-value">Connecting</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-clock"></i>
+          <span>Session Time</span>
+          <span id="session-time" class="stat-value">00:00</span>
+        </div>
+        <div class="stat-item">
+          <span><img src="{{labtest.imageURL}}" height="30" alt=""></span>
+        </div>
+
+        <!-- Full-screen overlay -->
+        <div id="labtestform"
+          class="position-fixed top-0 start-0 w-100 h-100 d-none align-items-center justify-content-center"
+          style="z-index: 1050; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+
+          <!-- Modal form card -->
+          <div class="rounded-4 p-4 shadow-lg"
+            style="background: rgba(56, 56, 56, 0.493); backdrop-filter: blur(10px); max-width: 900px; width: 90%; position: relative;">
+
+            <h5 class="text-center mb-4 fw-bold">Create Lab Test</h5>
+            <button type="button"
+              onclick="document.getElementById('labtestform').classList.toggle('d-none'); document.getElementById('labtestform').classList.toggle('d-flex');"
+              style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 24px; color: white; cursor: pointer;">
+              &times;
+            </button>
+
+            <!-- Upload form -->
+            {% include 'editor/component/create_labtest_form.html' %}
+
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <i class="fas fa-hashtag"></i>
+          <span>Room ID</span>
+          <span class="stat-value">{{room_id}}</span>
+        </div>
+
+        <!-- Trigger Button -->
+        <div class="stat-item">
+          {% if not labtest %}
+          <button
+            onclick="document.getElementById('labtestform').classList.toggle('d-none'); document.getElementById('labtestform').classList.toggle('d-flex');"
+            style="background: none; border: none; cursor: pointer;">
+            <i class="fa-solid fa-square-plus text-success"></i>
+            <span class=" text-success  fw-bold">Create Test</span>
+            {% else %}
+            <button onclick="document.getElementById('finish-confirm').style.display = 'flex';"
+              style="background: none; border: none; cursor: pointer;">
+              <i class="fa-solid fa-power-off text-danger"></i>
+            </button>
+            <span>Finish</span>
+            {% endif %}
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div id="finish-confirm" style="
+              display: none;
+              position: fixed;
+              top: 0; left: 0;
+              width: 100%; height: 100%;
+              background-color: rgba(0, 0, 0, 0.6);
+              z-index: 9999;
+              align-items: center;
+              justify-content: center;
+          ">
+          <div class="rounded-4 p-4 shadow-lg"
+            style="background: rgba(56, 56, 56, 0.95); max-width: 500px; width: 90%;">
+            <h5 class="text-center mb-4 fw-bold text-white">Finish Lab Test?</h5>
+            <form id="finishtest">
+              <div class="d-flex justify-content-around">
+                <button type="button" class="btn btn-secondary" onclick="hideFinishConfirm()">No</button>
+                <input type="text" value="{{room_id}}" name="room_id" hidden>
+                <button type="submit" class="btn btn-danger">Yes, Finish Test</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing Statistics Modal -->
+    <div id="typingModal" style="
+      position: fixed;
+      top: 0; 
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    ">
+      <div class="rounded-4 p-4 shadow-lg position-relative"
+        style="background: rgba(56, 56, 56, 0.95); max-width: 800px; width: 90%;">
+
+        <button onclick="hideTypingModal()" style="
+              position: absolute;
+              top: 10px;
+              right: 15px;
+              background: none;
+              border: none;
+              font-size: 24px;
+              color: white;
+              cursor: pointer;
+            ">&times;</button>
+
+        <h5 class="text-center mb-4 fw-bold text-white" id="typingModalTitle">Code Typing Statistics</h5>
+
+        <div class="chart-container">
+          <canvas id="charChart"></canvas>
+        </div>
+
+        <!-- <div class="mt-3 text-center">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="stat-box">
+                <h6 class="stat-label">Total Keystrokes</h6>
+                <p class="stat-value" id="totalKeystrokes">0</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="stat-box">
+                <h6 class="stat-label">Lines of Code</h6>
+                <p class="stat-value" id="linesOfCode">0</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="stat-box">
+                <h6 class="stat-label">Active Time</h6>
+                <p class="stat-value" id="activeTime">0m</p>
+              </div>
+            </div>
+          </div>
+        </div> -->
+      </div>
+    </div>
+
+    <!-- Editors Section -->
+    <div class="editors-section">
+      <h2 class="section-title">
+        <div class="section-icon">
+          <i class="fas fa-laptop-code"></i>
+        </div>
+        Code Editors
+      </h2>
+
+      <div id="editors-wrapper" class="row g-3">
+        <!-- Static Editors from Template -->
+        {% for candidate in all_candidates %}
+        <div class="col-lg-6" id="candidate-editor-{{candidate.user.id}}">
+          <div class="editor-card">
+            <div class="editor-header">
+              <div class="user-info">
+                <div class="user-avatar" style="overflow: hidden">
+                  <img src="{{candidate.user.userprofile.imageURL}}" height="30" alt="{{candidate.user.username}}">
+                </div>
+                <div class="user-details">
+                  <h6>@{{candidate.user.username}}</h6>
+                  <small>{{candidate.user.user_email}}</small>
+                </div>
+              </div>
+              <div class="editor-status">
+
+                <button onclick="getPastedCode('{{candidate.id}}')" class="text-info"
+                  style="border: none; background:none;">
+                  <img src="{% static 'editor/icons/paste-history.png' %}" height="20" />
+                </button>
+
+                <button onclick='showTypingModal("{{candidate.user.id}}", "{{candidate.user.username}}")'
+                  style="background: none; border: none; color: aliceblue; cursor: pointer;">
+                  <i class="fa-solid fa-chart-line"></i>
+                </button>
+                <button onclick='showAiAnalysic("{{candidate.id}}")' style="border: none; background:none;">
+                  <img src="{% static 'editor/icons/ai.png' %}" height="20" />
+                </button>
+
+              </div>
+            </div>
+            <div class="editor-container" id="editor-{{ candidate.user.id }}" data-code_content="{{candidate.code}}">
+              <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <span>Initializing editor...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+        <div id="ai-analysis-result"
+          class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center d-none"
+          style="z-index: 1050; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+          <div class="rounded-4 p-4 shadow-lg d-flex flex-column"
+            style="background: rgba(56, 56, 56, 0.95); max-width: 800px; width: 90%; max-height: 80vh; min-height: 200px; overflow: hidden;">
+
+            <div class="headers d-flex justify-content-between">
+              <div class="header-item">
+                <h5 class="text-center mb-4 fw-bold text-white">AI Analysis Result</h5>
+              </div>
+              <div class="header-item">
+                <button onclick="hideAiAnalysisResult()"
+                  style="background: none; border: none; color: aliceblue; cursor: pointer;">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+            <style>
+              #ai-analysis-result-text-container::-webkit-scrollbar {
+                width: 10px;
+                background: #232323;
+                border-radius: 10px;
+              }
+
+              #ai-analysis-result-text-container::-webkit-scrollbar-thumb {
+                background: #333333;
+                border-radius: 10px;
+              }
+            </style>
+            <div id="ai-analysis-result-text-container"
+              style="flex: 1 1 auto; overflow-y: auto; background: #232323; border-radius: 8px; padding: 12px; color: #fff;">
+              <div id="ai-analysis-result-text"
+                style="white-space: pre-wrap; word-break: break-word; background: none; color: inherit; margin: 0; padding: 0;">
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Modal / Overlay Container -->
+        <div id="pasted-code-container"
+          class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center d-none"
+          style="z-index: 1050; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+
+          <div class="rounded-4 p-4 shadow-lg d-flex flex-column"
+            style="background: rgba(56, 56, 56, 0.95); max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto;">
+
+            <!-- Header -->
+            <div class="headers d-flex justify-content-between mb-3">
+              <h5 class="fw-bold text-white">Pasted Code <span id="pasted-code-count" class="badge bg-info"></span></h5>
+              <button class="btn btn-sm btn-light" onclick="hidePastedCode()">Close</button>
+            </div>
+
+            <!-- Where snippets go -->
+            <div id="pasted-code-snippets" class="d-flex flex-column gap-3"></div>
+
+          </div>
+        </div>
+
+
+        <script>
+          function showAiAnalysic(candidate_id) {
+            document.getElementById('ai-analysis-result').classList.remove('d-none')
+
+            document.getElementById('ai-analysis-result-text').innerHTML = '<div class="loading-spinner"></div><span>Fetching analysis...</span>'
+
+            fetch('/ai-analyse-code/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                candidate_id: candidate_id
+              })
+            })
+              .then(response => response.json())
+              .then(data => {
+                console.log('response data is : ', data)
+                document.getElementById('ai-analysis-result-text').innerHTML = data.summary
+              })
+              .catch(error => {
+                console.error('Error:', error)
+              })
+
+          }
+          function hideAiAnalysisResult() {
+            document.getElementById('ai-analysis-result').classList.add('d-none')
+          }
+        </script>
+
+        <script>
+          function getPastedCode(attempt_id) {
+            fetch('/get-pasted-code/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ attempt_id: attempt_id })
+            })
+              .then(response => response.json())
+              .then(data => {
+                console.log('response data:', data);
+
+                const pastedCode = data.pasted_code;
+
+                // Show the modal
+                const container = document.getElementById('pasted-code-container');
+                container.classList.remove('d-none');
+                document.getElementById('pasted-code-count').textContent = pastedCode.length;
+                const snippetsContainer = document.getElementById('pasted-code-snippets');
+                snippetsContainer.innerHTML = ''; // Clear previous
+
+                pastedCode.forEach(code => {
+                  const { start_line, end_line, content } = code;
+
+                  // Container for one snippet
+                  const block = document.createElement('div');
+                  block.style.border = "1px solid #ccc";
+                  block.style.borderRadius = "8px";
+                  block.style.background = "#2e2e2e";
+                  block.style.padding = "10px";
+
+                  // Line info
+                  const info = document.createElement('div');
+                  info.textContent = `Lines ${start_line} - ${end_line}`;
+                  info.style.fontSize = "12px";
+                  info.style.color = "#fff";
+                  info.style.marginBottom = "5px";
+                  block.appendChild(info);
+
+                  // Monaco container
+                  const snippetDiv = document.createElement('div');
+                  snippetDiv.style.height = "180px";
+                  snippetDiv.style.width = "100%";
+                  block.appendChild(snippetDiv);
+
+                  snippetsContainer.appendChild(block);
+
+                  // Monaco
+                  monaco.editor.create(snippetDiv, {
+                    value: content,
+                    language: 'python',
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    lineNumbers: (line) => start_line + line - 1,
+                    theme: 'vs-dark'
+                  });
+                });
+              })
+              .catch(error => {
+                console.error('Error:', error);
+              });
+          }
+
+          function hidePastedCode() {
+            document.getElementById('pasted-code-container').classList.add('d-none');
+          }
+        </script>
+
+
+        <!-- Empty State -->
+        <div id="empty-state" class="col-12" {% if all_candidates %}style="display: none;" {% endif %}>
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-code-branch"></i>
+            </div>
+            <h3>Waiting for connections...</h3>
+            <p>Code editors will appear here as users join the session</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script src="{% static 'editor/js/testmonitor.js' %}"></script>
+
+</body>
+
+</html>

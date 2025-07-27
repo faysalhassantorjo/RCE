@@ -1,0 +1,123 @@
+:root {
+    --primary-color: #1c1c1c;
+    --secondary-color: #464646;
+    --dark-bg: #1e1e1e;
+    --darker-bg: #121212;
+    --light-bg: #252526;
+    --text-color: #f1f1f1;
+    --text-muted: #a01616;
+}
+
+body {
+    background-color: var(--darker-bg);
+    color: var(--text-color);
+    font-family: "Raleway", sans-serif;
+}
+
+/* Header Section */
+.header-section {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    padding: 2rem 0;
+    border-radius: 0 0 20px 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.header-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+    opacity: 0.3;
+}
+
+.header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.header-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--darker-bg);
+}
+
+.header-subtitle {
+    font-size: 1.2rem;
+    color: var(--darker-bg);
+    opacity: 0.8;
+}
+
+.card {
+    background-color: var(--dark-bg);
+    border: 1px solid #333;
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.channel-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid var(--primary-color);
+}
+
+
+
+#create-channel {
+
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 5px;
+}
+
+
+
+.form-control,
+.form-select {
+    background-color: var(--light-bg);
+    border: 1px solid #444;
+    color: var(--text-color);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--light-bg);
+    border-color: var(--primary-color);
+    color: var(--text-color);
+    box-shadow: 0 0 0 0.2rem rgba(78, 205, 209, 0.25);
+}
+
+.form-select option {
+    background-color: var(--light-bg);
+    color: var(--text-color);
+}
+
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--dark-bg);
+    border-radius: 10px;
+    border: 1px solid #333;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.text-muted {
+    color: var(--text-muted);
+}

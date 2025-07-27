@@ -94,8 +94,8 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             # "hosts": [("127.0.0.1", 6379)],
-            #  "hosts": [('redis_server', 6379)],
-             "hosts": [("redis://red-cuj40v0gph6c73fqc0ig:6379")],
+             "hosts": [('redis_server', 6379)],
+            #  "hosts": [("redis://red-cuj40v0gph6c73fqc0ig:6379")],
         },
     },
 }
@@ -159,7 +159,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 import os
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 
 
@@ -188,6 +188,6 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_IMPORTS = ('editor.tasks',)
 # CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0' 
 # CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/1'
-# CELERY_BROKER_URL = 'redis://redis:6379/0' 
-# CELERY_RESULT_BACKEND = 'redis://redis:6379/1'
+CELERY_BROKER_URL = 'redis://redis:6379/0' 
+CELERY_RESULT_BACKEND = 'redis://redis:6379/1'
 

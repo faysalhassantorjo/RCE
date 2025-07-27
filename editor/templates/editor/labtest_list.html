@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Lab Tests</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
+
+      <!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bs-body-bg: #0a0a0a;
+            --bs-body-color: #ffffff;
+            --bs-card-bg: #1a1a1a;
+            --bs-border-color: #404040;
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #1a1a1a;
+            --card-bg: #2a2a2a;
+            --accent-bg: #3a3a3a;
+            --primary-text: #ffffff;
+            --secondary-text: #b0b0b0;
+            --muted-text: #808080;
+            --accent-color: #4f46e5;
+            --accent-hover: #6366f1;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --border-color: #404040;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--primary-text);
+            font-family:"Raleway", sans-serif;
+        }
+
+        .bg-dark-custom {
+            background-color: var(--secondary-bg) !important;
+        }
+
+        .bg-card-custom {
+            background-color: var(--card-bg) !important;
+        }
+
+        .bg-accent-custom {
+            background-color: var(--accent-bg) !important;
+        }
+
+        .text-secondary-custom {
+            color: var(--secondary-text) !important;
+        }
+
+        .text-muted-custom {
+            color: var(--muted-text) !important;
+        }
+
+        .border-custom {
+            border-color: var(--border-color) !important;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        .form-control, .form-select {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            color: var(--primary-text);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--card-bg);
+            border-color: var(--accent-color);
+            color: var(--primary-text);
+            box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.25);
+        }
+
+        .form-control::placeholder {
+            color: var(--muted-text);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            border-color: var(--accent-color);
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, var(--secondary-bg), var(--card-bg));
+        }
+
+        .title-gradient {
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .badge-available {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+
+        .badge-unavailable {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
+
+        .language-badge {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .channel-avatar {
+            width: 50px;
+            height: 50px;
+            background-color: var(--accent-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .channel-avatar img{
+            height: 100%;
+        }
+
+        .test-question {
+            background-color: var(--secondary-bg);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .card-header-custom {
+            background: linear-gradient(135deg, var(--accent-bg), var(--card-bg));
+            border-bottom-color: var(--border-color);
+        }
+
+        .no-tests-container {
+            background-color: var(--card-bg);
+            border: 2px dashed var(--border-color);
+        }
+
+        .clickable-card {
+            cursor: pointer;
+        }
+
+        .test-card:hover .card-title {
+            color: var(--accent-hover);
+        }
+
+        @media (max-width: 768px) {
+            .filter-row .col-md-4 {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- Header Section -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-12">
+                <div class="header-gradient rounded-3 shadow p-5 text-center">
+                    <h1 class="display-4 fw-bold title-gradient mb-3">Available Lab Tests</h1>
+                    <p class="lead text-secondary-custom">Discover and participate in coding challenges and assessments</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="row mb-4 filter-row">
+            <!-- <div class="col-md-4 mb-3">
+                <label for="statusFilter" class="form-label text-secondary-custom">
+                    <i class="bi bi-funnel me-2"></i>Filter by Status
+                </label>
+                <select class="form-select" id="statusFilter">
+                    <option value="all">All Tests</option>
+                    <option value="available">Available Only</option>
+                    <option value="unavailable">Unavailable</option>
+                </select>
+            </div> -->
+         
+            <div class="col-md-4 mb-3">
+              
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="searchFilter" class="form-label text-secondary-custom">
+                    <i class="bi bi-search me-2"></i>Search Tests
+                </label>
+                <input type="text" class="form-control" id="searchFilter" placeholder="Search tests...">
+            </div>
+            <div class="col-md-4 mb-3">
+      
+            </div>
+        </div>
+
+        <!-- Tests Grid -->
+        <div class="row g-4" id="testsGrid">
+            <!-- Lab Test 1 -->
+            {% for labtest in all_labtest %}
+            <div class="col-lg-6 col-xl-4 test-card" data-status="available" data-language="python">
+                <div class="card h-100 border-custom clickable-card">
+                    <a href="{% url 'test_editor' pk=labtest.id %}" style="text-decoration: none;">
+                    <div class="card-header card-header-custom border-custom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title mb-2 text-white">{{labtest.title}}</h5>
+                            {% if labtest.available %}
+                            <span class="badge badge-available rounded-pill">Available</span>
+                            {% else %}
+                            <span class="badge badge-unavailable rounded-pill">Un-Available</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center text-secondary-custom">
+                            <i class="bi bi-clock me-2"></i>
+                            <span>{{labtest.duration}} minutes</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Channel Info -->
+                        <div class="bg-accent-custom rounded-3 p-3 mb-3 border-custom">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="channel-avatar me-3">
+                                    <img src="{{labtest.channel.imageURL}}" alt="">
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 text-white">{{labtest.channel.name}}</h6>
+                                    <span class="badge language-badge rounded-pill">{{labtest.channel.get_programing_language_display}}</span>
+                                </div>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-sm-6">
+                                    <small class="text-secondary-custom">
+                                        <i class="bi bi-people me-1"></i>{{labtest.labtest_attempt.all.count}} participants
+                                    </small>
+                                </div>
+                                <div class="col-sm-6">
+                                    <small class="text-secondary-custom">
+                                        <i class="bi bi-calendar me-1"></i>{{labtest.created_at}}
+                                    </small>
+                                </div>
+                            </div>
+                         
+                        </div>
+
+                        <!-- Question -->
+                        <!-- <div class="test-question rounded-3 p-3 mb-3">
+                            <p class="text-secondary-custom mb-0 small">
+                                Implement an efficient algorithm to solve the traveling salesman problem for a given set of cities. Your solution should optimize for both time and space complexity.
+                            </p>
+                        </div> -->
+
+                        <!-- Times -->
+                        <div class="d-flex justify-content-between pt-3 border-top border-custom">
+                            <small class="text-muted-custom">
+                                <i class="bi bi-clock me-1"></i>Starts: {{labtest.start_at}}
+                            </small>
+                            <small class="text-muted-custom">
+                                <i class="bi bi-clock-fill me-1"></i>Ends: {{labtest.end_at}}
+                            </small>
+                        </div>
+                    </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <!-- No Tests Found -->
+        <div class="row justify-content-center" id="noTests" style="display: none;">
+            <div class="col-md-6">
+                <div class="no-tests-container rounded-3 p-5 text-center">
+                    <i class="bi bi-search display-1 text-muted-custom mb-3"></i>
+                    <h3 class="text-secondary-custom">No tests found</h3>
+                    <p class="text-muted-custom">Try adjusting your filters to see more results.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Filter functionality
+        const statusFilter = document.getElementById('statusFilter');
+        const languageFilter = document.getElementById('languageFilter');
+        const searchFilter = document.getElementById('searchFilter');
+        const testsGrid = document.getElementById('testsGrid');
+        const noTests = document.getElementById('noTests');
+
+        function filterTests() {
+            const statusValue = statusFilter.value;
+            const languageValue = languageFilter.value;
+            const searchValue = searchFilter.value.toLowerCase();
+            
+            const testCards = testsGrid.querySelectorAll('.test-card');
+            let visibleCount = 0;
+
+            testCards.forEach(card => {
+                const cardStatus = card.getAttribute('data-status');
+                const cardLanguage = card.getAttribute('data-language');
+                const cardText = card.textContent.toLowerCase();
+
+                const statusMatch = statusValue === 'all' || cardStatus === statusValue;
+                const languageMatch = languageValue === 'all' || cardLanguage === languageValue;
+                const searchMatch = searchValue === '' || cardText.includes(searchValue);
+
+                if (statusMatch && languageMatch && searchMatch) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0) {
+                noTests.style.display = 'block';
+                testsGrid.style.display = 'none';
+            } else {
+                noTests.style.display = 'none';
+                testsGrid.style.display = 'flex';
+            }
+        }
+
+        // Event listeners
+        statusFilter.addEventListener('change', filterTests);
+        languageFilter.addEventListener('change', filterTests);
+        searchFilter.addEventListener('input', filterTests);
+
+        // Card click functionality
+        document.querySelectorAll('.test-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const testTitle = this.querySelector('.card-title').textContent;
+                console.log('Test card clicked:', testTitle);
+                // Add your navigation logic here
+                // Example: window.location.href = '/test/' + testId;
+            });
+        });
+
+        // Add tooltip functionality for better UX
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    </script>
+</body>
+</html>

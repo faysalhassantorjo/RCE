@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor - Dark Code Workspace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Quill theme for display page -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <!-- Quill syntax highlighting -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.bubble.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border-color: #30363d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #ff7b72;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Ubuntu", sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Header Section */
+        .header-section {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .header-content {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-icon {
+            color: var(--accent-blue);
+        }
+
+        .header-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .status-bar {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .status-value {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* Editor Section */
+        .editor-section {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .editor-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .editor-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+        }
+
+        .user-details h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-details p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .editor-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .control-button {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-button:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .connection-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background-color: rgba(63, 185, 80, 0.1);
+            color: var(--accent-green);
+        }
+
+        .connection-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-green);
+        }
+
+        .editor-container {
+            position: relative;
+        }
+
+        #monaco-editor {
+            width: 100%;
+            height: 600px;
+        }
+
+        .editor-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .save-indicator {
+            color: var(--accent-green);
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .save-indicator.show {
+            opacity: 1;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .status-badge {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-connected {
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .status-disconnected {
+            border-left: 3px solid var(--accent-orange);
+        }
+
+        .status-connecting {
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(13, 17, 23, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            z-index: 10;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 1.5rem;
+            }
+
+            .editor-header {
+                flex-direction: column;
+            }
+
+            #monaco-editor {
+                height: 500px;
+            }
+
+            .footer-info {
+                gap: 1rem;
+            }
+        }
+
+        .ql-syntax {
+            background: #282c34;
+            color: #abb2bf;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .ql-syntax::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .ql-syntax::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 3px;
+        }
+
+        .ql-syntax::-webkit-scrollbar-track {
+            background: #2c313c;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Connection Status -->
+    <div id="connection-status" class="connection-status ">
+        <div class="status-badge status-connecting">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <span>Connecting...</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <!-- <div class="header-content">
+                <h1 class="header-title">
+                    <i class="fas fa-code header-icon"></i>
+                    Code Workspace
+                </h1>
+                <p class="header-subtitle">Collaborative real-time code editor</p>
+            </div> -->
+            <div class="status-bar">
+                <div class="status-item">
+                    <i class="fas fa-user"></i>
+                    <span>User Profile</span>
+                    <span class="status-value">{{user.userprofile}}</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Test Time</span>
+                    <span class="status-value">{{lab_test.duration}} min</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Session</span>
+                    <span id="session-time" class="status-value">00:00</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-hashtag"></i>
+                    <span>Room</span>
+                    <span class="status-value">{{room.name}}</span>
+                </div>
+                <div class="status-item">
+                    <i class="fas fa-code-branch"></i>
+                    <span>Language</span>
+                    <span class="status-value">{{room.programing_language}}</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Editor Section -->
+        {% if lab_test.available %}
+        <!-- <div id="labtestform"
+            class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center "
+            style="z-index: 1050; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
+
+            <div class="bg-danger bg-opacity-75 text-white rounded-4 p-4 shadow-lg text-center mx-3"
+                style="max-width: 400px; width: 100%;">
+
+                <div class="mb-3">
+                    <i class="fas fa-exclamation-circle display-4"></i>
+                </div>
+
+                <h3 class="fw-bold mb-3">Test Already Attempted</h3>
+
+                <p class="mb-4 opacity-90">
+                    You have already attempted this lab test. Each test can only be taken once.
+                </p>
+
+                <button id="closeModal" class="btn btn-light btn-lg px-4" onclick="window.history.back()">
+                    <i class="fas fa-check me-2"></i>
+                    Understood
+                </button>
+
+
+            </div>
+        </div> -->
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="editor-section">
+                    <div class="editor-header">
+                        <div class="editor-info">
+                            <div class="user-avatar">
+                                <img src="{{user.userprofile.imageURL}}" style="width: 100%; height: 100%;" alt="">
+                            </div>
+                            <div class="user-details">
+                                <h3>{{user.userprofile}}</h3>
+                                <p>{{user.email}} • <span id="online_status" style="color: red;">Offline</span></p>
+                            </div>
+                        </div>
+                        <div class="editor-controls">
+                            <button class="control-button" id="theme-toggle">
+                                <i class="fas fa-moon"></i>
+                                <span>Dark</span>
+                            </button>
+                            <button class="control-button" id="save_code">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Save</span>
+                            </button>
+                            <button class="control-button" id="load_code">
+                                <i class="fa-solid fa-file-pen"></i>
+                                <span>Load</span>
+                            </button>
+                            <button class="control-button" style="background-color: rgba(0, 255, 255, 0.701);"
+                                id="submit_code">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span>Submit</span>
+                            </button>
+                            <button class="control-button" style="background-color: #3fb950;" id="run-code">
+                                <i class="fas fa-play"></i>
+                                <span>Run</span>
+                            </button>
+                            <!-- <div class="connection-indicator">
+                                    <div class="connection-dot"></div>
+                                    <span>Live</span>
+                                </div> -->
+                        </div>
+                    </div>
+
+                    <div class="editor-container">
+                        <div id="loading-overlay" class="loading-overlay">
+                            <div class="loading-spinner"></div>
+                            <div class="loading-text">Initializing Monaco Editor...</div>
+                        </div>
+                        <div id="monaco-editor"></div>
+                    </div>
+
+                    <div class="editor-footer">
+                        <div class="footer-info">
+                            <!-- <div class="footer-item">
+                            <i class="fas fa-file-code"></i>
+                            <span>main.js</span>
+                        </div> -->
+                            <div class="footer-item">
+                                <i class="fas fa-text-height"></i>
+                                <span id="line-count">2 lines</span>
+                            </div>
+                            <div class="footer-item">
+                                <i class="fas fa-font"></i>
+                                <span id="char-count">0 characters</span>
+                            </div>
+                        </div>
+                        <div id="save-indicator" class="save-indicator">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Changes saved</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-lg-5" style="padding: 0;">
+                <div class="test-question" style="border: 1px solid #0d1117;">
+                    <div class="card-header d-flex justify-content-between align-items-center"
+                        style="border-radius: 6px; overflow: hidden;">
+                        <h6 class="mb-0 p-1"><i class="fa-solid fa-file-circle-question me-2"></i>Question</h6>
+                        <button class="btn btn-sm btn-outline-secondary m-1" id="question_button">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </div>
+
+                    <div class="question-image" id="question_image">
+                        <div>
+                            {{lab_test.text_question | safe}}
+                        </div>
+                        <div style="border-radius: 6px; overflow: hidden;">
+                            <img src="{{lab_test.imageURL}}" style="width: 100%; height: auto;" alt="">
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    const crossbtn = document.getElementById('question_button');
+                    const questionImage = document.getElementById('question_image');
+
+                    crossbtn.addEventListener('click', () => {
+                        if (questionImage.style.display === 'none') {
+                            questionImage.style.display = 'block';
+                            crossbtn.innerHTML = '<i class="fas fa-chevron-up"></i>'; // Close icon
+                        } else {
+                            questionImage.style.display = 'none';
+                            crossbtn.innerHTML = '<i class="fas fa-chevron-down"></i>'; // Down arrow or any other toggle icon
+                        }
+                    });
+                </script>
+
+                <style>
+                    .panel {
+                        border: 1px solid #30363d;
+                        border-radius: 6px;
+                    }
+
+                    .hidden {
+                        display: none;
+                    }
+
+                    .output-content {
+                        background-color: #0d1117;
+                        font-family: 'JetBrains Mono', monospace;
+                        white-space: pre-wrap;
+                        min-height: 100px;
+                    }
+
+                    #terminal::-webkit-scrollbar {
+                        display: none;
+                    }
+
+                    #terminal::-webkit-scrollbar-thumb {
+                        display: none;
+                    }
+
+                    #terminal::-webkit-scrollbar-track {
+                        display: none;
+                    }
+
+                    #terminal::-webkit-scrollbar-corner {
+                        display: none;
+                    }
+                </style>
+                <div id="output-panel" class="panel mt-2">
+                    <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 p-1"><i class="fas fa-terminal me-2"></i>Output</h6>
+                        <button class="btn btn-sm btn-outline-secondary" id="clear-output">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <!-- <div class="card-body bg-dark p-0">
+                        <pre id="output-content" class="output-content p-3 m-0"></pre>
+                    </div> -->
+                    <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+                    <div id="terminal"
+                        style="width: 100%; min-height: 100%; overflow-y: auto; background-color: #0d1117;"></div>
+                    <script>
+                        const term = new Terminal();
+                        term.open(document.getElementById('terminal'));
+
+                        const clearOutputButton = document.getElementById('clear-output');
+                        clearOutputButton.addEventListener('click', () => {
+                            term.clear();
+                        });
+
+                    </script>
+                </div>
+                <canvas id="charChart" style="width: 100%; height: 200px;"></canvas>
+            </div>
+
+        </div>
+        {% else %}
+        <div id="" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+            style="z-index: 1050; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);">
+            <div class="rounded-4 p-4 shadow-lg text-center"
+                style="background: rgba(208, 89, 89, 0.85);  width: 90%; position: relative;">
+                <h2>No labtest Currently available : {{lab_test.available}}</h2>
+            </div>
+
+        </div>
+        {% endif %}
+
+
+
+    </div>
+    <script>
+        function drawChart(labels, data) {
+            const ctx = document.getElementById('charChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Characters Typed per 10s',
+                        data: data,
+                        borderColor: 'green',
+                        backgroundColor: 'rgba(0, 200, 0, 0.1)',
+                        fill: true,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Characters Typed' }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+
+    <script>
+        const room_id = "{{room_id}}";
+        const user_id = "{{request.user.id}}";
+        const user_name = "{{user.username}}";
+        const user_profile = "{{user.userprofile.imageURL}}";
+        const programming_language = "{{room.programing_language}}";
+        const attempt_id = "{{attempt.id}}"
+
+        console.log(user_id, user_name, user_profile)
+
+        let editor;
+        let socket;
+        // let sessionStartTime = Date.now();
+        let debounceTimer;
+
+        // DOM Elements
+        const connectionStatusEl = document.getElementById('connection-status');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const saveIndicator = document.getElementById('save-indicator');
+        const lineCountEl = document.getElementById('line-count');
+        const charCountEl = document.getElementById('char-count');
+        const themeToggle = document.getElementById('theme-toggle');
+        const runCodeButton = document.getElementById('run-code');
+        const sessionTimeEl = document.getElementById('session-time');
+        const testStartTimeStr = "{{ attempt.created_at|date:'c' }}";  // full timestamp
+        const testDurationMin = parseInt("{{ lab_test.duration }}");
+        const sessionDurationSec = testDurationMin * 60;
+
+        const submitCodeButton = document.getElementById('submit_code');
+
+
+
+
+
+        // Update connection status
+        function updateConnectionStatus(status, message) {
+            let online_status = document.getElementById('online_status')
+            online_status.textContent = 'Online';
+            online_status.style.color = 'green';
+            const badge = connectionStatusEl.querySelector('.status-badge');
+            badge.className = `status-badge status-${status}`;
+            badge.innerHTML = `
+            <i class="fas ${status === 'connected' ? 'fa-check-circle' :
+                    status === 'disconnected' ? 'fa-times-circle' :
+                        'fa-circle-notch fa-spin'}"></i>
+            <span>${message}</span>
+            `;
+            connectionStatusEl.style.display = 'block';
+            clearTimeout(updateConnectionStatus._hideTimeout);
+            updateConnectionStatus._hideTimeout = setTimeout(() => {
+                connectionStatusEl.style.display = 'none';
+            }, 2000);
+        }
+
+        // Show save indicator
+        function showSaveIndicator() {
+            saveIndicator.classList.add('show');
+            setTimeout(() => {
+                saveIndicator.classList.remove('show');
+            }, 2000);
+        }
+
+
+
+
+        // Update editor stats
+        function updateEditorStats() {
+            if (editor) {
+                const model = editor.getModel();
+                const lineCount = model.getLineCount();
+                const charCount = model.getValueLength();
+
+                lineCountEl.textContent = `${lineCount} lines`;
+                charCountEl.textContent = `${charCount} characters`;
+            }
+        }
+
+        // Set Monaco base path
+        require.config({
+            paths: {
+                'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs'
+            }
+        });
+
+        require(['vs/editor/editor.main'], function () {
+            // Create Monaco editor
+            editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+                language: 'python',
+                theme: 'vs-dark',
+
+            });
+
+            // Hide loading overlay
+            setTimeout(() => {
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 300);
+            }, 1500);
+
+            // Setup WebSocket
+            const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            socket = new WebSocket(`${protocol}://${window.location.host}/ws/test-monitor/${room_id}/`);
+
+            socket.onopen = () => {
+                console.log("WebSocket connected to", socket.url);
+                updateConnectionStatus('connected', 'Connected');
+
+                if (socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({
+                        type: "test_code",
+                        content: '',
+                        user_id: user_id,
+                        user_name: user_name,
+                        user_profile: user_profile
+                    }));
+                }
+
+            };
+            socket.onclose = () => {
+                console.warn("WebSocket connection closed.");
+                updateConnectionStatus('disconnected', 'Disconnected');
+            };
+
+            socket.onerror = (error) => {
+                console.error("WebSocket error:", error);
+                updateConnectionStatus('disconnected', 'Connection Error');
+            };
+            // editor.onDidPaste(() => {
+            //     // Undo the paste immediately
+            //     editor.trigger('', 'undo', null);
+            // });
+
+            editor.onDidChangeModelContent(() => {
+                updateEditorStats();
+
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    const code = editor.getValue();
+                    if (socket.readyState === WebSocket.OPEN) {
+                        socket.send(JSON.stringify({
+                            type: "test_code",
+                            content: code,
+                            user_id: user_id,
+                            user_name: user_name,
+                            user_profile: user_profile
+                        }));
+                        showSaveIndicator();
+                    }
+                }, 5000);
+            });
+
+            // Initial stats update
+            updateEditorStats();
+
+            // Theme toggle functionality
+            let isDarkTheme = true;
+            themeToggle.addEventListener('click', () => {
+                isDarkTheme = !isDarkTheme;
+                const theme = isDarkTheme ? 'vs-dark' : 'vs-light';
+                monaco.editor.setTheme(theme);
+
+                themeToggle.innerHTML = `
+                    <i class="fas fa-${isDarkTheme ? 'moon' : 'sun'}"></i>
+                    <span>${isDarkTheme ? 'Dark' : 'Light'}</span>
+                `;
+            });
+
+
+
+            let previousCharCount = 0;
+            let charDeltas = [];
+            let timeLabels = [];
+            let timePassed = 0;
+
+
+            submitCodeButton.addEventListener('click', function () {
+
+                fetch('/save-statistic/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        charDeltas: charDeltas,
+                        timeLabels: timeLabels,
+                        user: user_id,
+                        room_id: room_id,
+                        code_content: editor.getValue()
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        if (data.status === "success") {
+                            submitCodeButton.innerHTML = '<i class="fa-solid fa-check"></i> Submitted';
+                            submitCodeButton.disabled = true;
+                            submitCodeButton.style.backgroundColor = '#3fb950';
+                            submitCodeButton.style.color = 'white';
+
+                            setTimeout(() => {
+                                submitCodeButton.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Submit`;
+                                submitCodeButton.disabled = false;
+                                submitCodeButton.style.backgroundColor = 'rgba(0, 255, 255, 0.701)';
+                                submitCodeButton.style.color = 'white';
+                            }, 2000)
+
+
+                        } else {
+                            alert("Failed to submit code");
+                        }
+                    });
+            });
+
+            const intervalSeconds = 10;
+
+            const interval = setInterval(() => {
+                const currentCharCount = editor.getValue().length;
+                const typedThisInterval = currentCharCount - previousCharCount;
+                previousCharCount = currentCharCount;
+
+                charDeltas.push(typedThisInterval);
+                timeLabels.push(`${timePassed}s`);
+                timePassed += intervalSeconds;
+
+                console.log("time label and char deltas are", timeLabels, charDeltas)
+
+                if (timePassed >= sessionDurationSec) {
+                    clearInterval(interval);
+                    drawChart(timeLabels, charDeltas);
+                }
+            }, intervalSeconds * 1000);
+
+
+
+
+            const start = new Date(testStartTimeStr);  // no need to manually parse
+            function updateSessionTime() {
+                const now = new Date();
+                let elapsed = Math.floor((now - start) / 1000);
+
+                if (elapsed < 0) elapsed = 0;
+                if (elapsed >= sessionDurationSec) {
+                    sessionTimeEl.textContent = `${testDurationMin}:00`;
+                    if (typeof editor !== "undefined") editor.updateOptions({ readOnly: true });
+                    send_typing_statistic();
+                    clearInterval(timerInterval);
+                    return;
+                }
+                const min = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const sec = (elapsed % 60).toString().padStart(2, '0');
+                sessionTimeEl.textContent = `${min}:${sec}`;
+            }
+
+            updateSessionTime();
+            const timerInterval = setInterval(updateSessionTime, 1000);
+
+
+
+            // send code for execution
+
+            const code_execution_socket = new WebSocket(`${protocol}://${window.location.host}/ws/test-editor/`);
+            code_execution_socket.onopen = () => {
+                console.log("WebSocket connected to", code_execution_socket.url);
+                updateConnectionStatus('connected', 'Connected');
+            };
+
+            code_execution_socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log(data)
+
+
+                if (data.status === "executing") {
+                    runCodeButton.disabled = true;
+                    runCodeButton.innerHTML = 'executing...';
+                    runCodeButton.style.backgroundColor = 'white';
+                    runCodeButton.style.color = 'black';
+                } else {
+                    runCodeButton.disabled = false;
+                    runCodeButton.innerHTML = 'Run';
+                    runCodeButton.style.backgroundColor = '#3fb950';
+                    runCodeButton.style.color = 'white';
+                    const fixed = data.output.replace(/\n/g, "\r\n");
+                    term.write(fixed + '\n');
+                }
+            };
+
+            runCodeButton.addEventListener('click', () => {
+                code_execution_socket.send(JSON.stringify({
+                    code: editor.getValue(),
+                    language: programming_language,
+                    user: user_name,
+                    from_test_editor: true,
+                }));
+                runCodeButton.disabled = true;
+                runCodeButton.innerHTML = 'Running...';
+                runCodeButton.style.backgroundColor = 'white';
+                runCodeButton.style.color = 'black';
+            });
+
+
+
+
+            // code paste event handle
+
+            editor.onDidPaste((event) => {
+                const range = event.range;
+                const pastedContent = editor.getModel()?.getValueInRange(range) || "Unable to get pasted content";
+
+                const startLine = range.startLineNumber;
+                const endLine = range.endLineNumber;
+
+                console.log(`Pasted from line ${startLine} to ${endLine}`);
+                console.log(`Content:\n${pastedContent}`);
+
+                fetch('/catch-pasted-code/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ startLine, endLine, pastedContent, attempt_id })
+                })
+                    .then(response => response.json())
+                    .then(data => console.log(data));
+
+                // createSnippetBlock(startLine, endLine, pastedContent);
+            });
+
+
+
+            // save code to local storage
+
+            const saveCodeButton = document.getElementById('save_code');
+            const loadCodeButton = document.getElementById('load_code');
+
+            saveCodeButton.addEventListener('click', function () {
+                localStorage.setItem(`code_${attempt_id}`, editor.getValue());
+                saveCodeButton.innerHTML = '<i class="fa-solid fa-check"></i> Saved';
+                saveCodeButton.disabled = true;
+
+                setTimeout(() => {
+                    saveCodeButton.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save';
+                    saveCodeButton.disabled = false;
+                }, 2000)
+
+            });
+
+            loadCodeButton.addEventListener('click', function () {
+                const code = localStorage.getItem(`code_${attempt_id}`);
+                if (code) {
+                    editor.setValue(code);
+                    loadCodeButton.innerHTML = '<i class="fa-solid fa-check"></i> Loaded';
+                    loadCodeButton.disabled = true;
+
+                    setTimeout(() => {
+                        loadCodeButton.innerHTML = '<i class="fa-solid fa-file-pen"></i> Load';
+                        loadCodeButton.disabled = false;
+                    }, 2000)
+
+                }
+            });
+
+        });
+    </script>
+</body>
+
+</html>

@@ -9,37 +9,43 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 
 # Create your views here.
-# client = docker.from_env()
+client = docker.from_env()
 
 def channel(request,channel_id):
-    print('channel is is : ', channel_id)
     channel = Channel.objects.get(id = channel_id)
     
     channels_files = CodeFile.objects.filter(
         channel = channel
     ).order_by('-date')
+    
+    try:
+        lab_test = LabTest.objects.get(channel_id =channel_id, available=True)
+    except:
+        lab_test =[]
    
     context={
         'room_name':channel_id,
         'channel':channel,
         'channels_files':channels_files,
-        'url':request.build_absolute_uri()
+        'url':request.build_absolute_uri(),
+        'lab_test':lab_test
     }
     if request.user.is_authenticated:
         userprofile = UserProfile.objects.get(user = request.user)
+        container = None
         try:
             user_container = UserContainer.objects.get(user=userprofile)
-
-            # Get the Docker container
-            # container = client.containers.get(user_container.container_id)
-            # container_status = container.status
+            container = client.containers.get(user_container.container_id)
+            container_status = container.status
         except:
-            container_status = "Global Container"
+            container_status = None
         context.update({
             'userprofile':userprofile, 
-            'container_status':container_status
+            'container_status':container_status,
+            'container':container,
             })
     return render (request, 'editor/room2.html',context)
+
 @login_required(login_url='/login/')
 def home(request):
     users = UserProfile.objects.all()
@@ -253,39 +259,61 @@ def create_container(request):
     except Exception as E:
         return HttpResponse(f'Error happend: {E}')
     try:
-        user,created =UserProfile.objects.get_or_create(user = request.user)
+        user =UserProfile.objects.get(user = request.user)
         
-        # code_volume_host = f"
-        code_volume_container = "/code_file"
-        user_dir_host = os.path.join("./user_code_file", f"user_{user}")
-        user_dir_host = os.path.abspath(user_dir_host)
-        os.makedirs(user_dir_host, exist_ok=True)
-        # Define volumes
-        volumes = {
-            user_dir_host: {'bind': code_volume_container, 'mode': 'rw'}
-        }
-
+        
         # Run the container
         container = client.containers.run(
-            image="realtime_code_editor-ubuntu_env:latest",
+            image="realtime_code_editor-environment:latest",
             detach=True,
             command="sleep infinity",
             name=f"user_{user.id}_container",
             hostname=f"user_{user.id}",
-            volumes=volumes,
-            working_dir="/code_file"
+            working_dir="/code_file"  # Optional, just for consistency
         )
         
-        UserContainer.objects.create(user=user, container_id=container.id)
+        exit_code, output = container.exec_run("pip freeze")
+        installed_packages=""
+        if exit_code == 0:
+            installed_packages = output.decode("utf-8")
+            print(installed_packages)
+        else:
+            print("Something went wrong.")
+                
         
-        stop_container_task.apply_async(
-                    args = [container.id],
-                    countdown = 20
-                )
+        
+        UserContainer.objects.create(user=user, container_id=container.id, installed_packages= installed_packages)
+        
+        # stop_container_task.apply_async(
+        #             args = [container.id],
+        #             countdown = 20
+        # )
         return HttpResponse(f'user container created, container id is:{container.id}')
         
     except Exception as e:
         return HttpResponse(e)
+    
+@login_required
+def delete_container(request):
+    user_profile = request.user.userprofile
+    try:
+        user_container = user_profile.usercontainer
+    except UserContainer.DoesNotExist:
+        user_container = None
+
+    if user_container:
+        try:
+            container = client.containers.get(user_container.container_id)
+            container.stop()
+            # Remove it
+            container.remove()
+        except docker.errors.NotFound:
+            print("Container not found in Docker, only deleting DB entry.")
+
+        # Delete the DB record
+        user_container.delete()
+
+    return redirect('profile',user_profile.user.id)
     
 
 @csrf_exempt
@@ -297,9 +325,11 @@ def start_task(request):
         roomName = data.get('roomName','')
         language = data.get('language','')
         code_executed_by = data.get('code_executed_by','')
-        task = run_code_task(code,inputs,code_executed_by,roomName,language)
+        
 
-        return JsonResponse({'task_id': task})
+        task = run_code_task.delay(code,inputs,code_executed_by,roomName,language)
+
+        return JsonResponse({'task_id': task.id, 'status': 'Task started successfully'})
     return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
 
 from django.http import JsonResponse
@@ -341,18 +371,17 @@ def start_container(request):
                     countdown = 20 *60
                 )
                 
-                
-
-            # Serialize data for response
                 userprofile_data = {
                     'username': userprofile.user.username,
                 }
 
                 context={
-                    'container_status': "Connected",
+                    'container_status': "running",
                     'userId': user_id,
                     'userprofile': userprofile_data,
                     'container_id': user_container.container_id,
+                    'status':'success' ,
+                    'auto_stop_in':20
                 }
 
             return JsonResponse(context)
@@ -444,9 +473,325 @@ def create_file(request):
 def profile(request, pk):
     
     user_profile = UserProfile.objects.get(user_id = pk)
+    container = UserContainer.objects.filter(user=user_profile).first()
     
     context ={
-        'user_profile':user_profile
+        'user_profile':user_profile,
+        'container':container
     }
+        
+    if container:
+        container = client.containers.get(container.container_id)
+        status= container.status
+        context.update({'status':status})
     
     return render(request, 'editor/profile.html',context)
+
+
+def test_monitor(request,pk):
+    
+    
+     
+    labtest = LabTest.objects.filter(channel_id= pk).first()
+    
+    all_candidates = AttemptTest.objects.filter(test=labtest)
+    
+    context={
+        'room_id':pk,
+        'labtest':labtest,
+        'all_candidates':all_candidates
+    }
+    return render(request, 'editor/test_monitor.html',context)
+
+from datetime import datetime, time
+from .tasks import finish_lab_test
+import pytz
+
+def send_to_queue_for_stop_test(obj_id,end_at_time):
+    dhaka_tz = pytz.timezone('Asia/Dhaka')
+    
+    # Get current time in Dhaka timezone
+    now = datetime.now(dhaka_tz)
+    
+    # Create exam end time in Dhaka timezone
+    exam_end = datetime.combine(now.date(), end_at_time)
+    exam_end = dhaka_tz.localize(exam_end)
+    
+    # If end time has passed today, assume it's tomorrow
+    if exam_end <= now:
+        from datetime import timedelta
+        exam_end += timedelta(days=1)
+    
+    time_diff = exam_end - now
+    total_minute = round(time_diff.total_seconds() / 60, 1)
+    
+    print(f"Current time (Dhaka): {now.strftime('%H:%M:%S')}")
+    print(f"Exam ends at (Dhaka): {exam_end.strftime('%H:%M:%S')}")
+    print(f"Total time remaining (minutes): {total_minute}")
+    
+    # Calculate countdown in seconds for Celery
+    countdown_seconds = int(time_diff.total_seconds())
+    
+    finish_lab_test.apply_async(
+        args=[obj_id],
+        countdown=countdown_seconds
+    )
+    
+
+@csrf_exempt
+def manage_lab_test(request):
+    
+    if request.method == "POST":
+        try:
+            
+            room_id = request.POST.get('room_id')
+            # question = request.FILES.get('question')
+            text_question = request.POST.get('text-question')
+            raw_ques = request.POST.get('raw_ques')
+            duration = request.POST.get('duration')
+            end_at = request.POST.get('end_at')
+            title = request.POST.get('title')
+            
+            end_at_time = datetime.strptime(end_at, "%H:%M").time()
+            
+            obj, created = LabTest.objects.get_or_create(channel_id = room_id)
+            current_time = datetime.now().time()
+            # obj.image_question= question
+            obj.text_question = text_question
+            obj.raw_question_text = raw_ques
+            obj.title = title
+            obj.duration = duration
+            obj.available = True
+            obj.created_at = timezone.now()
+            obj.end_at = end_at_time
+            obj.start_at = current_time
+            obj.save()
+            
+            send_to_queue_for_stop_test(obj.id, end_at_time)
+            
+        
+            
+            return JsonResponse({'status':'success'})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'status':'som eerror'})
+    return JsonResponse({'status':'invalid request'})
+
+@csrf_exempt
+def finish_test(request):
+    if request.method == "POST":
+        room_id = request.POST.get('room_id')
+        obj = LabTest.objects.get(channel_id = room_id)
+        AttemptTest.objects.filter(test=obj).delete()
+        obj.delete()
+        return JsonResponse({'status':'success','room_id':room_id})
+    else:
+        return JsonResponse({'status':'invalid request'})
+        
+       
+
+
+def test_editor(request,pk):
+    context ={}
+    try:
+        lab_test = LabTest.objects.get(id = pk,available=True)
+        
+        attempt,created = AttemptTest.objects.get_or_create(
+            test = lab_test,
+            user = request.user
+        )
+
+        context.update({
+        'room_id':lab_test.channel.id,
+        'lab_test':lab_test,
+        "room":lab_test.channel,
+        "attempt":attempt
+        })
+    except Exception as e:
+        print(e)
+        lab_test = None
+  
+    return render(request, 'editor/test-editor.html',context)
+
+
+
+@csrf_exempt 
+def save_typing_statistic(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)        
+        user_id = data.get('user')
+        room_id = data.get('room_id')
+        code_content = data.get('code_content')
+        char_deltas = data.get('charDeltas', [])
+        time_labels = data.get('timeLabels', [])
+        
+        print(data)
+        
+        user= User.objects.get(id=user_id)
+        obj = LabTest.objects.get(channel_id = room_id)
+
+        attempt, created = AttemptTest.objects.get_or_create(
+            test = obj,
+            user=user,
+        )
+        attempt.code = code_content
+        attempt.char_deltas=char_deltas
+        attempt.time_labels=time_labels
+        attempt.done=True
+        attempt.save()
+
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@csrf_exempt  
+def get_typing_statistic(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+
+        # Example: Get user from session (or use request.user if authenticated)
+        
+        user_id = data.get('user')
+        room_id = data.get('room_id')
+    
+        
+        print(data)
+        
+        user= User.objects.get(id=user_id)
+        obj = LabTest.objects.get(channel_id = room_id)
+
+        ateemptobj = AttemptTest.objects.get(
+            test = obj,
+            user=user, 
+        )
+        
+        char_deltas=ateemptobj.char_deltas,
+        time_labels=ateemptobj.time_labels
+
+        return JsonResponse({'status': 'success','char_deltas':char_deltas,'time_labels':time_labels})
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+def labtest_list(request):
+    
+    channels = Channel.objects.filter(
+        participants__user = request.user
+    )
+    all_labtest = []
+    for channel in channels:
+        try:
+            labtest = channel.labtest
+            all_labtest.append(labtest)
+        except Exception as e:
+            print(e)
+            pass
+        
+    context ={
+        'all_labtest':all_labtest
+    }
+    print(all_labtest)
+    return render(request, 'editor/labtest_list.html',context)
+
+from dotenv import load_dotenv
+from langchain_core.prompts import load_prompt
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+import re
+
+load_dotenv()
+
+# Load your prompt once (globally)
+template = load_prompt('rce_prompt.json')
+
+# Setup your LLM
+llm = HuggingFaceEndpoint(
+    model="meta-llama/Llama-3.1-8B-Instruct",
+    # model="Qwen/Qwen3-30B-A3B",
+    task="text-generation",
+)
+chat_model = ChatHuggingFace(llm=llm)
+
+import markdown
+from django.utils.safestring import mark_safe
+from langchain_core.output_parsers import StrOutputParser
+parser = StrOutputParser()
+@csrf_exempt
+def ai_analyse_code(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        candidate_id = data.get('candidate_id')
+        candidate = AttemptTest.objects.get(id=candidate_id)
+        labtest = candidate.test
+        code = candidate.code
+        question = labtest.raw_question_text      
+          
+        
+        chain = template | chat_model | parser
+
+        response = chain.invoke({
+            'question': question,
+            'code': code
+        })
+
+        
+
+      
+
+        response_markdown = markdown.markdown(response)
+
+        return JsonResponse({'status': 'success','summary':response_markdown})
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@csrf_exempt
+def catch_pasted_code(request):
+    if request.method =='POST':
+        data = json.loads(request.body)
+        startLine = data.get('startLine')
+        endLine = data.get('endLine')
+        pastedContent = data.get('pastedContent')
+        attempt_id = data.get('attempt_id')
+        
+        attempt = AttemptTest.objects.get(id=attempt_id)
+        
+        AttemptPaste.objects.create(
+            attempt_test = attempt,
+            start_line = startLine,
+            end_line = endLine,
+            content = pastedContent
+        )
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+@csrf_exempt
+def get_pasted_code(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        attempt_id = data.get('attempt_id')
+        attempt = AttemptTest.objects.get(id=attempt_id)
+        pasted_code = AttemptPaste.objects.filter(attempt_test=attempt)
+        
+        pasted_code_list = []
+        for code in pasted_code:
+            pasted_code_list.append({
+                'id': code.id,
+                'start_line': code.start_line,
+                'end_line': code.end_line,
+                'content': code.content
+            })
+        
+        return JsonResponse({'status': 'success','pasted_code':pasted_code_list})     
+           
+    return JsonResponse({'error': 'Invalid method'}, status=405)
+
+
+def view_available_lab(request):
+    
+    channels = Channel.objects.filter(created_by__user = request.user)
+    print(channels)
+    
+    context ={
+        'channels':channels
+    }    
+    return render(request,'editor/view_available_lab.html',context)
+
+
+
+
+

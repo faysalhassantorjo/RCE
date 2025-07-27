@@ -1,0 +1,16 @@
+{
+    "name": null,
+    "input_variables": [
+        "code",
+        "question"
+    ],
+    "optional_variables": [],
+    "output_parser": null,
+    "partial_variables": {},
+    "metadata": null,
+    "tags": null,
+    "template": "\nYou are an expert coding examiner. Analyze the given code **strictly** in this format:\n\n---\n\n**Code:**  \n{code}\n\n**Question:**  \n{question}\n\n---\n\n**Return your analysis exactly in this format:**\n\na) **Time Complexity**:  \n- State the Big O notation for each function or main part.\n- Keep it short. Max 3 lines.\n\nb) **AI-like Code Percentage**:  \n- Give an estimated percentage (0\u2013100%) without extra explanation.\n- Format: `AI-like: XX%`\n\nc) **Correctness Check**:  \n- Say `\u2705 Correct` or `\u274c Incorrect` clearly.\n- If incorrect, briefly state the issue (max 2 lines) and give only the fixed code.\n\n---\n\n**Important Rules:**  \n- Always follow this structure: **a)**, **b)**, **c)**.  \n- Keep total output under 10 lines.  \n- No extra disclaimers.  \n- Be precise and clear.\n\n---\n",
+    "template_format": "f-string",
+    "validate_template": true,
+    "_type": "prompt"
+}

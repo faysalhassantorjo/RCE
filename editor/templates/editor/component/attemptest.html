@@ -1,0 +1,108 @@
+<div id="testModal"
+    class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center d-none"
+    style="z-index: 1050; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
+
+    <!-- Modal Dialog -->
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+
+            <!-- Modal Header -->
+            <div class="modal-header bg-warning text-dark border-0 rounded-top-4 p-4">
+                <div class="w-100 text-center">
+                    <i class="fas fa-exclamation-triangle fs-1 mb-2"></i>
+                    <h3 class="modal-title fw-bold mb-0">Confirm Test Attempt</h3>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <h5 class="text-muted mb-3">Are you sure you want to attempt the test right now?
+                    </h5>
+                    <p class="text-secondary small">Once started, the timer cannot be paused or reset.
+                    </p>
+                </div>
+
+                <!-- Test Details Card -->
+                <div class="card bg-light border-0 mb-4">
+                    <div class="card-body p-3">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-play-circle text-success me-2"></i>
+                                    <small class="text-muted fw-medium">Test starts at:</small>
+                                    <div class="fw-bold text-dark">{{lab_test.start_at}}</div>
+
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-stop-circle text-danger me-2"></i>
+                                    <small class="text-muted fw-medium">Test ends at:</small>
+                                    <div class="fw-bold text-dark">{{lab_test.end_at}}</div>
+
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-clock text-primary me-2"></i>
+                                    <small class="text-muted fw-medium">Duration:</small>
+                                    <div class="fw-bold text-primary fs-5">{{lab_test.duration}}</div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer border-0 p-4 pt-0">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center w-100">
+                    <button type="button" id="cancelBtn" class="btn btn-outline-secondary btn-lg px-4 me-md-2">
+                        <i class="fas fa-times me-2"></i>
+                        No, Cancel
+                    </button>
+                    {% if lab_test.available %}
+                    <a href="{% url 'test_editor' lab_test.id %}" class="btn btn-success btn-lg px-4">
+                        <i class="fas fa-check me-2"></i>
+                        Yes, Start Test
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const modal = document.getElementById('testModal');
+    const showModalBtn = document.getElementById('showModalBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    showModalBtn.addEventListener('click', function () {
+        modal.classList.remove('d-none');
+        // Add smooth fade-in animation
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.transition = 'opacity 0.3s ease';
+            modal.style.opacity = '1';
+        }, 10);
+    });
+    cancelBtn.addEventListener('click', function () {
+        hideModal();
+    });
+    function hideModal() {
+        modal.style.transition = 'opacity 0.3s ease';
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.classList.add('d-none');
+            modal.style.transition = '';
+            modal.style.opacity = '';
+        }, 300);
+    }
+</script>
