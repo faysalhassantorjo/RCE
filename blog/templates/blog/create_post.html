@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Post - Multi Language Code Editor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+</head>
+<body class="bg-dark text-light" style="min-height:100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+
+  <div class="container py-5">
+    <!-- Header -->
+    <div class="text-center mb-5">
+      <h1 class="display-4 fw-bold text-white mb-3">
+        <i class="fas fa-code me-3"></i>Code Editor
+      </h1>
+      <p class="lead text-white-50">Create and share your code snippets across multiple languages</p>
+    </div>
+
+    <!-- Main Form Card -->
+    <div class="row justify-content-center">
+      <div class="col-lg-10 col-xl-9">
+        <div class="card border-0 shadow-lg bg-dark bg-opacity-75 backdrop-blur">
+          <div class="card-header bg-primary bg-opacity-25 border-0 py-4">
+            <div class="row align-items-center">
+              <div class="col">
+                <h3 class="card-title mb-0 text-white">
+                  <i class="fas fa-plus-circle me-2"></i>Create New Post
+                </h3>
+              </div>
+              <div class="col-auto">
+                <span class="badge bg-success bg-opacity-75 px-3 py-2">
+                  <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>Ready
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body p-4 p-md-5">
+            <form method="post" id="postForm">
+              {% csrf_token %}
+
+              <!-- Title Input -->
+              <div class="mb-4">
+                <label class="form-label text-white fw-semibold fs-5 mb-3">
+                  <i class="fas fa-heading me-2 text-primary"></i>Post Title
+                </label>
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text bg-primary bg-opacity-25 border-primary text-white">
+                    <i class="fas fa-edit"></i>
+                  </span>
+                  <input type="text" name="title" class="form-control bg-dark bg-opacity-50 border-primary text-white" 
+                         placeholder="Enter an awesome title for your post..." required />
+                </div>
+              </div>
+
+              <!-- Description Input -->
+              <div class="mb-4">
+                <label class="form-label text-white fw-semibold fs-5 mb-3">
+                  <i class="fas fa-align-left me-2 text-info"></i>Post Description
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-info bg-opacity-25 border-info text-white">
+                    <i class="fas fa-paragraph"></i>
+                  </span>
+                  <textarea name="description" rows="4" class="form-control bg-dark bg-opacity-50 border-info text-white" 
+                            placeholder="Write a brief description about your post..." required></textarea>
+                </div>
+              </div>
+
+              <!-- Language Selection -->
+              <div class="mb-4">
+                <label class="form-label text-white fw-semibold fs-5 mb-3">
+                  <i class="fas fa-code-branch me-2 text-success"></i>Select Programming Language Here
+                </label>
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <div class="input-group input-group-lg">
+                      <span class="input-group-text bg-success bg-opacity-25 border-success text-white">
+                        <i class="fab fa-python"></i>
+                      </span>
+                      <select name="language" id="languageSelect" class="form-select bg-dark bg-opacity-50 border-success text-white" required>
+                        <option value="python" selected>Python</option>
+                        <option value="java">Java</option>
+                        <option value="cpp">C++</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="d-flex gap-2">
+                      <button type="button" class="btn btn-outline-primary btn-sm" onclick="formatCode()">
+                        <i class="fas fa-magic me-1"></i>Format
+                      </button>
+                      <button type="button" class="btn btn-outline-warning btn-sm" onclick="clearCode()">
+                        <i class="fas fa-trash me-1"></i>Clear
+                      </button>
+                      <button type="button" class="btn btn-outline-info btn-sm" onclick="downloadCode()">
+                        <i class="fas fa-download me-1"></i>Download
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Code Editor Section -->
+              <div class="mb-4">
+                <label class="form-label text-white fw-semibold fs-5 mb-3">
+                  <i class="fas fa-terminal me-2 text-warning"></i>Code Editor
+                </label>
+                <div class="position-relative">
+                  <div class="border border-2 border-info border-opacity-25 rounded-3 shadow-sm" 
+                       style="height:400px;" id="editor"></div>
+                  
+                  <!-- Editor Status Bar -->
+                  <div class="bg-dark bg-opacity-75 border-top border-info border-opacity-25 px-3 py-2 rounded-bottom-3">
+                    <div class="row align-items-center">
+                      <div class="col">
+                        <small class="text-muted">
+                          <span id="languageIndicator">Python</span> • 
+                          <span id="lineCount">Lines: 1</span> • 
+                          <span id="charCount">Characters: 0</span>
+                        </small>
+                      </div>
+                      <div class="col-auto">
+                        <small class="text-success">
+                          <i class="fas fa-check-circle me-1"></i>Ready to publish
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hidden textareas to store code for each language -->
+              <textarea name="code_python" id="code_python" hidden></textarea>
+              <textarea name="code_java" id="code_java" hidden></textarea>
+              <textarea name="code_cpp" id="code_cpp" hidden></textarea>
+
+              <!-- Submit Section -->
+              <div class="text-center mt-5">
+                <div class="d-grid gap-2 d-md-block">
+                  <button type="button" class="btn btn-outline-secondary btn-lg me-md-3">
+                    <i class="fas fa-save me-2"></i>Save Draft
+                  </button>
+                  <button type="submit" class="btn btn-primary btn-lg px-5 shadow">
+                    <i class="fas fa-rocket me-2"></i>Publish Post
+                  </button>
+                </div>
+                <p class="text-muted mt-3 mb-0">
+                  <small>Your code will be syntax highlighted and ready to share!</small>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-5">
+      <p class="text-white-50 mb-0">
+        <i class="fas fa-heart text-danger me-1"></i>
+        Built with Bootstrap & Monaco Editor
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+  <script>
+    let editor;
+    let codes = {
+      python: "# Welcome to Python!\n# Start coding here...\n\ndef hello_world():\n    print('Hello, World!')\n\nhello_world()",
+      java: "// Welcome to Java!\n// Start coding here...\n\npublic class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, World!\");\n    }\n}",
+      cpp: "// Welcome to C++!\n// Start coding here...\n\n#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << \"Hello, World!\" << endl;\n    return 0;\n}"
+    };
+
+    let currentLanguage = "python";
+
+    require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs" } });
+    require(["vs/editor/editor.main"], function () {
+      editor = monaco.editor.create(document.getElementById("editor"), {
+        value: codes[currentLanguage],
+        language: currentLanguage,
+        theme: "vs-dark",
+        automaticLayout: true,
+        fontSize: 16,
+        minimap: { enabled: false },
+        lineNumbers: "on",
+        roundedSelection: false,
+        scrollBeyondLastLine: false,
+        readOnly: false,
+        cursorStyle: "line",
+        wordWrap: "on",
+      });
+
+      editor.onDidChangeModelContent(() => {
+        updateStatusBar();
+      });
+
+      updateStatusBar();
+    });
+
+    document.getElementById("languageSelect").addEventListener("change", function () {
+      codes[currentLanguage] = editor.getValue();
+      currentLanguage = this.value;
+      monaco.editor.setModelLanguage(editor.getModel(), currentLanguage);
+      editor.setValue(codes[currentLanguage] || "");
+      const languageNames = { python: "Python", java: "Java", cpp: "C++" };
+      document.getElementById("languageIndicator").textContent = languageNames[currentLanguage];
+    });
+
+    document.getElementById("postForm").addEventListener("submit", function () {
+      codes[currentLanguage] = editor.getValue();
+      document.getElementById("code_python").value = codes.python;
+      document.getElementById("code_java").value = codes.java;
+      document.getElementById("code_cpp").value = codes.cpp;
+    });
+
+    function updateStatusBar() {
+      const content = editor.getValue();
+      const lines = content.split('\n').length;
+      const chars = content.length;
+      document.getElementById("lineCount").textContent = `Lines: ${lines}`;
+      document.getElementById("charCount").textContent = `Characters: ${chars}`;
+    }
+
+    function formatCode() {
+      editor.getAction('editor.action.formatDocument').run();
+    }
+
+    function clearCode() {
+      if (confirm('Are you sure you want to clear the current code?')) {
+        editor.setValue('');
+      }
+    }
+
+    function downloadCode() {
+      const content = editor.getValue();
+      const extensions = { python: 'py', java: 'java', cpp: 'cpp' };
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `code.${extensions[currentLanguage]}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

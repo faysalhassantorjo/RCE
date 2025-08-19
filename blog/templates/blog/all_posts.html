@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>All Blog Posts</title>
+
+  <!-- MDB UI Kit -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet" />
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #4ecdd1;
+      --secondary-color: #bd93f9;
+      --dark-bg: #1e1e1e;
+      --darker-bg: #121212;
+      --light-bg: #252526;
+      --lighter-bg: #2d2d2d;
+      --text-color: #e0e0e0;
+      --text-muted: #858585;
+      --text-accent: #4ecdd1;
+      --accent-color: #ff79c6;
+      --border-color: #333333;
+      --success-color: #50fa7b;
+      --info-color: #8be9fd;
+      --warning-color: #f1fa8c;
+      --danger-color: #ff5555;
+    }
+
+    body {
+      background-color: var(--darker-bg);
+      color: var(--text-color);
+      font-family: 'Raleway', sans-serif;
+    }
+
+    h1,
+    h2 {
+      color: var(--primary-color);
+    }
+
+    .card-custom {
+      background-color: var(--darker-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    }
+
+    .nav-tabs .nav-link {
+      color: var(--text-color);
+      background-color: var(--lighter-bg);
+      border: none;
+      border-radius: 0.5rem 0.5rem 0 0;
+      margin-right: 0.25rem;
+    }
+
+    .nav-tabs .nav-link.active {
+      background-color: var(--light-bg);
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+
+    /* Monaco editor container */
+    .monaco-editor-container {
+      height: 500px;
+      border-radius: 0.5rem;
+      background-color: var(--light-bg);
+      margin-top: 1rem;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+  </style>
+</head>
+
+<body class="pb-5">
+  <div class="blog-header p-3 rounded shadow-sm">
+    <!-- Top Bar: Title + Profile/Login -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h4 class="blog-title mb-0 text-light">
+        All Blog Posts
+      </h4>
+      <form class="search-bar d-flex align-items-center" action="" method="get">
+        <input type="search" name="q" class="form-control form-control-sm me-1" placeholder="Search posts..."
+          style="width: 400px;">
+        <button class="btn btn-secondary btn-sm" type="submit"><i class="fas fa-search"></i></button>
+      </form>
+
+      <div class="user-section">
+        {% if user.is_authenticated %}
+        <div class="dropdown">
+          <button class="btn rounded-pill btn-sm dropdown-toggle" type="button" id="userDropdown"
+            data-mdb-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-user me-1"></i>{{ user.username }}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+            <li><a class="dropdown-item" href="#">Profile</a></li>
+            <li><a class="dropdown-item" href="#">Logout</a></li>
+          </ul>
+        </div>
+        {% else %}
+        <a href="#" class="btn btn-outline-primary btn-sm">
+          <i class="fas fa-sign-in-alt me-1"></i>Login
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Search + Tags Row -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
+      <!-- Search -->
+
+      <!-- Tags -->
+      <style>
+        .rounded-pill {
+          border-radius: 8px !important;
+        }
+      </style>
+      <div class="tag-list d-flex flex-wrap gap-1 mt-2">
+        <a href="#" class="btn btn-outline-info btn-sm rounded-pill">All</a>
+        <a href="#" class="btn btn-outline-info btn-sm rounded-pill">BFS</a>
+        <a href="#" class="btn btn-outline-info btn-sm rounded-pill">DFS</a>
+        <a href="#" class="btn btn-outline-info btn-sm rounded-pill">Greedy</a>
+        <a href="#" class="btn btn-outline-info btn-sm rounded-pill">DP</a>
+        <a href="#" class="btn btn-outline-info btn-sm rounded-pill">Graph</a>
+        <a href="#" class="btn btn-outline-info btn-sm rounded-pill">Tree</a>
+        <a href="#" class="btn btn-outline-info btn-sm rounded-pill">Sorting</a>
+        <a href="#" class="btn btn-outline-info btn-sm rounded-pill">Searching</a>
+        <a href="#" class="btn btn-outline-info btn-sm rounded-pill">Misc</a>
+
+
+      </div>
+    </div>
+
+  </div>
+
+
+
+  <div class="container ">
+    <div class="row">
+      {% if post_list %}
+      {% for item in post_list %}
+      <div class="col-lg-12">
+        <article class="card-custom p-4 mb-4">
+          <div class="title d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-1">{{ item.post.title }}</h4>
+            <div class="reacted d-flex align-items-center gap-2">
+              <span class="badge rounded-pill me-1 px-3 py-2 fs-6">
+                <i class="fa-solid fa-star text-info me-2"></i></i>12
+              </span>
+
+              <span class="badge  rounded-pill me-2 px-3 py-2 fs-6">
+                <i class="fa-sharp fa-regular fa-comment ma-2"></i> 23
+              </span>
+
+            </div>
+
+          </div>
+          <style>
+            .reacted .badge {
+              font-size: 1rem;
+              border-radius: 999px;
+              box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            }
+
+            .reacted .btn {
+              border-radius: 999px;
+              font-weight: 500;
+              transition: background 0.2s, color 0.2s;
+            }
+
+            .reacted .btn:hover {
+              background: var(--primary-color);
+              color: #fff;
+            }
+          </style>
+
+
+          {% if item.post.description %}
+          <p class="mb-3 text-muted">{{ item.post.description }}</p>
+          {% endif %}
+
+          <div class="mb-3 small text-muted d-flex align-items-center justify-content-between">
+            <div class="post-info">
+              <span class="me-3"><i class="fas fa-user me-1"></i>{{ item.post.author.username }}</span>
+              <span class="me-3"><i class="fas fa-clock me-1"></i>{{ item.post.created_at|date:"M d, Y H:i" }}</span>
+              <span> <i class="fa-solid fa-earth-americas"></i> public</span>
+            </div>
+            <div class="channel-info">
+              <span class="badge bg-secondary rounded-pill ms-2">
+                <i class="fas fa-hashtag me-1"></i>Section U | Batch 61
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <ul class="nav nav-tabs" id="tab-{{ item.post.id }}" role="tablist">
+            {% for code in item.codes %}
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {% if forloop.first %}active{% endif %}"
+                id="tab-{{ code.language }}-{{ item.post.id }}" data-mdb-toggle="tab"
+                data-mdb-target="#{{ code.language }}-{{ item.post.id }}" type="button" role="tab">
+                {% if code.language == 'python' %}
+                <i class="fab fa-python me-1"></i>
+                {% elif code.language == 'java' %}
+                <i class="fab fa-java me-1"></i>
+                {% elif code.language == 'cpp' %}
+                <i class="fas fa-code me-1"></i>
+                {% endif %}
+                {{ code.language|title }}
+              </button>
+            </li>
+            {% endfor %}
+          </ul>
+
+          <!-- Tab Content -->
+          <div class="tab-content mt-3">
+            {% for code in item.codes %}
+            <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+              id="{{ code.language }}-{{ item.post.id }}" role="tabpanel">
+              {% if code.code %}
+              <div class="position-relative mt-3">
+                <button class="btn btn-secondary btn-sm position-absolute top-0 end-0 mt-2 me-2 ripple-surface"
+                  style="z-index: 10;" onclick="copyCode(this)">
+                  <i class="fas fa-copy me-1"></i>Copy
+                </button>
+                <div id="monaco-{{ code.language }}-{{ item.post.id }}" class="monaco-editor-container"
+                  data-language="{{ code.language }}" data-code="{{ code.code }}">
+                </div>
+              </div>
+              {% else %}
+              <div class="text-muted text-center p-4">
+                <p>No {{ code.language|title }} code available for this post.</p>
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </article>
+      </div>
+      {% endfor %}
+      {% else %}
+    </div>
+
+
+
+    <div class="alert alert-warning text-center mt-5">
+      <i class="fas fa-folder-open fa-3x mb-3"></i>
+      <h3>No Posts Available</h3>
+      <p>Check back later for amazing code snippets!</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- MDB JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
+  <!-- Monaco Editor loader -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/min/vs/loader.js"></script>
+
+  <script>
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/min/vs' } });
+    require(['vs/editor/editor.main'], function () {
+      document.querySelectorAll(".monaco-editor-container").forEach(container => {
+        const codeContent = container.dataset.code || "";
+        let language = container.dataset.language || "plaintext";
+
+        if (language === "cpp") language = "cpp";
+        if (language === "python") language = "python";
+        if (language === "java") language = "java";
+
+        monaco.editor.create(container, {
+          value: codeContent,
+          language: language,
+          readOnly: true,
+          automaticLayout: true,
+          minimap: { enabled: false },
+          theme: "vs-dark",
+          fontSize: 14,
+          lineNumbers: "on",
+          wordWrap: "on"
+        });
+      });
+    });
+
+    function copyCode(btn) {
+      const container = btn.nextElementSibling;
+      if (!container) return;
+      const editor = monaco.editor.getEditors().find(e => e.getDomNode() === container);
+      if (editor) {
+        navigator.clipboard.writeText(editor.getValue()).then(() => {
+          btn.classList.replace("btn-secondary", "btn-success");
+          btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+          setTimeout(() => {
+            btn.classList.replace("btn-success", "btn-secondary");
+            btn.innerHTML = '<i class="fas fa-copy me-1"></i>Copy';
+          }, 2000);
+        });
+      }
+    }
+  </script>
+</body>
+
+</html>

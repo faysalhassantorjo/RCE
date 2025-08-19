@@ -58,14 +58,25 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, lang
 
         if language == "PYTHON":
             filename = f"{code_executed_by}_file.py"
+            input_filename = f"{code_executed_by}_input.txt"
 
-            # Write file using base64
-            encoded = base64.b64encode(code.encode()).decode()
-            write_cmd = f"bash -c 'echo {encoded} | base64 -d > /code_file/{filename}'"
-            container.exec_run(write_cmd)
+            # Step 1: Write the code file
+            encoded_code = base64.b64encode(code.encode()).decode()
+            write_code_cmd = f"bash -c 'echo {encoded_code} | base64 -d > /code_file/{filename}'"
+            container.exec_run(write_code_cmd)
 
-            # Execute with 10s timeout
-            exec_cmd = f"timeout --kill-after=2s 5s python3 {filename}"
+            # Step 2: Handle input if provided
+            if inputs and inputs.strip():
+                encoded_input = base64.b64encode(inputs.encode()).decode()
+                input_cmd = f"bash -c 'echo {encoded_input} | base64 -d > /code_file/{input_filename}'"
+                container.exec_run(input_cmd)
+                # exec_cmd = f"bash -c timeout --kill-after=2s 5s python3 {filename} < {input_filename}"
+                exec_cmd = f"bash -c 'timeout --kill-after=2s 5s python3 {filename} < {input_filename}'"
+
+            else:
+                exec_cmd = f"timeout --kill-after=2s 5s python3 {filename}"
+
+            # Step 3: Run the code
             exit_code, output = container.exec_run(
                 exec_cmd,
                 tty=False,
@@ -73,6 +84,7 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, lang
                 workdir="/code_file",
                 environment={'PYTHONUNBUFFERED': '1'}
             )
+
         
         elif language == "C":
             filename = f"{code_executed_by}_file.c"
@@ -116,57 +128,7 @@ def run_code_task(code, inputs=None, code_executed_by=None, room_name=None, lang
                 workdir="/code_file"
             )
         
-        elif language == "JAVA":
-            # Try to extract the public class name from the code
-            match = re.search(r'public\s+class\s+(\w+)', code)
-            if match:
-                java_class = match.group(1)
-            else:
-                # Fallback to default class name
-                java_class = f"{code_executed_by}_Main"
-                # Replace class name in code if not present
-                code = re.sub(r'class\s+\w+', f'class {java_class}', code, count=1)
-            java_file = f"{java_class}.java"
-
-            # 1. Save code to .java file
-            encoded = base64.b64encode(code.encode()).decode()
-            write_cmd = f"bash -c 'echo {encoded} | base64 -d > /code_file/{java_file}'"
-            container.exec_run(write_cmd)
-
-            # 2. Compile Java code
-            compile_cmd = f"javac {java_file}"
-            compile_exit_code, compile_output = container.exec_run(
-                compile_cmd,
-                workdir="/code_file",
-                demux=True
-            )
-
-            stdout, stderr = compile_output
-            stdout = stdout.decode(errors='ignore') if stdout else ""
-            stderr = stderr.decode(errors='ignore') if stderr else ""
-
-            if compile_exit_code != 0:
-                final_output = f"[COMPILATION ERROR]: {stderr or 'Unknown error'}"
-                async_to_sync(channel_layer.group_send)(
-                    group_name,
-                    {
-                        "type": "task.update",
-                        "output": final_output,
-                        "code_executed_by": code_executed_by,
-                    }
-                )
-                return
-
-            # 3. Run compiled class with timeout
-            exec_cmd = f"timeout --kill-after=2s 5s java {java_class}"
-            exit_code, output = container.exec_run(
-                exec_cmd,
-                tty=False,
-                demux=True,
-                workdir="/code_file"
-            )
-            
-            
+        
         stdout, stderr = output
         result_output = stdout.decode(errors='ignore') if stdout else ""
         error_output = stderr.decode(errors='ignore') if stderr else ""

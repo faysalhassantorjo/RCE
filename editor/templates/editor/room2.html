@@ -70,6 +70,10 @@
             height: 100vh;
         }
 
+        .monaco-editor .cursor {
+            background-color: #4ecdd1 !important;
+        }
+
         .output-header {
             font-weight: bold;
             color: #f6f6f6;
@@ -561,8 +565,16 @@
         }
 
         @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0.3;
+            }
         }
 
         .user-cursor::before {
@@ -621,7 +633,9 @@
         <div class="col-lg-2 col-md-2 col-0 sidebar p-2 ">
             <div class="file-list-container p-2">
                 <p class="fw-light text-center" style="font-size: 14px; margin-bottom: 0;">{{channel.name}}</p>
-                <p class="fw-light text-center text-muted" style="margin-bottom: 2px;"><small>{{channel.get_programing_language_display }}</small></p>
+                <p class="fw-light text-center text-muted" style="margin-bottom: 2px;">
+                    <small>{{channel.get_programing_language_display }}</small>
+                </p>
 
                 <div class="user-profile p-3">
                     <div class="d-flex align-items-center">
@@ -711,7 +725,8 @@
                             <!-- Modal Footer -->
                             <div class="modal-footer border-0 p-4 pt-0">
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-center w-100">
-                                    <button type="button" id="cancelBtn" class="btn btn-outline-secondary btn-lg px-4 me-md-2">
+                                    <button type="button" id="cancelBtn"
+                                        class="btn btn-outline-secondary btn-lg px-4 me-md-2">
                                         <i class="fas fa-times me-2"></i>
                                         No, Cancel
                                     </button>
@@ -861,7 +876,7 @@
                         Connected Users (<span id="user-count" class="text-success">0</span>)</span>
                     <ul id="connected-users"></ul>
                 </div>
-                
+
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
                         const fileButtons = document.querySelectorAll('.file-button');
@@ -927,37 +942,35 @@
 
 
                         {% if container %}
-                            {% if container_status == "running" %}
-                            <span class="text-success me-2"
-                                style="border: none; border-radius: 12px; font-size: 12px; height: auto;">
-                                <i class="fa-solid fa-check-circle"></i> connected
-                            </span>
-                            {% else %}
-                            {% if container_status == "exited" %}
-                            <div class="me-1 ms-1">
-                                <button id="start_container" onclick="startContainer(this)" class="btn-sm" 
-                                style="
+                        {% if container_status == "running" %}
+                        <span class="text-success me-2"
+                            style="border: none; border-radius: 12px; font-size: 12px; height: auto;">
+                            <i class="fa-solid fa-check-circle"></i> connected
+                        </span>
+                        {% else %}
+                        {% if container_status == "exited" %}
+                        <div class="me-1 ms-1">
+                            <button id="start_container" onclick="startContainer(this)" class="btn-sm" style="
                                     border: 1px solid var(--border-color);
                                     border-radius: 5px;
                                     background-color: #f7f7f7e9;
-                                    " 
-                                    data-user_id="{{userprofile.id}}">
-                                    connect <i class="fa-brands fa-docker"></i>
-                                </button>
-                            </div>
-                            {% endif %}
-                            {% endif %}
+                                    " data-user_id="{{userprofile.id}}">
+                                connect <i class="fa-brands fa-docker"></i>
+                            </button>
+                        </div>
+                        {% endif %}
+                        {% endif %}
                         {% else %}
 
                         <p>
-                            <a href="{% url 'create_container' %}"class="badge bg-info me-2">create container</a>
+                            <a href="{% url 'create_container' %}" class="badge bg-info me-2">create container</a>
                         </p>
-                       
+
                         {% endif %}
 
                         <span>
                             <div class="hidden d-inline-flex position-relative me-2" id="indicate">
-                                
+
                                 <img class="rounded-4 shadow-4" src="" id="coding_by_img" alt="" data-mdb-tooltip-init
                                     title="" style="width: 30px; height: 30px; border:2px solid #4ecdd1;">
                             </div>
@@ -1202,7 +1215,7 @@
             let value = '';
             let read_only = true;
             let flag = true;
-            
+
             let userPositions = new Map(); // Track user positions
             let userDecorations = new Map(); // Track user decorations
             let cursorDecorations = new Map(); // Track cursor decorations
@@ -1229,38 +1242,41 @@
                 automaticLayout: true,
                 readOnly: read_only,
                 fontFamily: " 'JetBrains Mono', serif",
-                fontSize: 14, 
+                fontSize: 14,
                 fontLigatures: true,
                 lineNumbers: 'on',
                 glyphMargin: true,
                 folding: true,
-                lineDecorationsWidth: 50
+                lineDecorationsWidth: 50,
+
+
+                // Cursor styling
+                cursorStyle: 'line',
+                cursorBlinking: 'solid',
+                cursorWidth: 2,
+                cursorSmoothCaretAnimation: true
             });
 
             // Function to update user position and display
             function updateUserPosition(username, userImage, position, isTyping = false) {
                 if (!position) return;
-                 
+
                 const { lineNumber, column } = position;
                 userPositions.set(username, { position, userImage, isTyping });
-                
+
                 // Remove old decorations for this user
                 if (userDecorations.has(username)) {
                     editor.deltaDecorations(userDecorations.get(username), []);
                     userDecorations.delete(username);
                 }
-                if (cursorDecorations.has(username)) {
-                    editor.deltaDecorations(cursorDecorations.get(username), []);
-                    cursorDecorations.delete(username);
-                }
                 if (lineDecorations.has(username)) {
                     editor.deltaDecorations(lineDecorations.get(username), []);
                     lineDecorations.delete(username);
                 }
-                
+
                 // Add new decorations
                 const decorations = [];
-                
+
                 // Line indicator (user avatar on the left)
                 const lineIndicator = {
                     range: new monaco.Range(lineNumber, 1, lineNumber, 1),
@@ -1271,38 +1287,22 @@
                     }
                 };
                 decorations.push(lineIndicator);
-                
-                // Cursor indicator
-                const cursorIndicator = {
-                    range: new monaco.Range(lineNumber, column, lineNumber, column + 1),
-                    options: {
-                        className: 'user-cursor',
-                        hoverMessage: { value: `${username}'s cursor` },
-                        stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
-                    }
-                };
-                decorations.push(cursorIndicator);
-                
-                // Line background highlight if typing
-                // if (isTyping) {
-                //     const lineHighlight = {
-                //         range: new monaco.Range(lineNumber, 1, lineNumber, 1),
-                //         options: {
-                //             className: 'active-user-indicator',
-                //             stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
-                //         }
-                //     };
-                //     decorations.push(lineHighlight);
-                // }
-                
-                // Apply decorations
+
                 const decorationIds = editor.deltaDecorations([], decorations);
+                // editor.updateOptions({
+                //     cursorStyle: 'underline',
+                //     cursorBlinking: 'phase'
+                // });
+                editor.setPosition({ lineNumber: lineNumber, column: column }); // Inside "console.log"
+                editor.focus();
+
+
                 userDecorations.set(username, decorationIds);
-                
+
                 // Store individual decoration IDs for later removal
-                cursorDecorations.set(username, [decorationIds[1]]);
+                // cursorDecorations.set(username, [decorationIds[1]]);
                 lineDecorations.set(username, [decorationIds[0]]);
-                
+
                 // Add CSS for user avatar
                 const styleId = `user-avatar-style-${username}`;
                 if (!document.getElementById(styleId)) {
@@ -1317,126 +1317,31 @@
                     `;
                     document.head.appendChild(style);
                 }
-                
+
                 // Update the merged users display
-                updateMergedUsersDisplay();
             }
-            
+
             // Function to remove user position
             function removeUserPosition(username) {
                 userPositions.delete(username);
-                
+
                 if (userDecorations.has(username)) {
                     editor.deltaDecorations(userDecorations.get(username), []);
                     userDecorations.delete(username);
-                }
-                if (cursorDecorations.has(username)) {
-                    editor.deltaDecorations(cursorDecorations.get(username), []);
-                    cursorDecorations.delete(username);
                 }
                 if (lineDecorations.has(username)) {
                     editor.deltaDecorations(lineDecorations.get(username), []);
                     lineDecorations.delete(username);
                 }
-                
+
                 updateMergedUsersDisplay();
             }
-            
+
             // Function to update merged users display (active coders first, then connected users)
-            function updateMergedUsersDisplay() {
-                const mergedContainer = document.getElementById('merged-users-container');
-                if (!mergedContainer) return;
-                
-                mergedContainer.innerHTML = '';
-                
-                // Get all connected users
-                const connectedUsersList = document.getElementById('connected-users');
-                const connectedUsers = Array.from(connectedUsersList.children).map(item => {
-                    const img = item.querySelector('img');
-                    return {
-                        username: img.title,
-                        imageUrl: img.src
-                    };
-                });
-                
-                // Create a map of active coders
-                const activeCoders = new Map();
-                userPositions.forEach((userData, username) => {
-                    activeCoders.set(username, userData);
-                });
-                
-                // Separate active coders and regular connected users
-                const activeCoderUsers = [];
-                const regularConnectedUsers = [];
-                
-                connectedUsers.forEach(user => {
-                    if (activeCoders.has(user.username)) {
-                        activeCoderUsers.push(user);
-                    } else {
-                        regularConnectedUsers.push(user);
-                    }
-                });
-                
-                // Display active coders first
-                activeCoderUsers.forEach(user => {
-                    const userData = activeCoders.get(user.username);
-                    const { position, isTyping } = userData;
-                    const { lineNumber, column } = position;
-                    
-                    const userElement = document.createElement('div');
-                    userElement.className = 'd-flex align-items-center mb-2 p-2';
-                    userElement.style.cssText = `
-                        background-color: var(--sidebar-bg);
-                        border-radius: 6px;
-                        border-left: 3px solid ${isTyping ? '#4ecdd1' : '#666'};
-                    `;
-                    
-                    userElement.innerHTML = `
-                        <img src="${user.imageUrl}" alt="${user.username}" class="rounded-circle me-2" 
-                             style="width: 25px; height: 25px; object-fit: cover;">
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-white" style="font-size: 12px;">${user.username}</div>
-                            <div class="text-muted" style="font-size: 10px;">
-                                Line ${lineNumber}, Col ${column}
-                                ${isTyping ? '<span class="text-success ms-1">• typing</span>' : ''}
-                            </div>
-                        </div>
-                    `;
-                    
-                    mergedContainer.appendChild(userElement);
-                });
-                
-                // Display regular connected users
-                regularConnectedUsers.forEach(user => {
-                    const userElement = document.createElement('div');
-                    userElement.className = 'd-flex align-items-center mb-2 p-2';
-                    userElement.style.cssText = `
-                        background-color: var(--sidebar-bg);
-                        border-radius: 6px;
-                        border-left: 3px solid #666;
-                    `;
-                    
-                    userElement.innerHTML = `
-                        <img src="${user.imageUrl}" alt="${user.username}" class="rounded-circle me-2" 
-                             style="width: 25px; height: 25px; object-fit: cover;">
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-white" style="font-size: 12px;">${user.username}</div>
-                            <div class="text-muted" style="font-size: 10px;">Connected</div>
-                        </div>
-                    `;
-                    
-                    mergedContainer.appendChild(userElement);
-                });
-                
-                // Update user count
-                const countSpan = document.getElementById('user-count');
-                if (countSpan) {
-                    countSpan.textContent = connectedUsers.length;
-                }
-            }
+
             const notification = document.getElementById("notification");
-            
-            
+
+
             // Paste on the editor Notification implementation
             const code_paste = new WebSocket(`${protocol}://${window.location.host}/ws/code-paste/${roomName}/${userprofile}/`);
             let currentDecorations = [];
@@ -1538,8 +1443,8 @@
                     const div = document.createElement('div');
                     div.textContent = text;
                     return div.innerHTML
-                        .replace(/"/g, '&quot;')  
-                        .replace(/'/g, '&#39;');  
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
                 }
             };
 
@@ -1563,16 +1468,16 @@
             // Theme selector implementation ends here
 
 
-            
+
             // Function to update socket status badge
             function updateSocketStatus(status, message = '') {
                 const statusElement = document.getElementById('socket-status-text');
                 const iconElement = statusElement.querySelector('i');
-                
+
                 // Remove all status classes
                 statusElement.classList.remove('connected', 'connecting', 'disconnected', 'error');
-                
-                switch(status) {
+
+                switch (status) {
                     case 'connected':
                         statusElement.classList.add('connected');
                         iconElement.className = 'fa-solid fa-check-circle';
@@ -1608,7 +1513,7 @@
 
             let debounceTimer;
             let isLocalChange = false;
-            
+
             // Track cursor position changes
             editor.onDidChangeCursorPosition((event) => {
                 if (!isLocalChange) {
@@ -1622,7 +1527,7 @@
                     }));
                 }
             });
-            
+
             editor.onDidChangeModelContent((event) => {
                 if (!isLocalChange) {
                     const changes = event.changes.map(change => ({
@@ -1634,7 +1539,7 @@
                         },
                         text: change.text
                     }));
-                    
+
                     const position = editor.getPosition();
                     socket.send(JSON.stringify({
                         type: 'code_change',
@@ -1644,10 +1549,10 @@
                         cursor_position: position,
                         is_typing: true
                     }));
-                    
+
                     // Update local user position as typing
                     updateUserPosition(editorElement.dataset.user, editorElement.dataset.user_image, position, true);
-                    
+
                     // Clear typing indicator after a delay
                     clearTimeout(debounceTimer);
                     debounceTimer = setTimeout(() => {
@@ -1662,7 +1567,7 @@
                 updateSocketStatus('connected');
                 if (socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify({ type: "allconnecteduser" }));
-                    
+
                     // Send current position
                     const position = editor.getPosition();
                     socket.send(JSON.stringify({
@@ -1681,7 +1586,7 @@
                     if (data.type === 'cursor_position') {
                         updateUserPosition(data.coding_by, data.user_image, data.cursor_position, false);
                     }
-                    
+
                     // Handle code changes
                     if (data.type === 'code_change' && !isLocalChange) {
                         isLocalChange = true;
@@ -1723,7 +1628,7 @@
                     connected_users.forEach(user => {
                         addConnectedUser(user.username, user.image)
                         x.play()
-                        
+
                         // Initialize user position if they're not the current user
                         // if (user.username !== userprofile) {
                         //     // Set initial position at line 1, column 1
@@ -1922,23 +1827,23 @@
 
 
 
- 
+
 
             //  Task execution and result handling
             const task_socket = new WebSocket(`${protocol}://${window.location.host}/ws/task-result/${roomName}/`);
-            
+
             task_socket.onopen = function () {
                 console.log('Task socket connected');
             };
-            
+
             task_socket.onclose = function () {
                 console.log('Task socket closed');
             };
-            
+
             task_socket.onerror = function (error) {
                 console.error('Task socket error:', error);
             };
-            
+
             task_socket.onmessage = function (event) {
                 console.log(event)
                 console.log("Task ouput is : ", JSON.parse(event.data))
@@ -2022,15 +1927,15 @@
 
             // WebSocket connection for permission handling
             const permission_socket = new WebSocket(`${protocol}://` + window.location.host + '/ws/permission/' + roomName + '/')
-            
+
             permission_socket.onopen = function () {
                 console.log('Permission socket connected');
             };
-            
+
             permission_socket.onclose = function () {
                 console.log('Permission socket closed');
             };
-            
+
             permission_socket.onerror = function (error) {
                 console.error('Permission socket error:', error);
             };

@@ -702,7 +702,7 @@ template = load_prompt('rce_prompt.json')
 
 # Setup your LLM
 llm = HuggingFaceEndpoint(
-    model="meta-llama/Llama-3.1-8B-Instruct",
+    model="openai/gpt-oss-120b",
     # model="Qwen/Qwen3-30B-A3B",
     task="text-generation",
 )
@@ -712,7 +712,6 @@ import markdown
 from django.utils.safestring import mark_safe
 from langchain_core.output_parsers import StrOutputParser
 parser = StrOutputParser()
-@csrf_exempt
 def ai_analyse_code(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -721,7 +720,9 @@ def ai_analyse_code(request):
         labtest = candidate.test
         code = candidate.code
         question = labtest.raw_question_text      
-          
+
+        if candidate.ai_response:
+            return JsonResponse({'status': 'success','summary':candidate.ai_response})
         
         chain = template | chat_model | parser
 
@@ -729,14 +730,12 @@ def ai_analyse_code(request):
             'question': question,
             'code': code
         })
+        candidate.ai_response = response
+        candidate.save()
 
-        
+        # response_markdown = markdown.markdown(response)
 
-      
-
-        response_markdown = markdown.markdown(response)
-
-        return JsonResponse({'status': 'success','summary':response_markdown})
+        return JsonResponse({'status': 'success','summary':response})
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
 @csrf_exempt
@@ -790,6 +789,15 @@ def view_available_lab(request):
         'channels':channels
     }    
     return render(request,'editor/view_available_lab.html',context)
+
+def view_availabe_lab_test(request,channel_id):
+    labtests = LabTest.objects.filter(channel_id= channel_id)
+    
+    context= {
+        'labtests':labtests
+    }
+    
+    return render(request, 'editor/test_list.html',context)
 
 
 

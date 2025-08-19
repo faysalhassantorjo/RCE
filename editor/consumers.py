@@ -241,12 +241,12 @@ class TestEditorConsumer(AsyncWebsocketConsumer):
         code = text_data_json.get('code')
         language = text_data_json.get('language')
         user = text_data_json.get('user')
-        
+        inputs = text_data_json.get('inputs')
         channel_name = self.channel_name
         
-        print(code,language,user,channel_name)
+        print('inputs is :', inputs)
         
-        task = run_code_task.delay(code=code, language=language, code_executed_by=user, from_test_editor=True, test_eidtor_channel_name=channel_name)
+        task = run_code_task.delay(code=code,inputs=inputs, language=language, code_executed_by=user, from_test_editor=True, test_eidtor_channel_name=channel_name)
         print('task is: ', task)
         
         await self.send(text_data=json.dumps({

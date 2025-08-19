@@ -53,14 +53,12 @@
         .main-container {
             max-width: 100%;
             margin: 0 auto;
-            padding: 1rem;
         }
 
         /* Header Section */
         .header-section {
             background-color: var(--bg-secondary);
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
+            /* border-radius: 8px; */
             border: 1px solid var(--border-color);
         }
 
@@ -119,7 +117,7 @@
         }
 
         .editor-header {
-            padding: 1rem 1.5rem;
+            padding: 10px 12px;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -135,9 +133,10 @@
         }
 
         .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            border-radius: 5px;
+            overflow: hidden;
             background-color: var(--accent-blue);
             display: flex;
             align-items: center;
@@ -147,14 +146,14 @@
         }
 
         .user-details h3 {
-            font-size: 1.1rem;
+            font-size: .85rem;
             font-weight: 600;
             margin-bottom: 0.25rem;
         }
 
         .user-details p {
             color: var(--text-secondary);
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             margin: 0;
         }
 
@@ -168,7 +167,7 @@
             background-color: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
-            padding: 0.5rem 1rem;
+            padding: 0.3rem .8rem;
             border-radius: 6px;
             font-size: 0.85rem;
             cursor: pointer;
@@ -358,10 +357,29 @@
         .ql-syntax::-webkit-scrollbar-track {
             background: #2c313c;
         }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #222;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border: 2px solid #222;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #555;
+        }
     </style>
 </head>
 
-<body>
+<body style="height: 100vh;
+    overflow: hidden;">
     <!-- Connection Status -->
     <div id="connection-status" class="connection-status ">
         <div class="status-badge status-connecting">
@@ -373,13 +391,6 @@
     <div class="main-container">
         <!-- Header Section -->
         <div class="header-section">
-            <!-- <div class="header-content">
-                <h1 class="header-title">
-                    <i class="fas fa-code header-icon"></i>
-                    Code Workspace
-                </h1>
-                <p class="header-subtitle">Collaborative real-time code editor</p>
-            </div> -->
             <div class="status-bar">
                 <div class="status-item">
                     <i class="fas fa-user"></i>
@@ -412,34 +423,44 @@
 
         <!-- Editor Section -->
         {% if lab_test.available %}
-        <!-- <div id="labtestform"
-            class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center "
-            style="z-index: 1050; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);">
+        <div class="row" >
+            <div class="col-lg-3"style="padding: 0;" >
+                <div class="test-question" style="max-height: 90vh; overflow-y: auto; border-radius: 0; width: 100%; margin-left: 13px;">
+                    <div class="card-header d-flex justify-content-between align-items-center"
+                        >
+                        <h6 class="mb-0 p-1"><i class="fa-solid fa-file-circle-question me-2"></i>Question</h6>
+                        <button class="btn btn-sm btn-outline-secondary m-1" id="question_button">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </div>
 
-            <div class="bg-danger bg-opacity-75 text-white rounded-4 p-4 shadow-lg text-center mx-3"
-                style="max-width: 400px; width: 100%;">
-
-                <div class="mb-3">
-                    <i class="fas fa-exclamation-circle display-4"></i>
+                    <div class="question-image " id="question_image">
+                        <div>
+                            {{lab_test.text_question | safe}}
+                        </div>
+                        <div style="border-radius: 6px; overflow: hidden;">
+                            <img src="{{lab_test.imageURL}}" style="width: 100%; height: auto;" alt="">
+                        </div>
+                    </div>
                 </div>
 
-                <h3 class="fw-bold mb-3">Test Already Attempted</h3>
+                <script>
+                    const crossbtn = document.getElementById('question_button');
+                    const questionImage = document.getElementById('question_image');
 
-                <p class="mb-4 opacity-90">
-                    You have already attempted this lab test. Each test can only be taken once.
-                </p>
-
-                <button id="closeModal" class="btn btn-light btn-lg px-4" onclick="window.history.back()">
-                    <i class="fas fa-check me-2"></i>
-                    Understood
-                </button>
-
-
+                    crossbtn.addEventListener('click', () => {
+                        if (questionImage.style.display === 'none') {
+                            questionImage.style.display = 'block';
+                            crossbtn.innerHTML = '<i class="fas fa-chevron-up"></i>'; // Close icon
+                        } else {
+                            questionImage.style.display = 'none';
+                            crossbtn.innerHTML = '<i class="fas fa-chevron-down"></i>'; // Down arrow or any other toggle icon
+                        }
+                    });
+                </script>
             </div>
-        </div> -->
-        <div class="row">
-            <div class="col-lg-7">
-                <div class="editor-section">
+            <div class="col-lg-6" style="padding: 0;">
+                <div class="editor-section" style="border-radius: 0;">
                     <div class="editor-header">
                         <div class="editor-info">
                             <div class="user-avatar">
@@ -451,10 +472,7 @@
                             </div>
                         </div>
                         <div class="editor-controls">
-                            <button class="control-button" id="theme-toggle">
-                                <i class="fas fa-moon"></i>
-                                <span>Dark</span>
-                            </button>
+                         
                             <button class="control-button" id="save_code">
                                 <i class="fa-solid fa-floppy-disk"></i>
                                 <span>Save</span>
@@ -484,7 +502,7 @@
                             <div class="loading-spinner"></div>
                             <div class="loading-text">Initializing Monaco Editor...</div>
                         </div>
-                        <div id="monaco-editor"></div>
+                        <div id="monaco-editor"  style="height: 90vh; width: 100%;"></div>
                     </div>
 
                     <div class="editor-footer">
@@ -511,76 +529,31 @@
 
             </div>
 
-            <div class="col-lg-5" style="padding: 0;">
-                <div class="test-question" style="border: 1px solid #0d1117;">
-                    <div class="card-header d-flex justify-content-between align-items-center"
-                        style="border-radius: 6px; overflow: hidden;">
-                        <h6 class="mb-0 p-1"><i class="fa-solid fa-file-circle-question me-2"></i>Question</h6>
-                        <button class="btn btn-sm btn-outline-secondary m-1" id="question_button">
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                    </div>
-
-                    <div class="question-image" id="question_image">
-                        <div>
-                            {{lab_test.text_question | safe}}
-                        </div>
-                        <div style="border-radius: 6px; overflow: hidden;">
-                            <img src="{{lab_test.imageURL}}" style="width: 100%; height: auto;" alt="">
-                        </div>
-                    </div>
-                </div>
-
-                <script>
-                    const crossbtn = document.getElementById('question_button');
-                    const questionImage = document.getElementById('question_image');
-
-                    crossbtn.addEventListener('click', () => {
-                        if (questionImage.style.display === 'none') {
-                            questionImage.style.display = 'block';
-                            crossbtn.innerHTML = '<i class="fas fa-chevron-up"></i>'; // Close icon
-                        } else {
-                            questionImage.style.display = 'none';
-                            crossbtn.innerHTML = '<i class="fas fa-chevron-down"></i>'; // Down arrow or any other toggle icon
-                        }
-                    });
-                </script>
+            <div class="col-lg-3" style="padding: 0;">
 
                 <style>
-                    .panel {
-                        border: 1px solid #30363d;
-                        border-radius: 6px;
+                    .card-header{
+                        background-color: var(--bg-secondary);
+                        border: 1px solid var(--border-color);
+                        padding: 5px 15px;
                     }
-
                     .hidden {
                         display: none;
                     }
 
-                    .output-content {
-                        background-color: #0d1117;
-                        font-family: 'JetBrains Mono', monospace;
-                        white-space: pre-wrap;
-                        min-height: 100px;
-                    }
-
-                    #terminal::-webkit-scrollbar {
-                        display: none;
-                    }
-
-                    #terminal::-webkit-scrollbar-thumb {
-                        display: none;
-                    }
-
-                    #terminal::-webkit-scrollbar-track {
-                        display: none;
-                    }
-
-                    #terminal::-webkit-scrollbar-corner {
-                        display: none;
-                    }
+            
                 </style>
-                <div id="output-panel" class="panel mt-2">
-                    <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+                <div class="input-panel">
+                    <div class="card-header  d-flex justify-content-between ">
+                        <h6 class="mb-0 p-1"><i class="fas fa-keyboard me-2"></i>Input</h6>
+                        <button class="btn btn-sm btn-outline-secondary" id="clear-input" onclick="document.getElementById('input').value=''">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <textarea name="inputs" rows="6" style="width: 100%; background-color: var(--bg-primary); color: var(--text-primary);" id="inputs"></textarea>
+                </div>
+                <div id="output-panel" class="panel">
+                    <div class="card-header d-flex justify-content-between ">
                         <h6 class="mb-0 p-1"><i class="fas fa-terminal me-2"></i>Output</h6>
                         <button class="btn btn-sm btn-outline-secondary" id="clear-output">
                             <i class="fas fa-trash"></i>
@@ -590,17 +563,35 @@
                         <pre id="output-content" class="output-content p-3 m-0"></pre>
                     </div> -->
                     <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
-                    <div id="terminal"
-                        style="width: 100%; min-height: 100%; overflow-y: auto; background-color: #0d1117;"></div>
-                    <script>
-                        const term = new Terminal();
-                        term.open(document.getElementById('terminal'));
+                    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
 
-                        const clearOutputButton = document.getElementById('clear-output');
-                        clearOutputButton.addEventListener('click', () => {
-                            term.clear();
+                    <div id="terminal"
+                        style="width: 100%; min-height: 100%; overflow-y: auto; "></div>
+                    <script>
+                        const term = new Terminal({
+                            theme: {
+                                background: '#0d1117', // Dark GitHub-like background
+                                foreground: '#ffffff', // Optional: text color
+                                cursor: '#ffffff',     // Optional: cursor color
+                            }
+                        });
+                        const fitAddon = new FitAddon.FitAddon();
+                        term.loadAddon(fitAddon);
+
+                        const terminalContainer = document.getElementById('terminal');
+                        term.open(terminalContainer);
+                        fitAddon.fit();
+
+                        // Optional: Adjust on window resize
+                        window.addEventListener('resize', () => {
+                            fitAddon.fit();
                         });
 
+                        // Clear Output
+                        document.getElementById('clear-output').addEventListener('click', () => {
+                            term.clear();
+                        });
                     </script>
                 </div>
                 <canvas id="charChart" style="width: 100%; height: 200px;"></canvas>
@@ -678,12 +669,12 @@
         const saveIndicator = document.getElementById('save-indicator');
         const lineCountEl = document.getElementById('line-count');
         const charCountEl = document.getElementById('char-count');
-        const themeToggle = document.getElementById('theme-toggle');
         const runCodeButton = document.getElementById('run-code');
         const sessionTimeEl = document.getElementById('session-time');
         const testStartTimeStr = "{{ attempt.created_at|date:'c' }}";  // full timestamp
         const testDurationMin = parseInt("{{ lab_test.duration }}");
         const sessionDurationSec = testDurationMin * 60;
+        const inputs = document.getElementById('inputs')
 
         const submitCodeButton = document.getElementById('submit_code');
 
@@ -743,9 +734,19 @@
 
         require(['vs/editor/editor.main'], function () {
             // Create Monaco editor
+
+             monaco.editor.defineTheme('myCustomTheme', {
+                base: 'vs-dark', // or 'vs' for light theme
+                inherit: true,
+                rules: [],
+                colors: {
+                    'editor.background': '#0d1117' // your custom background color
+                }
+            });
+
             editor = monaco.editor.create(document.getElementById('monaco-editor'), {
                 language: 'python',
-                theme: 'vs-dark',
+                theme: 'myCustomTheme',
 
             });
 
@@ -812,18 +813,6 @@
             // Initial stats update
             updateEditorStats();
 
-            // Theme toggle functionality
-            let isDarkTheme = true;
-            themeToggle.addEventListener('click', () => {
-                isDarkTheme = !isDarkTheme;
-                const theme = isDarkTheme ? 'vs-dark' : 'vs-light';
-                monaco.editor.setTheme(theme);
-
-                themeToggle.innerHTML = `
-                    <i class="fas fa-${isDarkTheme ? 'moon' : 'sun'}"></i>
-                    <span>${isDarkTheme ? 'Dark' : 'Light'}</span>
-                `;
-            });
 
 
 
@@ -845,7 +834,7 @@
                         timeLabels: timeLabels,
                         user: user_id,
                         room_id: room_id,
-                        code_content: editor.getValue()
+                        code_content: editor.getValue(),
                     })
                 })
                     .then(response => response.json())
@@ -950,7 +939,10 @@
                     language: programming_language,
                     user: user_name,
                     from_test_editor: true,
+                    inputs: inputs.value
+
                 }));
+                console.log('inputs is: ',inputs.value)
                 runCodeButton.disabled = true;
                 runCodeButton.innerHTML = 'Running...';
                 runCodeButton.style.backgroundColor = 'white';

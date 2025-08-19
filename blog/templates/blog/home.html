@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Blog Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap"
+    rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #4ecdd1;
+      --secondary-color: #bd93f9;
+      --dark-bg: #1e1e1e;
+      --darker-bg: #121212;
+      --light-bg: #252526;
+      --lighter-bg: #2d2d2d;
+      --text-color: #e0e0e0;
+      --text-muted: #858585;
+      --text-accent: #4ecdd1;
+      --accent-color: #ff79c6;
+      --border-color: #333333;
+      --success-color: #50fa7b;
+      --info-color: #8be9fd;
+      --warning-color: #f1fa8c;
+      --danger-color: #ff5555;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+      color: var(--light);
+      font-family: 'Raleway', sans-serif;
+    }
+
+    .navbar {
+      border-radius: 0 0 1rem 1rem;
+    }
+
+    .card {
+      border: none;
+      border-radius: 1rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.4);
+    }
+
+    .card-body {
+      color: var(--light);
+    }
+
+    .btn {
+      border-radius: 0.75rem;
+      font-weight: 500;
+      padding: 0.65rem 1.5rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background: var(--secondary);
+    }
+
+    .btn-outline-light:hover {
+      color: var(--dark);
+      background: var(--light);
+    }
+
+    footer {
+      border-radius: 1rem 1rem 0 0;
+    }
+
+    /* Alerts */
+    .alert {
+      border-radius: 0.75rem;
+    }
+
+    /* Hero section icon */
+    .hero-icon {
+      font-size: 12rem;
+      opacity: 0.15;
+      color: var(--light);
+    }
+
+    .hero-circle {
+      background: rgba(102, 126, 234, 0.85);
+      border-radius: 50%;
+      padding: 1.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark bg-opacity-75 shadow-sm mb-4">
+    <div class="container">
+      <a class="navbar-brand fw-bold fs-3" href="#">
+        <i class="fas fa-blog me-2 text-primary"></i>CodeBlog
+      </a>
+
+      {% if user.is_authenticated %}
+      <div class="navbar-nav ms-auto">
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+            data-bs-toggle="dropdown">
+            <div class=" p-1 me-2">
+              <i class="fas fa-user text-white small"></i>
+            </div>
+            {{ user.username }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg rounded-3">
+            <li><a class="dropdown-item" href="{% url 'create_post' %}">
+                <i class="fas fa-plus me-2"></i>Create Post
+              </a></li>
+            <li><a class="dropdown-item" href="{% url 'all_posts' %}">
+                <i class="fas fa-list me-2"></i>All Posts
+              </a></li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item" href="{% url 'logout' %}">
+                <i class="fas fa-sign-out-alt me-2"></i>Logout
+              </a></li>
+          </ul>
+        </div>
+      </div>
+      {% else %}
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link me-2" href="{% url 'login' %}">
+          <i class="fas fa-sign-in-alt me-1"></i>Login
+        </a>
+        <a class="nav-link" href="{% url 'register' %}">
+          <i class="fas fa-user-plus me-1"></i>Register
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- Hero Section -->
+    <div class="row align-items-center mb-5">
+      <div class="col-lg-8">
+        <div class="card bg-dark bg-opacity-50 shadow-lg">
+          <div class="card-body p-5">
+            <div class="d-flex align-items-center mb-4">
+              <div class="bg-primary bg-opacity-25 rounded-circle p-3 me-4">
+                <i class="fas fa-blog fs-1 text-primary"></i>
+              </div>
+              <div>
+                <h1 class="display-4 fw-bold text-white mb-2">Code Blog</h1>
+                <p class="lead text-white-50 mb-0">Share your code snippets with the world</p>
+              </div>
+            </div>
+
+            {% if user.is_authenticated %}
+            <div class="alert alert-success bg-success bg-opacity-25 border-success text-white">
+              <i class="fas fa-check-circle me-2"></i>
+              <strong>Welcome back, {{ user.username }}!</strong>
+              <div class="small">Ready to create your next masterpiece?</div>
+            </div>
+            {% else %}
+            <div class="alert alert-info bg-info bg-opacity-25 border-info text-white">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Join our community</strong>
+              <div class="small">Login to start sharing your code</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 text-center d-none d-lg-block">
+        <div class="position-relative">
+          <i class="fas fa-code hero-icon"></i>
+          <div class="position-absolute top-50 start-50 translate-middle">
+            <div class="hero-circle">
+              <i class="fas fa-feather-alt fs-1 text-white"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-5">
+      <div class="col-12">
+        <div class="card bg-dark bg-opacity-50 shadow-lg">
+          <div class="card-body p-4 text-center">
+            <h3 class="text-white mb-4">
+              <i class="fas fa-rocket me-2 text-warning"></i>
+              Ready to Get Started?
+            </h3>
+
+            {% if user.is_authenticated %}
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+              <a href="{% url 'create_post' %}" class="btn btn-primary btn-lg shadow">
+                <i class="fas fa-plus me-2"></i>Write New Post
+              </a>
+              <a href="{% url 'all_posts' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-book-open me-2"></i>Browse Posts
+              </a>
+            </div>
+            {% else %}
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+              <a href="{% url 'register' %}" class="btn btn-success btn-lg shadow">
+                <i class="fas fa-user-plus me-2"></i>Join Now
+              </a>
+              <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="row mb-4">
+      <div class="col-12">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+          {% if message.tags == 'success' %}
+          <i class="fas fa-check-circle me-2"></i>
+          {% elif message.tags == 'error' %}
+          <i class="fas fa-exclamation-circle me-2"></i>
+          {% elif message.tags == 'warning' %}
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {% else %}
+          <i class="fas fa-info-circle me-2"></i>
+          {% endif %}
+          <strong>{{ message }}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark bg-opacity-75 py-4 mt-5">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <p class="text-white-50 mb-0">
+            <i class="fas fa-heart text-danger me-1"></i>
+            Made with love for developers everywhere
+          </p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <div class="d-flex justify-content-md-end gap-3">
+            <a href="#" class="text-white-50 text-decoration-none">
+              <i class="fab fa-github fs-5"></i>
+            </a>
+            <a href="#" class="text-white-50 text-decoration-none">
+              <i class="fab fa-twitter fs-5"></i>
+            </a>
+            <a href="#" class="text-white-50 text-decoration-none">
+              <i class="fab fa-discord fs-5"></i>
+            </a>
+            <a href="#" class="text-white-50 text-decoration-none">
+              <i class="fab fa-linkedin fs-5"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -26,6 +26,7 @@ from django.http import HttpResponse
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('editor.urls')),
+    path('blog/', include('blog.urls')),
 
 ]
 if settings.DEBUG:

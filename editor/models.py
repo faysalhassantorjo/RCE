@@ -147,6 +147,7 @@ class AttemptTest(models.Model):
     code = models.TextField(null=True, blank=True)
     attempt_at = models.TimeField(null=True, blank=True)
     done = models.BooleanField(default=False)
+    ai_response = models.TextField(null=True,blank=True)
     
 
 class AttemptPaste(models.Model):

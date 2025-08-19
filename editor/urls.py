@@ -33,5 +33,6 @@ urlpatterns = [
      path('catch-pasted-code/', catch_pasted_code, name='catch_pasted_code'),
      path('get-pasted-code/', get_pasted_code, name='get_pasted_code'),
      path('view-available-lab/', view_available_lab, name='view_available_lab'),
+     path('available-lab-test/<str:channel_id>', view_availabe_lab_test, name='view_availabe_lab_test'),
     
 ]
